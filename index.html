@@ -1,55 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Image Gallery</title>
+  <title>Галерея с папками</title>
   <style>
     body {
       font-family: sans-serif;
       padding: 20px;
     }
-    .image-block {
-      margin-bottom: 30px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 20px;
+    .folder, .image-block {
+      margin-bottom: 15px;
     }
     .image-block img {
       max-width: 300px;
       display: block;
-      margin-top: 10px;
+      margin-top: 5px;
     }
     .copy-btn {
-      margin-top: 10px;
+      margin-top: 5px;
       padding: 5px 10px;
       font-size: 14px;
       cursor: pointer;
     }
+    a.folder {
+      display: inline-block;
+      font-weight: bold;
+      margin-right: 10px;
+      text-decoration: none;
+    }
+    .back-link {
+      margin-bottom: 20px;
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <h1>Gallery of PNG Files</h1>
-
-  <!-- ===== ВСТАВЬ СЮДА ФАЙЛЫ ===== -->
-  <div class="image-block">
-    <div><strong>PR5Aq97.png</strong></div>
-    <img src="PR5Aq97.png" alt="PR5Aq97.png">
-    <button class="copy-btn" data-url="https://nuckem.github.io/skins/PR5Aq97.png">Copy URL</button>
-  </div>
-
-  <!-- Добавь больше блоков сюда по той же схеме -->
+  <h1>Галерея</h1>
+  <div id="nav"></div>
+  <div id="gallery"></div>
 
   <script>
-    document.querySelectorAll('.copy-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        const url = button.getAttribute('data-url');
-        navigator.clipboard.writeText(url).then(() => {
-          button.innerText = 'Copied!';
-          setTimeout(() => {
-            button.innerText = 'Copy URL';
-          }, 1500);
+    const galleryRoot = document.getElementById('gallery');
+    const navRoot = document.getElementById('nav');
+    const baseUrl = 'https://nuckem.github.io/skins/images/';
+    const currentPath = decodeURIComponent(new URLSearchParams(window.location.search).get('path') || '');
+
+    function getFolderPath(filePath) {
+      const parts = filePath.split('/');
+      parts.pop();
+      return parts.join('/');
+    }
+
+    function getFileName(filePath) {
+      return filePath.split('/').pop();
+    }
+
+    fetch('data.json')
+      .then(res => res.json())
+      .then(data => {
+        const folders = new Set();
+        const images = [];
+
+        data.forEach(entry => {
+          const file = entry.file;
+          const folder = getFolderPath(file);
+
+          if (currentPath && !file.startsWith(currentPath + '/')) return;
+
+          const relative = currentPath ? file.substring(currentPath.length + 1) : file;
+
+          if (relative.includes('/')) {
+            const nextFolder = relative.split('/')[0];
+            folders.add(nextFolder);
+          } else {
+            images.push(file);
+          }
+        });
+
+        if (currentPath) {
+          const backPath = currentPath.split('/').slice(0, -1).join('/');
+          const backUrl = backPath ? `?path=${encodeURIComponent(backPath)}` : `?`;
+          navRoot.innerHTML += `<a href="${backUrl}" class="back-link">⬅ Назад</a>`;
+        }
+
+        [...folders].sort().forEach(folder => {
+          const url = `${window.location.pathname}?path=${encodeURIComponent(currentPath ? currentPath + '/' + folder : folder)}`;
+          navRoot.innerHTML += `<a class="folder" href="${url}">📁 ${folder}</a><br>`;
+        });
+
+        images.forEach(file => {
+          const imageBlock = document.createElement('div');
+          imageBlock.className = 'image-block';
+
+          const title = document.createElement('div');
+          title.innerHTML = `<strong>${getFileName(file)}</strong>`;
+
+          const img = document.createElement('img');
+          img.src = baseUrl + file;
+          img.alt = file;
+
+          const btn = document.createElement('button');
+          btn.className = 'copy-btn';
+          btn.textContent = 'Copy URL';
+          btn.setAttribute('data-url', baseUrl + file);
+
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.getAttribute('data-url')).then(() => {
+              btn.textContent = 'Copied!';
+              setTimeout(() => { btn.textContent = 'Copy URL'; }, 1500);
+            });
+          });
+
+          imageBlock.appendChild(title);
+          imageBlock.appendChild(img);
+          imageBlock.appendChild(btn);
+          galleryRoot.appendChild(imageBlock);
         });
       });
-    });
   </script>
 </body>
 </html>
