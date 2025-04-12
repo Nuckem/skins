@@ -5,9 +5,13 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write  # 🟢 разрешаем пушить в репозиторий
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -21,8 +25,8 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add data.json
-          git commit -m "Auto-update gallery with folders" || echo "No changes"
+          git commit -m "Auto-update gallery" || echo "No changes to commit"
           git push
