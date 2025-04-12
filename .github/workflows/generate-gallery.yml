@@ -1,0 +1,28 @@
+name: Generate Gallery Data
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Generate data.json
+        run: |
+          echo "[" > data.json
+          find . -maxdepth 1 -type f -name "*.png" | sed 's|^\./||' | awk '{ printf "  {\"file\": \"%s\", \"name\": \"%s\"},\n", $0, $0 }' >> data.json
+          sed -i '$ s/,$//' data.json
+          echo "]" >> data.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add data.json
+          git commit -m "Auto-update gallery" || echo "No changes"
+          git push
