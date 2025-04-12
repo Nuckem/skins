@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Gallery</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .image-block {
+      margin-bottom: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 20px;
+    }
+    .image-block img {
+      max-width: 300px;
+      display: block;
+      margin-top: 10px;
+    }
+    .copy-btn {
+      margin-top: 10px;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gallery of PNG Files</h1>
+
+  <!-- ===== ВСТАВЬ СЮДА ФАЙЛЫ ===== -->
+  <div class="image-block">
+    <div><strong>PR5Aq97.png</strong></div>
+    <img src="PR5Aq97.png" alt="PR5Aq97.png">
+    <button class="copy-btn" data-url="https://nuckem.github.io/skins/PR5Aq97.png">Copy URL</button>
+  </div>
+
+  <!-- Добавь больше блоков сюда по той же схеме -->
+
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const url = button.getAttribute('data-url');
+        navigator.clipboard.writeText(url).then(() => {
+          button.innerText = 'Copied!';
+          setTimeout(() => {
+            button.innerText = 'Copy URL';
+          }, 1500);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
