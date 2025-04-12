@@ -12,10 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Generate data.json
+      - name: Generate data.json from /images recursively
         run: |
           echo "[" > data.json
-          find . -maxdepth 1 -type f -name "*.png" | sed 's|^\./||' | awk '{ printf "  {\"file\": \"%s\", \"name\": \"%s\"},\n", $0, $0 }' >> data.json
+          find images -type f -name "*.png" | sort | sed 's|^images/||' | awk '{ printf "  {\"file\": \"%s\"},\n", $0 }' >> data.json
           sed -i '$ s/,$//' data.json
           echo "]" >> data.json
 
@@ -24,5 +24,5 @@ jobs:
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add data.json
-          git commit -m "Auto-update gallery" || echo "No changes"
+          git commit -m "Auto-update gallery with folders" || echo "No changes"
           git push
