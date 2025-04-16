@@ -72,7 +72,7 @@
       return filePath.split('/').pop();
     }
 
-    fetch('data.json')
+    fetch('data.json?t=' + Date.now())
       .then(res => res.json())
       .then(data => {
         const folders = new Set();
