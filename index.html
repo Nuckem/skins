@@ -3,53 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>Галерея с папками</title>
-<style>
-  body {
-    font-family: sans-serif;
-    padding: 20px;
-    margin: 0;
-  }
-
-  #gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
-  }
-
-  .image-block {
-    text-align: center;
-    padding: 8px;
-  }
-
-  .image-block img {
-    max-width: 100%;
-    max-height: 180px;
-    object-fit: contain;
-    display: block;
-    margin: 0 auto 10px;
-    border-radius: 6px;
-  }
-
-  .copy-btn {
-    margin-top: 5px;
-    padding: 5px 10px;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  .folder {
-    display: inline-block;
-    font-weight: bold;
-    margin: 10px 10px 0 0;
-    text-decoration: none;
-  }
-
-  .back-link {
-    display: block;
-    margin-bottom: 20px;
-  }
-</style>
-
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .image-block {
+      text-align: center;
+      padding: 8px;
+    }
+    .image-block img {
+      max-width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 10px;
+      border-radius: 6px;
+    }
+    .copy-btn {
+      margin-top: 5px;
+      padding: 5px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .folder {
+      display: inline-block;
+      font-weight: bold;
+      margin: 10px 10px 0 0;
+      text-decoration: none;
+    }
+    .back-link {
+      display: block;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
   <h1>Галерея</h1>
@@ -80,9 +73,9 @@
 
         data.forEach(entry => {
           const file = entry.file;
-          const folder = getFolderPath(file);
 
-          if (currentPath && !file.startsWith(currentPath + '/')) return;
+          // Показывать только файлы и подпапки текущей папки
+          if (currentPath && !(file === currentPath || file.startsWith(currentPath + '/'))) return;
 
           const relative = currentPath ? file.substring(currentPath.length + 1) : file;
 
