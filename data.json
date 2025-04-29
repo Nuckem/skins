@@ -65,7 +65,6 @@
   {"file": "Pitbike/gopnik.png"},
   {"file": "Pitbike/gopnik2.png"},
   {"file": "Pitbike/igor.png"},
-  {"file": "Pitbike/igor_bitiy.png"},
   {"file": "Pitbike/inna.png"},
   {"file": "Pitbike/kakoito_pazan_2.png"},
   {"file": "Pitbike/kakoito_pazan_4.png"},
@@ -89,5 +88,6 @@
   {"file": "Pitbike/vasya_gop.png"},
   {"file": "Pitbike/zeleniypit.png"},
   {"file": "Pitbike/ВАСЯ.png"},
-  {"file": "Pitbike/Дед Глеба.png"}
+  {"file": "Pitbike/Дед Глеба.png"},
+  {"file": "Pitbike/Игорь_Битый.png"}
 ]
