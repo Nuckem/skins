@@ -56,6 +56,7 @@
   {"file": "Nuckems/В куртке.png"},
   {"file": "Otec/Gopnik.png"},
   {"file": "Otec/Noob.png"},
+  {"file": "Pitbike/Dark-Grey-Pit-Biker.png"},
   {"file": "Pitbike/Nuckem.png"},
   {"file": "Pitbike/Savvochka_1.png"},
   {"file": "Pitbike/babushkanukem.png"},
@@ -88,6 +89,5 @@
   {"file": "Pitbike/Дед Глеба.png"},
   {"file": "Pitbike/Зеленый Питбайкер.png"},
   {"file": "Pitbike/Игорь Битый.png"},
-  {"file": "Pitbike/Светло-серый Питбайкер.png"},
-  {"file": "Pitbike/Тёмно-серый Питбайкер.png"}
+  {"file": "Pitbike/Светло-серый Питбайкер.png"}
 ]
