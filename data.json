@@ -93,6 +93,7 @@
   {"file": "Pitbike/Urban-residents2.png"},
   {"file": "Pitbike/Urban-residents3.png"},
   {"file": "Pitbike/Vasya.png"},
+  {"file": "Pitbike/Vasya2.png"},
   {"file": "Pitbike/Village-residents1.png"},
   {"file": "Pitbike/Village-residents2.png"},
   {"file": "Pitbike/Village-residents3.png"},
@@ -108,6 +109,5 @@
   {"file": "Pitbike/kakoito_pazan_2.png"},
   {"file": "Pitbike/maks.png"},
   {"file": "Pitbike/pit1.png"},
-  {"file": "Pitbike/pit2.png"},
-  {"file": "Pitbike/vasya_gop.png"}
+  {"file": "Pitbike/pit2.png"}
 ]
