@@ -57,6 +57,7 @@
   {"file": "Otec/Gopnik.png"},
   {"file": "Otec/Noob.png"},
   {"file": "Pitbike/Dark-Grey-Pit-Biker.png"},
+  {"file": "Pitbike/Green-Pit-Biker.png"},
   {"file": "Pitbike/Igor-Bitiy.png"},
   {"file": "Pitbike/Light-Grey-Pit-Biker.png"},
   {"file": "Pitbike/Nuckem.png"},
@@ -88,6 +89,5 @@
   {"file": "Pitbike/seriypit.png"},
   {"file": "Pitbike/vasya_gop.png"},
   {"file": "Pitbike/Вася.png"},
-  {"file": "Pitbike/Дед Глеба.png"},
-  {"file": "Pitbike/Зеленый Питбайкер.png"}
+  {"file": "Pitbike/Дед Глеба.png"}
 ]
