@@ -1044,11 +1044,5 @@
   {"file": "Zombie_Train_2/Boris.png"},
   {"file": "Zombie_Train_2/Jacket.png"},
   {"file": "Zombie_Train_2/Nuckem.png"},
-  {"file": "Zombie_Train_2/father_nuckem_zombie.png"},
-  {"file": "Zombie_Train_2/zombie_2.png"},
-  {"file": "Zombie_Train_2/zombie_3.png"},
-  {"file": "Zombie_Train_2/zombie_4.png"},
-  {"file": "Zombie_Train_2/zombie_5.png"},
-  {"file": "Zombie_Train_2/zombie_6.png"},
-  {"file": "Zombie_Train_2/zombie_7.png"}
+  {"file": "Zombie_Train_2/father_nuckem_zombie.png"}
 ]
