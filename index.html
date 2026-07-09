@@ -388,7 +388,7 @@
   let allSkins = [];          // full dataset from data.json, normalized
   let activeCategory = "All"; // currently selected category
   let searchTerm = "";        // current search query (lowercase)
-  const activeViewers = new Map(); // cardId -> { viewer, canvas }
+  const activeViewers = new Map(); // cardId -> { viewer, canvas, token, ready, queued }
   const retryTimers = new Map();   // cardId -> setTimeout id (auto-retry on error)
   let observer = null;
 
@@ -520,9 +520,7 @@
     placeholder.innerHTML = `<div class="spinner"></div>`;
     viewerBox.appendChild(placeholder);
 
-    const canvas = document.createElement("canvas");
-    canvas.style.display = "none";
-    viewerBox.appendChild(canvas);
+    // Canvas больше не создается заранее в DOM, он будет генерироваться на лету в spawnViewer!
 
     card.appendChild(viewerBox);
 
@@ -571,7 +569,6 @@
     try {
       await navigator.clipboard.writeText(url);
     } catch (err) {
-      // Fallback for environments without clipboard API
       const ta = document.createElement("textarea");
       ta.value = url;
       ta.style.position = "fixed";
@@ -592,24 +589,9 @@
   }
 
   // ---------------------------------------------------------------------
-  // 3D viewer lifecycle (lazy load via IntersectionObserver)
+  // 3D viewer lifecycle (concurrency-safe lazy load)
   // ---------------------------------------------------------------------
-  //
-  // IMPORTANT: browsers hard-cap the number of simultaneous WebGL
-  // contexts a page can hold (commonly 8–16, sometimes lower on weak
-  // GPUs). Exceeding it forces the browser to silently kill old
-  // contexts ("Context Lost"), which corrupts three.js's renderer and
-  // cascades into every other 3D viewer failing too.
-  //
-  // To stay safely under that limit no matter how many cards exist or
-  // how fast the user scrolls, we:
-  //   1) Validate the image with a plain <img> (no WebGL involved) BEFORE
-  //      ever creating a SkinViewer — a broken file never touches WebGL.
-  //   2) Only allocate a real WebGL SkinViewer once validation succeeds,
-  //      and only if we're under MAX_CONCURRENT_VIEWERS. If we're at the
-  //      cap, the request waits in a small queue until a slot frees up
-  //      (another card scrolls away and gets disposed).
-  const MAX_CONCURRENT_VIEWERS = 8;
+  const MAX_CONCURRENT_VIEWERS = 16; // Оптимальный лимит для десктопных сеток
   let liveViewerCount = 0;
   const pendingQueue = []; // { id, card, url, token } waiting for a free slot
 
@@ -628,14 +610,11 @@
           cancelOrDestroy(id);
         }
       });
-    }, { root: null, rootMargin: "150px", threshold: 0.01 });
+    }, { root: null, rootMargin: "250px", threshold: 0.01 });
 
     document.querySelectorAll(".card").forEach(card => observer.observe(card));
   }
 
-  // Entry point when a card becomes visible: start the (cheap) image
-  // validation immediately; the actual WebGL viewer is only created
-  // once validation passes AND a concurrency slot is available.
   function requestViewer(card, id, url) {
     if (activeViewers.has(id)) return;
     if (pendingQueue.some(item => item.id === id)) return;
@@ -648,7 +627,7 @@
 
   function validateAndQueue(card, id, url, token) {
     const entry = activeViewers.get(id);
-    if (!entry || entry.token !== token) return; // card gone already
+    if (!entry || entry.token !== token) return; 
 
     const viewerBox = card.querySelector(".viewer-box");
     const placeholder = viewerBox.querySelector(".placeholder");
@@ -661,7 +640,6 @@
         if (liveViewerCount < MAX_CONCURRENT_VIEWERS) {
           spawnViewer(card, id, url, token);
         } else {
-          // No free WebGL slot right now — wait for one to open up.
           pendingQueue.push({ id, card, url, token });
         }
       })
@@ -669,14 +647,10 @@
         const stillHere = activeViewers.get(id);
         if (!stillHere || stillHere.token !== token) return;
 
-        console.error("Ошибка загрузки скина:", url, err);
+        console.error("Ошибка проверки скина:", url, err);
         const reason = err && err.reason ? err.reason : "неизвестная ошибка";
         placeholder.innerHTML = `<span style="color:#f87171; text-align:center; padding:0 10px;">Ошибка загрузки<br><small style="color:#94a3b8; font-weight:400;">${reason}</small></span>`;
 
-        // Auto-retry every 3 seconds. This is a cheap <img> check only —
-        // it never allocates a WebGL context, so a permanently broken
-        // file can retry forever without ever contributing to context
-        // exhaustion.
         const timerId = setTimeout(() => {
           retryTimers.delete(id);
           const current = activeViewers.get(id);
@@ -687,18 +661,19 @@
       });
   }
 
-  // Actually creates the WebGL SkinViewer. Only called once validation
-  // succeeded and a concurrency slot is confirmed free.
   function spawnViewer(card, id, url, token) {
     const entry = activeViewers.get(id);
     if (!entry || entry.token !== token) return;
 
     const viewerBox = card.querySelector(".viewer-box");
-    const canvas = viewerBox.querySelector("canvas");
     const placeholder = viewerBox.querySelector(".placeholder");
 
+    // 1. Создаем абсолютно новый элемент canvas, чтобы сбросить стейт WebGL в браузере
+    const canvas = document.createElement("canvas");
     canvas.width = 220;
     canvas.height = 320;
+    canvas.style.display = "none";
+    viewerBox.appendChild(canvas);
 
     let viewer;
     try {
@@ -708,8 +683,11 @@
         height: 320
       });
     } catch (err) {
-      console.error("Не удалось инициализировать 3D просмотр:", err);
-      placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки 3D</span>`;
+      console.error("Не удалось инициализировать WebGL для:", url, err);
+      placeholder.innerHTML = `<span style="color:#f87171;">Ошибка 3D</span>`;
+      canvas.remove();
+      // Вызываем обработку очереди, так как слот освободился
+      releaseSlotAndProcessQueue();
       return;
     }
 
@@ -730,8 +708,6 @@
       viewer.animation = new skinview3d.IdleAnimation();
     }
 
-    // Brighter lighting so the skin doesn't look like it's standing in
-    // shadow.
     if (viewer.globalLight) viewer.globalLight.intensity = 2.4;
     if (viewer.cameraLight) viewer.cameraLight.intensity = 1.4;
 
@@ -784,16 +760,12 @@
       });
   }
 
-  // Frees this card's slot in the concurrency limiter (if it held one)
-  // and immediately hands it to the next card waiting in the queue.
   function releaseSlotAndProcessQueue() {
     const next = pendingQueue.shift();
     if (!next) return;
 
     const current = activeViewers.get(next.id);
     if (!current || current.token !== next.token) {
-      // That queued request is stale (card was destroyed while
-      // waiting) — try the next one instead.
       releaseSlotAndProcessQueue();
       return;
     }
@@ -801,10 +773,6 @@
     spawnViewer(next.card, next.id, next.url, next.token);
   }
 
-  // Called when a card scrolls off-screen. If it was only queued
-  // (waiting for a WebGL slot, never actually got one), just drop it
-  // from the queue — nothing to dispose. If it has a real live viewer,
-  // dispose it properly and free up a slot for the next queued card.
   function cancelOrDestroy(id) {
     const pendingTimer = retryTimers.get(id);
     if (pendingTimer) {
@@ -818,23 +786,8 @@
     destroyViewer(id);
   }
 
-  // Cache validation results per URL so scrolling a card back into view
-  // doesn't repeat the same network check every single time. We only
-  // cache SUCCESSFUL validations — a failure can be transient (e.g. the
-  // image request got aborted mid-flight because the card scrolled out
-  // of view while it was loading), and caching that forever would leave
-  // the card permanently stuck showing an error even though the file is
-  // perfectly fine. Real, permanent failures (missing file / wrong
-  // dimensions) will simply fail again on retry, which costs nothing.
-  const skinValidationCache = new Map(); // url -> true (only ever stores successes)
+  const skinValidationCache = new Map(); // url -> true
 
-  // Verifies the image actually exists and has valid Minecraft skin
-  // dimensions (64x64, 64x32, or an exact multiple of either) before
-  // handing it to skinview3d. This lets us show a precise reason instead
-  // of a generic "Ошибка загрузки" for every failure. Crucially, this
-  // uses a plain <img> — it never touches WebGL, so retries on a
-  // permanently broken file cost nothing and never contribute to
-  // context exhaustion.
   function validateSkinImage(url) {
     if (skinValidationCache.has(url)) {
       return Promise.resolve();
@@ -856,7 +809,7 @@
         resolve();
       };
       img.onerror = () => {
-        reject({ reason: "файл не найден (проверьте путь и регистр букв в data.json)" });
+        reject({ reason: "файл не найден (проверьте путь и регистр букв)" });
       };
       img.src = url;
     });
@@ -870,27 +823,49 @@
 
     let freedSlot = false;
     if (entry.viewer) {
+      // 1. Принудительно вызываем уничтожение контекста WebGL для мгновенной очистки памяти GPU
+      if (entry.canvas) {
+        try {
+          const gl = entry.canvas.getContext("webgl") || entry.canvas.getContext("experimental-webgl");
+          if (gl) {
+            const loseExt = gl.getExtension('WEBGL_lose_context');
+            if (loseExt) loseExt.loseContext();
+          }
+        } catch (e) {
+          // Игнорируем ошибки принудительной очистки
+        }
+      }
+
+      // 2. Стираем плеер skinview3d
       try {
         entry.viewer.dispose();
       } catch (err) {
-        // ignore disposal errors (e.g. WebGL context already lost)
+        // Игнорируем
       }
+
       liveViewerCount = Math.max(0, liveViewerCount - 1);
       freedSlot = true;
+    }
+
+    // 3. Полностью вырезаем элемент canvas из DOM-дерева
+    if (entry.canvas) {
+      try {
+        entry.canvas.remove();
+      } catch (e) {}
     }
 
     const card = document.querySelector(`.card[data-id="${id}"]`);
     if (card) {
       const viewerBox = card.querySelector(".viewer-box");
-      const canvas = viewerBox.querySelector("canvas");
-      const placeholder = viewerBox.querySelector(".placeholder");
-      canvas.style.display = "none";
-      placeholder.style.display = "flex";
-      placeholder.innerHTML = `<div class="spinner"></div>`;
+      if (viewerBox) {
+        const placeholder = viewerBox.querySelector(".placeholder");
+        if (placeholder) {
+          placeholder.style.display = "flex";
+          placeholder.innerHTML = `<div class="spinner"></div>`;
+        }
+      }
     }
 
-    // A real WebGL slot just freed up — hand it to the next card
-    // waiting in the queue, if any.
     if (freedSlot) releaseSlotAndProcessQueue();
   }
 
