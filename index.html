@@ -187,7 +187,6 @@
     backdrop-filter:blur(6px);
     position:relative;
     overflow:hidden;
-    /* Оптимизация рендеринга браузером */
     contain:layout paint;
     content-visibility:auto;
   }
@@ -230,6 +229,21 @@
   }
 
   .viewer-box canvas:active{cursor:grabbing;}
+
+  /* Плоские изображения, если файл не скин */
+  .viewer-box img.fallback-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 12px;
+    animation: fadeIn 0.25s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
 
   .placeholder{
     position:absolute;
@@ -407,8 +421,8 @@
   let activeCategory = "All";
   let searchTerm = "";
   
-  const activeViewers = new Map(); // id -> { viewer, canvas, token }
-  const debounceTimers = new Map(); // id -> setTimeout id (защита от частого скролла)
+  const activeViewers = new Map(); // id -> { viewer, canvas, img, token, queued, isFlat }
+  const debounceTimers = new Map(); // id -> setTimeout id
   
   let cardObserver = null;
   let sentinelObserver = null;
@@ -512,7 +526,6 @@
     sentinelEl.style.display = "flex";
     updateStats(filteredSkins.length);
 
-    // Отрисовываем первую порцию карточек
     loadMoreSkins();
     setupSentinel();
   }
@@ -532,12 +545,10 @@
 
     displayedSkinsCount += nextBatch.length;
 
-    // Скрываем маркер скролла, если загрузили вообще всё
     if (displayedSkinsCount >= filteredSkins.length) {
       sentinelEl.style.display = "none";
     }
 
-    // Запускаем отслеживание видимости новых карточек
     setupCardObserver();
   }
 
@@ -545,7 +556,6 @@
     statsLabelEl.textContent = `${count} из ${allSkins.length} скинов`;
   }
 
-  // Свежий триггер для загрузки бесконечного скролла
   function setupSentinel() {
     if (sentinelObserver) sentinelObserver.disconnect();
 
@@ -642,11 +652,11 @@
   }
 
   // ---------------------------------------------------------------------
-  // Менеджмент 3D просмотрщика (Реализация пула ресурсов)
+  // Менеджмент 3D / 2D рендеринга (Пул ресурсов)
   // ---------------------------------------------------------------------
-  const MAX_CONCURRENT_VIEWERS = 12; // Лимит одновременных WebGL контекстов на экране
+  const MAX_CONCURRENT_VIEWERS = 12; // Лимит одновременных WebGL-анимаций
   let liveViewerCount = 0;
-  const pendingQueue = []; // Очередь ожидания { id, card, url, token }
+  const pendingQueue = []; // Очередь ожидания { id, card, url, token, img }
 
   function setupCardObserver() {
     if (!cardObserver) {
@@ -665,11 +675,10 @@
       }, { root: null, rootMargin: "150px", threshold: 0.01 });
     }
 
-    // Добавляем новые карточки в наблюдатель
     document.querySelectorAll(".card").forEach(card => cardObserver.observe(card));
   }
 
-  // Ограничиваем мгновенную инициализацию при быстром скролле (Debounce)
+  // Debounce скролла для предотвращения лагов на мобильных устройствах
   function queueViewerInitialization(card, id, url) {
     if (activeViewers.has(id) || debounceTimers.has(id)) return;
 
@@ -677,26 +686,96 @@
       debounceTimers.delete(id);
       
       const token = Symbol("viewerToken");
-      activeViewers.set(id, { viewer: null, canvas: null, token, queued: true });
+      activeViewers.set(id, { viewer: null, canvas: null, img: null, token, queued: true });
 
-      if (liveViewerCount < MAX_CONCURRENT_VIEWERS) {
-        spawnViewer(card, id, url, token);
-      } else {
-        pendingQueue.push({ id, card, url, token });
-      }
-    }, 120); // Задержка в 120 мс перед стартом WebGL! Позволяет скроллить без лагов.
+      validateAndLoadImage(card, id, url, token);
+    }, 120);
     
     debounceTimers.set(id, timerId);
   }
 
-  function spawnViewer(card, id, url, token) {
+  // Загружаем и анализируем пропорции файла перед решением запустить 3D
+  function validateAndLoadImage(card, id, url, token) {
     const entry = activeViewers.get(id);
-    if (!entry || entry.token !== token) return; // Карта уже исчезла
+    if (!entry || entry.token !== token) return;
+
+    const img = new Image();
+    img.onload = () => {
+      img.onload = null;
+      img.onerror = null;
+
+      const stillHere = activeViewers.get(id);
+      if (!stillHere || stillHere.token !== token) return;
+
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      const ratio = w / h;
+
+      // Пропорции скина Minecraft: строго 1:1 (64x64, 128x128) или 2:1 (64x32, 128x64)
+      const isSkinRatio = Math.abs(ratio - 1) < 0.02 || Math.abs(ratio - 2) < 0.02;
+
+      if (isSkinRatio) {
+        // Запускаем 3D плеер, если есть свободные слоты WebGL
+        if (liveViewerCount < MAX_CONCURRENT_VIEWERS) {
+          spawnViewer(card, id, url, token, img);
+        } else {
+          pendingQueue.push({ id, card, url, token, img });
+        }
+      } else {
+        // Если это не скин (аватарка, скриншот, арт), просто показываем его как картинку
+        showFlatImage(card, id, img, token);
+      }
+    };
+
+    img.onerror = () => {
+      img.onload = null;
+      img.onerror = null;
+
+      const stillHere = activeViewers.get(id);
+      if (!stillHere || stillHere.token !== token) return;
+
+      const placeholder = card.querySelector(".placeholder");
+      placeholder.innerHTML = `<span style="color:#f87171; font-size:11px; text-align:center; padding: 4px;">Ошибка загрузки</span>`;
+    };
+
+    img.src = url;
+  }
+
+  // Отрисовка плоского файла (без WebGL)
+  function showFlatImage(card, id, img, token) {
+    const entry = activeViewers.get(id);
+    if (!entry || entry.token !== token) return;
 
     const viewerBox = card.querySelector(".viewer-box");
     const placeholder = viewerBox.querySelector(".placeholder");
 
-    // Генерируем Canvas на лету
+    // Удаляем старый canvas если он был
+    const existingCanvas = viewerBox.querySelector("canvas");
+    if (existingCanvas) existingCanvas.remove();
+
+    img.className = "fallback-img";
+    
+    // Пикселизация для мелких изображений (Minecraft пиксель-арт)
+    if (img.naturalWidth <= 512) {
+      img.style.imageRendering = "pixelated";
+    } else {
+      img.style.imageRendering = "auto";
+    }
+
+    viewerBox.appendChild(img);
+    placeholder.style.display = "none";
+
+    activeViewers.set(id, { viewer: null, canvas: null, img, token, queued: false, isFlat: true });
+  }
+
+  // Отрисовка 3D модели скина
+  function spawnViewer(card, id, url, token, img) {
+    const entry = activeViewers.get(id);
+    if (!entry || entry.token !== token) return;
+
+    const viewerBox = card.querySelector(".viewer-box");
+    const placeholder = viewerBox.querySelector(".placeholder");
+
     const canvas = document.createElement("canvas");
     canvas.width = 220;
     canvas.height = 320;
@@ -711,16 +790,15 @@
         height: 320
       });
     } catch (err) {
-      console.warn("Сбой создания WebGL:", err);
-      placeholder.innerHTML = `<span style="color:#f87171; font-size: 11px;">Сбой WebGL</span>`;
+      console.warn("WebGL недоступен, откат к 2D для:", url, err);
       canvas.remove();
+      showFlatImage(card, id, img, token);
       releaseSlotAndProcessQueue();
       return;
     }
 
     liveViewerCount++;
 
-    // Настройки плеера
     viewer.fov = 45;
     viewer.zoom = 0.92;
     viewer.autoRotate = true;
@@ -736,7 +814,6 @@
       viewer.animation = new skinview3d.IdleAnimation();
     }
 
-    // Мягкое освещение
     if (viewer.globalLight) viewer.globalLight.intensity = 2.4;
     if (viewer.cameraLight) viewer.cameraLight.intensity = 1.4;
 
@@ -757,9 +834,8 @@
       viewer.renderer.toneMappingExposure = 1.3;
     }
 
-    activeViewers.set(id, { viewer, canvas, token, queued: false });
+    activeViewers.set(id, { viewer, canvas, img, token, queued: false });
 
-    // Прямая загрузка без предварительного валидационного запроса
     const loadPromise = typeof viewer.loadSkin === "function"
       ? Promise.resolve(viewer.loadSkin(url))
       : Promise.resolve().then(() => { viewer.skin = url; });
@@ -776,8 +852,9 @@
         const stillHere = activeViewers.get(id);
         if (!stillHere || stillHere.token !== token) return;
 
-        console.error("Сбой текстуры скина:", url, err);
-        placeholder.innerHTML = `<span style="color:#f87171; font-size:11px; text-align:center; padding: 4px;">Ошибка файла</span>`;
+        console.warn("Не удалось натянуть скин в 3D, откат к плоскому выводу:", url, err);
+        destroyViewer(id);
+        showFlatImage(card, id, img, token);
       });
   }
 
@@ -787,27 +864,23 @@
 
     const current = activeViewers.get(next.id);
     if (!current || current.token !== next.token) {
-      // Запрос уже устарел, ищем дальше
       releaseSlotAndProcessQueue();
       return;
     }
 
-    spawnViewer(next.card, next.id, next.url, next.token);
+    spawnViewer(next.card, next.id, next.url, next.token, next.img);
   }
 
   function cancelOrDestroy(id) {
-    // 1. Очистка таймаута скролла
     const scrollTimer = debounceTimers.get(id);
     if (scrollTimer) {
       clearTimeout(scrollTimer);
       debounceTimers.delete(id);
     }
 
-    // 2. Удаление из очереди
     const idx = pendingQueue.findIndex(item => item.id === id);
     if (idx !== -1) pendingQueue.splice(idx, 1);
 
-    // 3. Стирание самого плеера
     destroyViewer(id);
   }
 
@@ -819,7 +892,6 @@
 
     let freedSlot = false;
     if (entry.viewer) {
-      // Инициируем выгрузку WebGL из GPU
       if (entry.canvas) {
         try {
           const gl = entry.canvas.getContext("webgl") || entry.canvas.getContext("experimental-webgl");
@@ -839,15 +911,17 @@
     }
 
     if (entry.canvas) {
-      try {
-        entry.canvas.remove();
-      } catch (e) {}
+      try { entry.canvas.remove(); } catch (e) {}
     }
 
     const card = document.querySelector(`.card[data-id="${id}"]`);
     if (card) {
       const viewerBox = card.querySelector(".viewer-box");
       if (viewerBox) {
+        const fallbackImg = viewerBox.querySelector(".fallback-img");
+        if (fallbackImg) {
+          try { fallbackImg.remove(); } catch (e) {}
+        }
         const placeholder = viewerBox.querySelector(".placeholder");
         if (placeholder) {
           placeholder.style.display = "flex";
@@ -860,7 +934,6 @@
   }
 
   function destroyAllViewers() {
-    // Сброс таймаутов
     debounceTimers.forEach(timerId => clearTimeout(timerId));
     debounceTimers.clear();
 
