@@ -213,7 +213,7 @@
     max-width:100%;
     border-radius:12px;
     overflow:hidden;
-    background:radial-gradient(circle at 50% 30%, #182234, #0a0f1a 80%);
+    background:radial-gradient(circle at 50% 30%, #2a3a54, #131c2c 85%);
     position:relative;
     border:1px solid rgba(255,255,255,0.05);
   }
@@ -616,6 +616,12 @@
   function createViewerForCard(card, id, url) {
     if (activeViewers.has(id)) return;
 
+    // Token used to guard against race conditions: if the card scrolls
+    // out of view (and gets destroyed) before the skin texture finishes
+    // loading, we must ignore the late load/error callback instead of
+    // showing a spurious "Ошибка загрузки" message.
+    const token = Symbol("viewerToken");
+
     const viewerBox = card.querySelector(".viewer-box");
     const canvas = viewerBox.querySelector("canvas");
     const placeholder = viewerBox.querySelector(".placeholder");
@@ -623,50 +629,92 @@
     canvas.width = 220;
     canvas.height = 320;
 
+    let viewer;
     try {
-      const viewer = new skinview3d.SkinViewer({
+      viewer = new skinview3d.SkinViewer({
         canvas: canvas,
         width: 220,
-        height: 320,
-        skin: url
+        height: 320
       });
-
-      viewer.fov = 45;
-      viewer.zoom = 0.9;
-      viewer.autoRotate = true;
-      viewer.autoRotateSpeed = 0.8;
-
-      if (viewer.controls) {
-        viewer.controls.enableZoom = true;
-        viewer.controls.enableRotate = true;
-        viewer.controls.enablePan = false;
-      }
-
-      if (skinview3d.IdleAnimation) {
-        viewer.animation = new skinview3d.IdleAnimation();
-      }
-
-      const light1 = viewer.globalLight;
-      if (light1) light1.intensity = 1.1;
-
-      canvas.style.display = "block";
-      placeholder.style.display = "none";
-
-      activeViewers.set(id, { viewer, canvas });
     } catch (err) {
-      console.error("Ошибка создания 3D просмотра для", url, err);
+      console.error("Не удалось инициализировать 3D просмотр:", err);
       placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки</span>`;
+      return;
     }
+
+    viewer.fov = 45;
+    viewer.zoom = 0.9;
+    viewer.autoRotate = true;
+    viewer.autoRotateSpeed = 0.8;
+
+    if (viewer.controls) {
+      viewer.controls.enableZoom = true;
+      viewer.controls.enableRotate = true;
+      viewer.controls.enablePan = false;
+    }
+
+    if (skinview3d.IdleAnimation) {
+      viewer.animation = new skinview3d.IdleAnimation();
+    }
+
+    // Make the lighting brighter so the skin doesn't look like it's
+    // standing in shadow. skinview3d exposes an ambient light
+    // (globalLight) and a directional light (cameraLight).
+    if (viewer.globalLight) viewer.globalLight.intensity = 1.6;
+    if (viewer.cameraLight) viewer.cameraLight.intensity = 1.1;
+
+    // Add a couple of extra fill lights from the front/sides so there
+    // are no harsh dark patches on the model.
+    if (window.THREE && viewer.scene) {
+      const fillFront = new THREE.DirectionalLight(0xffffff, 0.6);
+      fillFront.position.set(0, 10, 20);
+      viewer.scene.add(fillFront);
+
+      const fillBack = new THREE.DirectionalLight(0xffffff, 0.35);
+      fillBack.position.set(0, 10, -20);
+      viewer.scene.add(fillBack);
+    }
+
+    // Register the viewer immediately so a fast scroll-out can find and
+    // dispose it even while the skin texture is still loading.
+    activeViewers.set(id, { viewer, canvas, token, ready: false });
+
+    const loadPromise = typeof viewer.loadSkin === "function"
+      ? Promise.resolve(viewer.loadSkin(url))
+      : Promise.resolve().then(() => { viewer.skin = url; });
+
+    loadPromise
+      .then(() => {
+        const entry = activeViewers.get(id);
+        // Ignore if the card was destroyed (or a newer viewer replaced
+        // this one) before the load finished.
+        if (!entry || entry.token !== token) return;
+
+        entry.ready = true;
+        canvas.style.display = "block";
+        placeholder.style.display = "none";
+      })
+      .catch((err) => {
+        const entry = activeViewers.get(id);
+        // The card is no longer showing this viewer (scrolled away /
+        // re-rendered) — this is not a real error the user needs to see.
+        if (!entry || entry.token !== token) return;
+
+        console.error("Ошибка загрузки скина для", url, err);
+        placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки</span>`;
+      });
   }
 
   function destroyViewer(id) {
     const entry = activeViewers.get(id);
     if (!entry) return;
 
+    activeViewers.delete(id);
+
     try {
       entry.viewer.dispose();
     } catch (err) {
-      // ignore disposal errors
+      // ignore disposal errors (e.g. WebGL context already lost)
     }
 
     const card = document.querySelector(`.card[data-id="${id}"]`);
@@ -678,8 +726,6 @@
       placeholder.style.display = "flex";
       placeholder.innerHTML = `<div class="spinner"></div>`;
     }
-
-    activeViewers.delete(id);
   }
 
   function destroyAllViewers() {
