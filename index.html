@@ -1,132 +1,720 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Галерея с папками</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      margin: 0;
-    }
-    #gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-    }
-    .image-block {
-      text-align: center;
-      padding: 8px;
-    }
-    .image-block img {
-      max-width: 100%;
-      max-height: 180px;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto 10px;
-      border-radius: 6px;
-    }
-    .copy-btn {
-      margin-top: 5px;
-      padding: 5px 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .folder {
-      display: inline-block;
-      font-weight: bold;
-      margin: 10px 10px 0 0;
-      text-decoration: none;
-    }
-    .back-link {
-      display: block;
-      margin-bottom: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skins Gallery — 3D Minecraft Skins</title>
+<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#111827;
+    --card-hover:#151f30;
+    --accent:#3b82f6;
+    --accent-2:#60a5fa;
+    --text:#e5e7eb;
+    --text-dim:#94a3b8;
+    --border:rgba(255,255,255,0.06);
+    --shadow:0 10px 30px rgba(0,0,0,0.45);
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(59,130,246,0.12), transparent 40%),
+      radial-gradient(circle at 80% 10%, rgba(96,165,250,0.08), transparent 35%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height:100vh;
+  }
+
+  ::selection{background:var(--accent); color:#fff;}
+
+  /* ---------- Scrollbar ---------- */
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#1e293b;border-radius:10px;}
+  ::-webkit-scrollbar-thumb:hover{background:#293548;}
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    padding:22px 32px 16px;
+    background:rgba(15,23,42,0.75);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+
+  .header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    max-width:1400px;
+    margin:0 auto;
+  }
+
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:800;
+    font-size:22px;
+    letter-spacing:0.3px;
+  }
+
+  .logo .cube{
+    width:34px;
+    height:34px;
+    border-radius:9px;
+    background:linear-gradient(135deg, var(--accent), #8b5cf6);
+    box-shadow:0 4px 14px rgba(59,130,246,0.5);
+  }
+
+  .logo span.sub{
+    color:var(--text-dim);
+    font-weight:500;
+    font-size:13px;
+    margin-left:4px;
+  }
+
+  .search-wrap{
+    position:relative;
+    flex:1;
+    min-width:220px;
+    max-width:420px;
+  }
+
+  .search-wrap input{
+    width:100%;
+    padding:12px 16px 12px 42px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#0b1220;
+    color:var(--text);
+    font-size:14px;
+    outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+
+  .search-wrap input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.25);
+  }
+
+  .search-wrap svg{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    width:16px;
+    height:16px;
+    stroke:var(--text-dim);
+  }
+
+  .stats{
+    color:var(--text-dim);
+    font-size:13px;
+    white-space:nowrap;
+  }
+
+  .categories{
+    max-width:1400px;
+    margin:16px auto 0;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .cat-btn{
+    padding:9px 18px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.03);
+    color:var(--text-dim);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .2s ease;
+    user-select:none;
+  }
+
+  .cat-btn:hover{
+    color:var(--text);
+    border-color:var(--accent-2);
+    transform:translateY(-1px);
+  }
+
+  .cat-btn.active{
+    background:linear-gradient(135deg, var(--accent), #2563eb);
+    color:#fff;
+    border-color:transparent;
+    box-shadow:0 6px 16px rgba(59,130,246,0.4);
+  }
+
+  /* ---------- Grid ---------- */
+  main{
+    max-width:1400px;
+    margin:0 auto;
+    padding:28px 32px 60px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:22px;
+  }
+
+  .card{
+    background:linear-gradient(180deg, var(--card), #0d1420);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    backdrop-filter:blur(6px);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 50% 0%, rgba(59,130,246,0.08), transparent 60%);
+    opacity:0;
+    transition:opacity .3s ease;
+    pointer-events:none;
+  }
+
+  .card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(59,130,246,0.4);
+    box-shadow:0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(59,130,246,0.15);
+  }
+
+  .card:hover::before{opacity:1;}
+
+  .viewer-box{
+    width:220px;
+    height:320px;
+    max-width:100%;
+    border-radius:12px;
+    overflow:hidden;
+    background:radial-gradient(circle at 50% 30%, #182234, #0a0f1a 80%);
+    position:relative;
+    border:1px solid rgba(255,255,255,0.05);
+  }
+
+  .viewer-box canvas{
+    display:block;
+    width:100% !important;
+    height:100% !important;
+    cursor:grab;
+  }
+
+  .viewer-box canvas:active{cursor:grabbing;}
+
+  .placeholder{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-dim);
+    font-size:12px;
+    letter-spacing:0.5px;
+  }
+
+  .placeholder .spinner{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:3px solid rgba(59,130,246,0.2);
+    border-top-color:var(--accent);
+    animation:spin .8s linear infinite;
+  }
+
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .name{
+    margin-top:14px;
+    font-size:14px;
+    font-weight:700;
+    text-align:center;
+    color:var(--text);
+    word-break:break-word;
+    max-width:100%;
+  }
+
+  .cat-tag{
+    margin-top:4px;
+    font-size:11px;
+    color:var(--accent-2);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    font-weight:700;
+  }
+
+  .actions{
+    margin-top:14px;
+    display:flex;
+    gap:8px;
+    width:100%;
+  }
+
+  .btn{
+    flex:1;
+    padding:9px 10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,0.04);
+    color:var(--text);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    transition:all .2s ease;
+  }
+
+  .btn:hover{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+    transform:translateY(-1px);
+  }
+
+  .btn.copied{
+    background:#16a34a;
+    border-color:#16a34a;
+    color:#fff;
+  }
+
+  .btn svg{width:14px;height:14px;flex-shrink:0;}
+
+  .empty-state{
+    text-align:center;
+    padding:80px 20px;
+    color:var(--text-dim);
+  }
+
+  .empty-state h2{
+    color:var(--text);
+    font-size:20px;
+    margin-bottom:8px;
+  }
+
+  footer{
+    text-align:center;
+    padding:24px;
+    color:var(--text-dim);
+    font-size:12.5px;
+    border-top:1px solid var(--border);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:768px){
+    header{padding:16px 16px 12px;}
+    main{padding:20px 16px 40px;}
+    .grid{grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:14px;}
+    .viewer-box{width:100%;height:240px;}
+    .logo{font-size:18px;}
+    .search-wrap{max-width:100%;}
+  }
+
+  @media (min-width:1600px){
+    .grid{grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));}
+  }
+</style>
 </head>
 <body>
-  <h1>Галерея</h1>
-  <div id="nav"></div>
-  <div id="gallery"></div>
 
-  <script>
-    const galleryRoot = document.getElementById('gallery');
-    const navRoot = document.getElementById('nav');
-    const baseUrl = 'https://nuckem.github.io/skins/images/';
-    const currentPath = decodeURIComponent(new URLSearchParams(window.location.search).get('path') || '');
+<header>
+  <div class="header-top">
+    <div class="logo">
+      <div class="cube"></div>
+      Skins Gallery
+      <span class="sub">3D Minecraft Skin Viewer</span>
+    </div>
 
-    function getFolderPath(filePath) {
-      const parts = filePath.split('/');
-      parts.pop();
-      return parts.join('/');
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Поиск по имени скина...">
+    </div>
+
+    <div class="stats" id="statsLabel">Загрузка...</div>
+  </div>
+
+  <div class="categories" id="categoriesBar"></div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <h2>Ничего не найдено</h2>
+    <p>Попробуйте изменить поисковый запрос или выбрать другую категорию.</p>
+  </div>
+</main>
+
+<footer>
+  Skins Gallery &middot; работает на GitHub Pages &middot; 3D просмотр реализован через skinview3d
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------------
+  let allSkins = [];          // full dataset from data.json, normalized
+  let activeCategory = "All"; // currently selected category
+  let searchTerm = "";        // current search query (lowercase)
+  const activeViewers = new Map(); // cardId -> { viewer, canvas }
+  let observer = null;
+
+  const BASE_URL = new URL("images/", window.location.href).href;
+
+  const gridEl = document.getElementById("grid");
+  const categoriesBarEl = document.getElementById("categoriesBar");
+  const searchInputEl = document.getElementById("searchInput");
+  const statsLabelEl = document.getElementById("statsLabel");
+  const emptyStateEl = document.getElementById("emptyState");
+
+  // ---------------------------------------------------------------------
+  // Data loading
+  // ---------------------------------------------------------------------
+  async function loadData() {
+    try {
+      const res = await fetch("data.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const raw = await res.json();
+      allSkins = normalizeData(raw);
+    } catch (err) {
+      console.error("Не удалось загрузить data.json:", err);
+      allSkins = [];
+      statsLabelEl.textContent = "Ошибка загрузки data.json";
     }
+  }
 
-    function getFileName(filePath) {
-      return filePath.split('/').pop();
-    }
-
-    fetch('data.json?t=' + Date.now())
-      .then(res => res.json())
-      .then(data => {
-        const folders = new Set();
-        const images = [];
-
-        data.forEach(entry => {
-          const file = entry.file;
-
-          // Показывать только файлы и подпапки текущей папки
-          if (currentPath && !(file === currentPath || file.startsWith(currentPath + '/'))) return;
-
-          const relative = currentPath ? file.substring(currentPath.length + 1) : file;
-
-          if (relative.includes('/')) {
-            const nextFolder = relative.split('/')[0];
-            folders.add(nextFolder);
-          } else {
-            images.push(file);
-          }
-        });
-
-        if (currentPath) {
-          const backPath = currentPath.split('/').slice(0, -1).join('/');
-          const backUrl = backPath ? `?path=${encodeURIComponent(backPath)}` : `?`;
-          navRoot.innerHTML += `<a href="${backUrl}" class="back-link">⬅ Назад</a>`;
-        }
-
-        [...folders].sort().forEach(folder => {
-          const url = `${window.location.pathname}?path=${encodeURIComponent(currentPath ? currentPath + '/' + folder : folder)}`;
-          navRoot.innerHTML += `<a class="folder" href="${url}">📁 ${folder}</a><br>`;
-        });
-
-        images.forEach(file => {
-          const imageBlock = document.createElement('div');
-          imageBlock.className = 'image-block';
-
-          const title = document.createElement('div');
-          title.innerHTML = `<strong>${getFileName(file)}</strong>`;
-
-          const img = document.createElement('img');
-          img.src = baseUrl + file;
-          img.alt = file;
-
-          const btn = document.createElement('button');
-          btn.className = 'copy-btn';
-          btn.textContent = 'Copy URL';
-          btn.setAttribute('data-url', baseUrl + file);
-
-          btn.addEventListener('click', () => {
-            navigator.clipboard.writeText(btn.getAttribute('data-url')).then(() => {
-              btn.textContent = 'Copied!';
-              setTimeout(() => { btn.textContent = 'Copy URL'; }, 1500);
-            });
-          });
-
-          imageBlock.appendChild(title);
-          imageBlock.appendChild(img);
-          imageBlock.appendChild(btn);
-          galleryRoot.appendChild(imageBlock);
-        });
+  function normalizeData(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter(item => item && typeof item.file === "string" && item.file.trim().length)
+      .map((item, index) => {
+        const file = item.file.replace(/^\/+/, "");
+        const parts = file.split("/");
+        const category = parts.length > 1 ? parts[0] : "Other";
+        const filename = parts[parts.length - 1];
+        return {
+          id: "skin_" + index,
+          file,
+          category,
+          filename,
+          url: BASE_URL + file
+        };
       });
-  </script>
+  }
+
+  // ---------------------------------------------------------------------
+  // Categories
+  // ---------------------------------------------------------------------
+  function extractCategories(skins) {
+    const set = new Set();
+    skins.forEach(s => set.add(s.category));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  function renderCategories() {
+    const categories = extractCategories(allSkins);
+    categoriesBarEl.innerHTML = "";
+
+    const makeBtn = (label) => {
+      const btn = document.createElement("button");
+      btn.className = "cat-btn" + (label === activeCategory ? " active" : "");
+      btn.textContent = label;
+      btn.addEventListener("click", () => {
+        activeCategory = label;
+        renderCategories();
+        applyFilters();
+      });
+      return btn;
+    };
+
+    categoriesBarEl.appendChild(makeBtn("All"));
+    categories.forEach(cat => categoriesBarEl.appendChild(makeBtn(cat)));
+  }
+
+  // ---------------------------------------------------------------------
+  // Filtering
+  // ---------------------------------------------------------------------
+  function getFilteredSkins() {
+    return allSkins.filter(skin => {
+      const matchesCategory = activeCategory === "All" || skin.category === activeCategory;
+      const matchesSearch = !searchTerm || skin.filename.toLowerCase().includes(searchTerm);
+      return matchesCategory && matchesSearch;
+    });
+  }
+
+  function applyFilters() {
+    const filtered = getFilteredSkins();
+    renderGrid(filtered);
+    updateStats(filtered.length);
+  }
+
+  function updateStats(count) {
+    const total = allSkins.length;
+    statsLabelEl.textContent = `${count} из ${total} скинов`;
+  }
+
+  // ---------------------------------------------------------------------
+  // Grid / cards rendering
+  // ---------------------------------------------------------------------
+  function renderGrid(skins) {
+    destroyAllViewers();
+    gridEl.innerHTML = "";
+
+    if (!skins.length) {
+      emptyStateEl.style.display = "block";
+      return;
+    }
+    emptyStateEl.style.display = "none";
+
+    const fragment = document.createDocumentFragment();
+    skins.forEach(skin => fragment.appendChild(buildCard(skin)));
+    gridEl.appendChild(fragment);
+
+    setupObserver();
+  }
+
+  function buildCard(skin) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.id = skin.id;
+    card.dataset.url = skin.url;
+
+    const viewerBox = document.createElement("div");
+    viewerBox.className = "viewer-box";
+
+    const placeholder = document.createElement("div");
+    placeholder.className = "placeholder";
+    placeholder.innerHTML = `<div class="spinner"></div>`;
+    viewerBox.appendChild(placeholder);
+
+    const canvas = document.createElement("canvas");
+    canvas.style.display = "none";
+    viewerBox.appendChild(canvas);
+
+    card.appendChild(viewerBox);
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = skin.filename;
+    card.appendChild(name);
+
+    const catTag = document.createElement("div");
+    catTag.className = "cat-tag";
+    catTag.textContent = skin.category;
+    card.appendChild(catTag);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "btn copy-btn";
+    copyBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      Copy URL`;
+    copyBtn.addEventListener("click", () => copyUrl(skin.url, copyBtn));
+    actions.appendChild(copyBtn);
+
+    const openBtn = document.createElement("button");
+    openBtn.className = "btn open-btn";
+    openBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+      Open Image`;
+    openBtn.addEventListener("click", () => window.open(skin.url, "_blank", "noopener"));
+    actions.appendChild(openBtn);
+
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  async function copyUrl(url, btn) {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (err) {
+      // Fallback for environments without clipboard API
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) { /* ignore */ }
+      document.body.removeChild(ta);
+    }
+
+    const originalHTML = btn.innerHTML;
+    btn.classList.add("copied");
+    btn.textContent = "Copied!";
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      btn.innerHTML = originalHTML;
+    }, 1500);
+  }
+
+  // ---------------------------------------------------------------------
+  // 3D viewer lifecycle (lazy load via IntersectionObserver)
+  // ---------------------------------------------------------------------
+  function setupObserver() {
+    if (observer) observer.disconnect();
+
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const card = entry.target;
+        const id = card.dataset.id;
+        const url = card.dataset.url;
+
+        if (entry.isIntersecting) {
+          createViewerForCard(card, id, url);
+        } else {
+          destroyViewer(id);
+        }
+      });
+    }, { root: null, rootMargin: "150px", threshold: 0.01 });
+
+    document.querySelectorAll(".card").forEach(card => observer.observe(card));
+  }
+
+  function createViewerForCard(card, id, url) {
+    if (activeViewers.has(id)) return;
+
+    const viewerBox = card.querySelector(".viewer-box");
+    const canvas = viewerBox.querySelector("canvas");
+    const placeholder = viewerBox.querySelector(".placeholder");
+
+    canvas.width = 220;
+    canvas.height = 320;
+
+    try {
+      const viewer = new skinview3d.SkinViewer({
+        canvas: canvas,
+        width: 220,
+        height: 320,
+        skin: url
+      });
+
+      viewer.fov = 45;
+      viewer.zoom = 0.9;
+      viewer.autoRotate = true;
+      viewer.autoRotateSpeed = 0.8;
+
+      if (viewer.controls) {
+        viewer.controls.enableZoom = true;
+        viewer.controls.enableRotate = true;
+        viewer.controls.enablePan = false;
+      }
+
+      if (skinview3d.IdleAnimation) {
+        viewer.animation = new skinview3d.IdleAnimation();
+      }
+
+      const light1 = viewer.globalLight;
+      if (light1) light1.intensity = 1.1;
+
+      canvas.style.display = "block";
+      placeholder.style.display = "none";
+
+      activeViewers.set(id, { viewer, canvas });
+    } catch (err) {
+      console.error("Ошибка создания 3D просмотра для", url, err);
+      placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки</span>`;
+    }
+  }
+
+  function destroyViewer(id) {
+    const entry = activeViewers.get(id);
+    if (!entry) return;
+
+    try {
+      entry.viewer.dispose();
+    } catch (err) {
+      // ignore disposal errors
+    }
+
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (card) {
+      const viewerBox = card.querySelector(".viewer-box");
+      const canvas = viewerBox.querySelector("canvas");
+      const placeholder = viewerBox.querySelector(".placeholder");
+      canvas.style.display = "none";
+      placeholder.style.display = "flex";
+      placeholder.innerHTML = `<div class="spinner"></div>`;
+    }
+
+    activeViewers.delete(id);
+  }
+
+  function destroyAllViewers() {
+    Array.from(activeViewers.keys()).forEach(id => destroyViewer(id));
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Search
+  // ---------------------------------------------------------------------
+  let searchDebounceTimer = null;
+  searchInputEl.addEventListener("input", (e) => {
+    clearTimeout(searchDebounceTimer);
+    const value = e.target.value;
+    searchDebounceTimer = setTimeout(() => {
+      searchTerm = value.trim().toLowerCase();
+      applyFilters();
+    }, 80);
+  });
+
+  // ---------------------------------------------------------------------
+  // Init
+  // ---------------------------------------------------------------------
+  async function init() {
+    await loadData();
+    renderCategories();
+    applyFilters();
+  }
+
+  init();
+})();
+</script>
+
 </body>
 </html>
