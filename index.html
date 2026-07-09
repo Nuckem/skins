@@ -389,6 +389,7 @@
   let activeCategory = "All"; // currently selected category
   let searchTerm = "";        // current search query (lowercase)
   const activeViewers = new Map(); // cardId -> { viewer, canvas }
+  const retryTimers = new Map();   // cardId -> setTimeout id (auto-retry on error)
   let observer = null;
 
   const BASE_URL = new URL("images/", window.location.href).href;
@@ -703,6 +704,14 @@
     // dispose it even while the skin texture is still loading.
     activeViewers.set(id, { viewer, canvas, token, ready: false });
 
+    attemptLoad(card, id, url, token, viewer, canvas, placeholder);
+  }
+
+  // Tries to load the skin texture. On any failure, shows the error
+  // message and automatically retries the same card every 3 seconds
+  // until it either succeeds or the card is destroyed (scrolled away /
+  // grid re-rendered), at which point the token check stops the loop.
+  function attemptLoad(card, id, url, token, viewer, canvas, placeholder) {
     validateSkinImage(url)
       .then(() => {
         const entry = activeViewers.get(id);
@@ -719,17 +728,36 @@
           entry2.ready = true;
           canvas.style.display = "block";
           placeholder.style.display = "none";
+
+          // Loaded successfully — no more retries needed for this card.
+          const pending = retryTimers.get(id);
+          if (pending) {
+            clearTimeout(pending);
+            retryTimers.delete(id);
+          }
         });
       })
       .catch((err) => {
         const entry = activeViewers.get(id);
         // The card is no longer showing this viewer (scrolled away /
-        // re-rendered) — this is not a real error the user needs to see.
+        // re-rendered) — stop retrying, nothing to fix anymore.
         if (!entry || entry.token !== token) return;
 
         console.error("Ошибка загрузки скина:", url, err);
         const reason = err && err.reason ? err.reason : "неизвестная ошибка";
         placeholder.innerHTML = `<span style="color:#f87171; text-align:center; padding:0 10px;">Ошибка загрузки<br><small style="color:#94a3b8; font-weight:400;">${reason}</small></span>`;
+
+        // Auto-retry every 3 seconds — many failures are transient
+        // (aborted request from fast scrolling, brief network hiccup).
+        const timerId = setTimeout(() => {
+          retryTimers.delete(id);
+          const stillActive = activeViewers.get(id);
+          // Only retry if this exact viewer/token is still the active
+          // one for this card (card hasn't been destroyed or replaced).
+          if (!stillActive || stillActive.token !== token) return;
+          attemptLoad(card, id, url, token, viewer, canvas, placeholder);
+        }, 3000);
+        retryTimers.set(id, timerId);
       });
   }
 
@@ -775,6 +803,12 @@
   }
 
   function destroyViewer(id) {
+    const pendingTimer = retryTimers.get(id);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      retryTimers.delete(id);
+    }
+
     const entry = activeViewers.get(id);
     if (!entry) return;
 
