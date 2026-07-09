@@ -261,8 +261,8 @@
     justify-content:center;
   }
 
-  /* Пиксельное сглаживание скина */
-  .viewer-box img {
+  /* Переключение видимости в зависимости от режима */
+  .skin-flat-img {
     display:block;
     max-width:100%;
     max-height:100%;
@@ -273,7 +273,17 @@
     transition:transform 0.2s ease;
   }
 
-  .card:hover .viewer-box img {
+  .skin-model-canvas {
+    display:none;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35));
+    transition:transform 0.2s ease;
+  }
+
+  /* Эффект увеличения на наведении */
+  .card:hover .viewer-box img,
+  .card:hover .viewer-box canvas {
     transform:scale(1.08);
   }
 
@@ -334,15 +344,17 @@
 
   .btn svg{width:14px;height:14px;flex-shrink:0;}
 
-  /* ---------- РЕЖИМ 1: СТАНДАРТНАЯ СЕТКА ---------- */
+  /* ---------- РЕЖИМ 1: СТАНДАРТНАЯ СЕТКА (Текстура) ---------- */
   .grid.layout-standard {
     grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
   }
   .grid.layout-standard .viewer-box {
     height:220px;
   }
+  .grid.layout-standard .skin-flat-img { display:block; }
+  .grid.layout-standard .skin-model-canvas { display:none; }
 
-  /* ---------- РЕЖИМ 2: КОМПАКТНАЯ СЕТКА ---------- */
+  /* ---------- РЕЖИМ 2: КОМПАКТНАЯ СЕТКА (Текстура) ---------- */
   .grid.layout-compact {
     grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
     gap:12px;
@@ -375,53 +387,22 @@
     font-size:11px;
     border-radius:6px;
   }
+  .grid.layout-compact .skin-flat-img { display:block; }
+  .grid.layout-compact .skin-model-canvas { display:none; }
 
-  /* ---------- РЕЖИМ 3: СПИСОК ---------- */
-  .grid.layout-list {
-    grid-template-columns:1fr;
-    gap:10px;
+  /* ---------- РЕЖИМ 3: 3D ФОТО (Собранный скин) ---------- */
+  .grid.layout-model {
+    grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
   }
-  .grid.layout-list .card {
-    flex-direction:row;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 24px;
-    text-align:left;
+  .grid.layout-model .viewer-box {
+    height:250px;
   }
-  .grid.layout-list .viewer-box {
-    width:64px;
-    height:64px;
-    min-width:64px;
-    border-radius:8px;
-  }
-  .grid.layout-list .viewer-box img {
-    padding:4px;
-  }
-  .grid.layout-list .card-info {
-    flex:1;
-    margin-left:20px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-  }
-  .grid.layout-list .name {
-    margin-top:0;
-    text-align:left;
-    font-size:15px;
-  }
-  .grid.layout-list .cat-tag {
-    margin-top:2px;
-    font-size:11px;
-  }
-  .grid.layout-list .actions {
-    margin-top:0;
-    width:auto;
-    min-width:280px;
-    justify-content:flex-end;
-  }
-  .grid.layout-list .btn {
-    flex:0 1 auto;
-    padding:10px 16px;
+  .grid.layout-model .skin-flat-img { display:none; }
+  .grid.layout-model .skin-model-canvas {
+    display:block;
+    width:auto !important;
+    height:90% !important;
+    aspect-ratio:16 / 32;
   }
 
   /* ---------- Конец стилей сеток ---------- */
@@ -458,20 +439,6 @@
     main{padding:20px 16px 40px;}
     .logo{font-size:18px;}
     .search-wrap{width:100%;}
-    .grid.layout-list .card {
-      flex-direction:column;
-      align-items:center;
-      text-align:center;
-    }
-    .grid.layout-list .card-info {
-      margin-left:0;
-      margin-top:10px;
-      align-items:center;
-    }
-    .grid.layout-list .actions {
-      margin-top:12px;
-      width:100%;
-    }
   }
 </style>
 </head>
@@ -492,13 +459,13 @@
           <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
           Компактно
         </button>
-        <button class="layout-btn active" data-layout="standard" title="Стандартная сетка">
+        <button class="layout-btn" data-layout="standard" title="Стандартная сетка">
           <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg>
           Сетка
         </button>
-        <button class="layout-btn" data-layout="list" title="Вид списком">
-          <svg viewBox="0 0 24 24"><path d="M4 14h6v-4H4zm0 5h6v-4H4zM4 9h6V5H4zm8 5h8v-4h-8zm0 5h8v-4h-8zm0-9h8V5h-8z"/></svg>
-          Список
+        <button class="layout-btn" data-layout="model" title="Вид 3D Фото">
+          <svg viewBox="0 0 24 24"><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>
+          3D Фото
         </button>
       </div>
 
@@ -518,7 +485,7 @@
 </header>
 
 <main>
-  <div class="grid layout-standard" id="grid"></div>
+  <div class="grid" id="grid"></div>
   <div id="sentinel"></div>
   <div class="empty-state" id="emptyState" style="display:none;">
     <h2>Ничего не найдено</h2>
@@ -540,11 +507,11 @@
   let allSkins = [];             // Полный датасет
   let filteredSkins = [];        // Отфильтрованный датасет
   let displayedSkinsCount = 0;   // Сколько скинов сейчас в DOM
-  const CHUNK_SIZE = 48;         // Порция скинов (48 для более быстрой загрузки)
+  const CHUNK_SIZE = 48;         // Порция скинов
   
   let activeCategory = "All";
   let searchTerm = "";
-  let currentLayout = localStorage.getItem("gallery-layout") || "standard"; // compact, standard, list
+  let currentLayout = localStorage.getItem("gallery-layout") || "model"; // По умолчанию открываем "3D Фото"
   
   let sentinelObserver = null;
 
@@ -561,7 +528,6 @@
   // Инициализация верстки и Layout
   // ---------------------------------------------------------------------
   function initLayout() {
-    // Установка активного класса кнопке переключения
     document.querySelectorAll(".layout-btn").forEach(btn => {
       if (btn.dataset.layout === currentLayout) {
         btn.classList.add("active");
@@ -569,10 +535,8 @@
         btn.classList.remove("active");
       }
     });
-    // Применение класса сетке
     gridEl.className = `grid layout-${currentLayout}`;
 
-    // Слушатели клика для кнопок сетки
     document.querySelectorAll(".layout-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const selectedLayout = btn.dataset.layout;
@@ -581,7 +545,6 @@
         currentLayout = selectedLayout;
         localStorage.setItem("gallery-layout", currentLayout);
 
-        // Мягко обновляем классы без перерендеривания DOM!
         document.querySelectorAll(".layout-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         gridEl.className = `grid layout-${currentLayout}`;
@@ -622,6 +585,88 @@
           url: BASE_URL + file
         };
       });
+  }
+
+  // ---------------------------------------------------------------------
+  // Алгоритмический Рендерер Скина (Flat 2D Minecraft Skin Assembler)
+  // ---------------------------------------------------------------------
+  function drawSkinFront(img, canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = img.naturalWidth;
+    tempCanvas.height = img.naturalHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(img, 0, 0);
+
+    const is64x64 = img.naturalHeight === img.naturalWidth;
+
+    // Автоопределение тонких рук Alex (3px) или классических Steve (4px)
+    let isSlim = false;
+    if (is64x64) {
+      try {
+        const armColData = tempCtx.getImageData(47, 20, 1, 12).data;
+        let isAlphaZero = true;
+        for (let i = 3; i < armColData.length; i += 4) {
+          if (armColData[i] > 0) {
+            isAlphaZero = false;
+            break;
+          }
+        }
+        isSlim = isAlphaZero;
+      } catch(e) {}
+    }
+
+    const armW = isSlim ? 3 : 4;
+    const rightArmX = isSlim ? 1 : 0;
+    const leftArmX = 12;
+
+    ctx.imageSmoothingEnabled = false;
+
+    // 1. Ноги (Отрисовываем первыми)
+    // Правая нога (База + Верхний слой одежды)
+    ctx.drawImage(tempCanvas, 4, 20, 4, 12, 4, 20, 4, 12);
+    if (is64x64) ctx.drawImage(tempCanvas, 4, 36, 4, 12, 4, 20, 4, 12);
+
+    // Левая нога (База + Верхний слой одежды)
+    if (is64x64) {
+      ctx.drawImage(tempCanvas, 20, 52, 4, 12, 8, 20, 4, 12);
+      ctx.drawImage(tempCanvas, 4, 52, 4, 12, 8, 20, 4, 12);
+    } else {
+      // Для старых 64x32 скинов просто зеркалим правую ногу
+      ctx.save();
+      ctx.translate(12, 20);
+      ctx.scale(-1, 1);
+      ctx.drawImage(tempCanvas, 4, 20, 4, 12, 0, 0, 4, 12);
+      ctx.restore();
+    }
+
+    // 2. Тело/Торс (База + Верхний слой одежды)
+    ctx.drawImage(tempCanvas, 20, 20, 8, 12, 4, 8, 8, 12);
+    if (is64x64) ctx.drawImage(tempCanvas, 20, 36, 8, 12, 4, 8, 8, 12);
+
+    // 3. Руки
+    // Правая рука (База + Верхний слой)
+    ctx.drawImage(tempCanvas, 44, 20, armW, 12, rightArmX, 8, armW, 12);
+    if (is64x64) ctx.drawImage(tempCanvas, 44, 36, armW, 12, rightArmX, 8, armW, 12);
+
+    // Левая рука (База + Верхний слой)
+    if (is64x64) {
+      ctx.drawImage(tempCanvas, 36, 52, armW, 12, leftArmX, 8, armW, 12);
+      ctx.drawImage(tempCanvas, 52, 52, armW, 12, leftArmX, 8, armW, 12);
+    } else {
+      // Для старых 64x32 скинов зеркалим правую руку
+      ctx.save();
+      ctx.translate(leftArmX + armW, 8);
+      ctx.scale(-1, 1);
+      ctx.drawImage(tempCanvas, 44, 20, armW, 12, 0, 0, armW, 12);
+      ctx.restore();
+    }
+
+    // 4. Голова (База + Шлем/Волосы сверху)
+    ctx.drawImage(tempCanvas, 8, 8, 8, 8, 4, 0, 8, 8);
+    ctx.drawImage(tempCanvas, 40, 8, 8, 8, 4, 0, 8, 8);
   }
 
   // ---------------------------------------------------------------------
@@ -712,33 +757,45 @@
       if (entries[0].isIntersecting && filteredSkins.length > displayedSkinsCount) {
         loadMoreSkins();
       }
-    }, { rootMargin: "400px" }); // Заранее подгружаем за 400px до скролла
+    }, { rootMargin: "400px" });
 
     sentinelObserver.observe(sentinelEl);
   }
 
   // ---------------------------------------------------------------------
-  // Генерация карточки (Ультра-лёгкий DOM)
+  // Генерация карточки (Быстрый плоский DOM)
   // ---------------------------------------------------------------------
   function buildCard(skin) {
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.id = skin.id;
 
-    // Бокс для изображения с сеткой прозрачности
     const viewerBox = document.createElement("div");
     viewerBox.className = "viewer-box";
 
-    // Нативная ленивая загрузка изображения (Идеально быстро!)
+    // Нативная ленивая загрузка развернутой текстуры
     const img = document.createElement("img");
     img.src = skin.url;
     img.alt = skin.filename;
     img.loading = "lazy";
+    img.className = "skin-flat-img";
     viewerBox.appendChild(img);
+
+    // Легковесный нативный 16x32 холст для отображения собранного персонажа
+    const canvas = document.createElement("canvas");
+    canvas.width = 16;
+    canvas.height = 32;
+    canvas.className = "skin-model-canvas";
+    viewerBox.appendChild(canvas);
+
+    // Когда браузер загрузит текстуру (лениво, при приближении к экрану),
+    // мгновенно запускаем прорисовку персонажа на canvas.
+    img.onload = () => {
+      drawSkinFront(img, canvas);
+    };
 
     card.appendChild(viewerBox);
 
-    // Обертка информации для поддержки списочного вида
     const info = document.createElement("div");
     info.className = "card-info";
 
