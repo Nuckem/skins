@@ -273,7 +273,7 @@
 
   .placeholder .spinner{
     width:24px;
-    height:26px;
+    height:24px;
     border-radius:50%;
     border:3px solid rgba(59,130,246,0.15);
     border-top-color:var(--accent);
@@ -283,23 +283,22 @@
   @keyframes spin{to{transform:rotate(360deg);}}
 
   /* Элементы отображения скинов */
-  .skin-flat-img {
+  .skin-flat-img, .skin-model-canvas {
     display:none;
-    max-width:100%;
-    max-height:100%;
+    max-width:95%;
+    max-height:95%;
     object-fit:contain;
     image-rendering:pixelated;
     image-rendering:crisp-edges;
-    padding:10px;
     transition:transform 0.2s ease;
   }
 
+  .skin-flat-img {
+    padding:10px;
+  }
+
   .skin-model-canvas {
-    display:none;
-    image-rendering:pixelated;
-    image-rendering:crisp-edges;
     filter:drop-shadow(0 6px 12px rgba(0,0,0,0.45));
-    transition:transform 0.2s ease;
   }
 
   .card:hover .viewer-box img,
@@ -347,12 +346,12 @@
     display:flex;
     gap:6px;
     width:100%;
-    flex-wrap:wrap; /* Позволяет кнопкам переноситься, если они не влезают */
+    flex-wrap:wrap;
   }
 
   .btn{
     flex:1 1 calc(50% - 3px);
-    min-width:84px; /* Если карточка меньше 168px, кнопки автоматически выстроятся вертикально */
+    min-width:84px;
     padding:8px 6px;
     border-radius:10px;
     border:1px solid var(--border);
@@ -660,6 +659,11 @@
 
     ctx.imageSmoothingEnabled = false;
 
+    // Сохраняем состояние контекста и масштабируем виртуальную сетку 16x32 до размеров canvas
+    ctx.save();
+    const scale = canvas.width / 16;
+    ctx.scale(scale, scale);
+
     // 1. Ноги
     // Правая нога (Базовая текстура + слой одежды)
     ctx.drawImage(img, 4, 20, 4, 12, 4, 20, 4, 12);
@@ -703,6 +707,8 @@
     // 4. Голова (Голова + Шлем/Аксессуары)
     ctx.drawImage(img, 8, 8, 8, 8, 4, 0, 8, 8);
     ctx.drawImage(img, 40, 8, 8, 8, 4, 0, 8, 8);
+
+    ctx.restore();
   }
 
   // ---------------------------------------------------------------------
@@ -900,10 +906,10 @@
     img.className = "skin-flat-img";
     viewerBox.appendChild(img);
 
-    // Холст для собранной модели (16x32 пикселей для нулевого веса)
+    // Холст для собранной модели (Увеличен до 160x320 для четкости и размера)
     const canvas = document.createElement("canvas");
-    canvas.width = 16;
-    canvas.height = 32;
+    canvas.width = 160;
+    canvas.height = 320;
     canvas.className = "skin-model-canvas";
     viewerBox.appendChild(canvas);
 
