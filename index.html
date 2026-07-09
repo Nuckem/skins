@@ -734,8 +734,14 @@
   }
 
   // Cache validation results per URL so scrolling a card back into view
-  // doesn't repeat the same network check every single time.
-  const skinValidationCache = new Map(); // url -> Promise (resolved or rejected)
+  // doesn't repeat the same network check every single time. We only
+  // cache SUCCESSFUL validations — a failure can be transient (e.g. the
+  // image request got aborted mid-flight because the card scrolled out
+  // of view while it was loading), and caching that forever would leave
+  // the card permanently stuck showing an error even though the file is
+  // perfectly fine. Real, permanent failures (missing file / wrong
+  // dimensions) will simply fail again on retry, which costs nothing.
+  const skinValidationCache = new Map(); // url -> true (only ever stores successes)
 
   // Verifies the image actually exists and has valid Minecraft skin
   // dimensions (64x64, 64x32, or an exact multiple of either) before
@@ -743,10 +749,10 @@
   // of a generic "Ошибка загрузки" for every failure.
   function validateSkinImage(url) {
     if (skinValidationCache.has(url)) {
-      return skinValidationCache.get(url);
+      return Promise.resolve();
     }
 
-    const promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const w = img.naturalWidth;
@@ -758,6 +764,7 @@
           reject({ reason: `неверный размер файла (${w}x${h}), нужен формат 64x64 или 64x32` });
           return;
         }
+        skinValidationCache.set(url, true);
         resolve();
       };
       img.onerror = () => {
@@ -765,12 +772,6 @@
       };
       img.src = url;
     });
-
-    skinValidationCache.set(url, promise);
-    // Don't let an unhandled rejection warning bubble up from the cache
-    // itself — callers still get the rejection via their own .catch().
-    promise.catch(() => {});
-    return promise;
   }
 
   function destroyViewer(id) {
