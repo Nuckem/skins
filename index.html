@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skins Gallery — 3D Minecraft Skins</title>
-<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
+<title>Skins Gallery — Fast Minecraft Skins</title>
 <style>
   :root{
     --bg:#0f172a;
@@ -87,11 +86,16 @@
     margin-left:4px;
   }
 
+  .controls-group {
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
   .search-wrap{
     position:relative;
-    flex:1;
-    min-width:220px;
-    max-width:420px;
+    width:280px;
   }
 
   .search-wrap input{
@@ -119,6 +123,48 @@
     width:16px;
     height:16px;
     stroke:var(--text-dim);
+  }
+
+  /* ---------- Переключатель сетки (Layout Controls) ---------- */
+  .layout-switcher {
+    display:flex;
+    background:rgba(0,0,0,0.25);
+    border:1px solid var(--border);
+    padding:4px;
+    border-radius:12px;
+    gap:4px;
+  }
+
+  .layout-btn {
+    background:transparent;
+    border:none;
+    color:var(--text-dim);
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:600;
+    transition:all .2s ease;
+  }
+
+  .layout-btn:hover {
+    color:var(--text);
+    background:rgba(255,255,255,0.04);
+  }
+
+  .layout-btn.active {
+    background:var(--accent);
+    color:#fff;
+  }
+
+  .layout-btn svg {
+    width:16px;
+    height:16px;
+    fill:currentColor;
   }
 
   .stats{
@@ -161,7 +207,7 @@
     box-shadow:0 6px 16px rgba(59,130,246,0.4);
   }
 
-  /* ---------- Grid ---------- */
+  /* ---------- Grid Base ---------- */
   main{
     max-width:1400px;
     margin:0 auto;
@@ -170,8 +216,8 @@
 
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
     gap:22px;
+    transition:all 0.3s ease;
   }
 
   .card{
@@ -184,88 +230,52 @@
     align-items:center;
     box-shadow:var(--shadow);
     transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-    backdrop-filter:blur(6px);
     position:relative;
     overflow:hidden;
-    contain:layout paint;
-    content-visibility:auto;
-  }
-
-  .card::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:radial-gradient(circle at 50% 0%, rgba(59,130,246,0.08), transparent 60%);
-    opacity:0;
-    transition:opacity .25s ease;
-    pointer-events:none;
+    contain:content;
   }
 
   .card:hover{
     transform:translateY(-4px);
     border-color:rgba(59,130,246,0.4);
-    box-shadow:0 12px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(59,130,246,0.15);
+    box-shadow:0 12px 30px rgba(0,0,0,0.55);
   }
 
-  .card:hover::before{opacity:1;}
-
+  /* Шахматная сетка прозрачности на фоне */
   .viewer-box{
-    width:220px;
-    height:320px;
-    max-width:100%;
+    width:100%;
     border-radius:12px;
     overflow:hidden;
-    background:radial-gradient(circle at 50% 30%, #2a3a54, #131c2c 85%);
+    background-color:#1e293b;
+    background-image: 
+      linear-gradient(45deg, #131c2c 25%, transparent 25%), 
+      linear-gradient(-45deg, #131c2c 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #131c2c 75%), 
+      linear-gradient(-45deg, transparent 75%, #131c2c 75%);
+    background-size:16px 16px;
+    background-position:0 0, 0 8px, 8px -8px, -8px 0px;
     position:relative;
     border:1px solid rgba(255,255,255,0.05);
-    contain:strict;
-  }
-
-  .viewer-box canvas{
-    display:block;
-    width:100% !important;
-    height:100% !important;
-    cursor:grab;
-  }
-
-  .viewer-box canvas:active{cursor:grabbing;}
-
-  /* Плоские изображения, если файл не скин */
-  .viewer-box img.fallback-img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 12px;
-    animation: fadeIn 0.25s ease-in-out;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .placeholder{
-    position:absolute;
-    inset:0;
     display:flex;
     align-items:center;
     justify-content:center;
-    color:var(--text-dim);
-    font-size:12px;
-    letter-spacing:0.5px;
   }
 
-  .placeholder .spinner{
-    width:26px;
-    height:26px;
-    border-radius:50%;
-    border:3px solid rgba(59,130,246,0.2);
-    border-top-color:var(--accent);
-    animation:spin .8s linear infinite;
+  /* Пиксельное сглаживание скина */
+  .viewer-box img {
+    display:block;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    padding:10px;
+    transition:transform 0.2s ease;
   }
 
-  @keyframes spin{to{transform:rotate(360deg);}}
+  .card:hover .viewer-box img {
+    transform:scale(1.08);
+  }
 
   .name{
     margin-top:14px;
@@ -314,7 +324,6 @@
     background:var(--accent);
     border-color:var(--accent);
     color:#fff;
-    transform:translateY(-1px);
   }
 
   .btn.copied{
@@ -324,6 +333,98 @@
   }
 
   .btn svg{width:14px;height:14px;flex-shrink:0;}
+
+  /* ---------- РЕЖИМ 1: СТАНДАРТНАЯ СЕТКА ---------- */
+  .grid.layout-standard {
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .grid.layout-standard .viewer-box {
+    height:220px;
+  }
+
+  /* ---------- РЕЖИМ 2: КОМПАКТНАЯ СЕТКА ---------- */
+  .grid.layout-compact {
+    grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+    gap:12px;
+  }
+  .grid.layout-compact .card {
+    padding:10px;
+    border-radius:12px;
+  }
+  .grid.layout-compact .viewer-box {
+    height:120px;
+  }
+  .grid.layout-compact .viewer-box img {
+    padding:4px;
+  }
+  .grid.layout-compact .name {
+    font-size:12px;
+    margin-top:8px;
+  }
+  .grid.layout-compact .cat-tag {
+    font-size:10px;
+    margin-top:2px;
+  }
+  .grid.layout-compact .actions {
+    margin-top:8px;
+    flex-direction:column;
+    gap:4px;
+  }
+  .grid.layout-compact .btn {
+    padding:6px 4px;
+    font-size:11px;
+    border-radius:6px;
+  }
+
+  /* ---------- РЕЖИМ 3: СПИСОК ---------- */
+  .grid.layout-list {
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .grid.layout-list .card {
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 24px;
+    text-align:left;
+  }
+  .grid.layout-list .viewer-box {
+    width:64px;
+    height:64px;
+    min-width:64px;
+    border-radius:8px;
+  }
+  .grid.layout-list .viewer-box img {
+    padding:4px;
+  }
+  .grid.layout-list .card-info {
+    flex:1;
+    margin-left:20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .grid.layout-list .name {
+    margin-top:0;
+    text-align:left;
+    font-size:15px;
+  }
+  .grid.layout-list .cat-tag {
+    margin-top:2px;
+    font-size:11px;
+  }
+  .grid.layout-list .actions {
+    margin-top:0;
+    width:auto;
+    min-width:280px;
+    justify-content:flex-end;
+  }
+  .grid.layout-list .btn {
+    flex:0 1 auto;
+    padding:10px 16px;
+  }
+
+  /* ---------- Конец стилей сеток ---------- */
 
   .empty-state{
     text-align:center;
@@ -340,9 +441,6 @@
   #sentinel {
     height: 40px;
     width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     margin-top: 20px;
   }
 
@@ -358,14 +456,22 @@
   @media (max-width:768px){
     header{padding:16px 16px 12px;}
     main{padding:20px 16px 40px;}
-    .grid{grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:14px;}
-    .viewer-box{width:100%;height:240px;}
     .logo{font-size:18px;}
-    .search-wrap{max-width:100%;}
-  }
-
-  @media (min-width:1600px){
-    .grid{grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));}
+    .search-wrap{width:100%;}
+    .grid.layout-list .card {
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .grid.layout-list .card-info {
+      margin-left:0;
+      margin-top:10px;
+      align-items:center;
+    }
+    .grid.layout-list .actions {
+      margin-top:12px;
+      width:100%;
+    }
   }
 </style>
 </head>
@@ -376,25 +482,43 @@
     <div class="logo">
       <div class="cube"></div>
       Skins Gallery
-      <span class="sub">3D Minecraft Skin Viewer</span>
+      <span class="sub">Fast Skin Viewer</span>
     </div>
 
-    <div class="search-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="7"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <input id="searchInput" type="text" placeholder="Поиск по имени скина...">
-    </div>
+    <div class="controls-group">
+      <!-- Переключатель сеток -->
+      <div class="layout-switcher">
+        <button class="layout-btn" data-layout="compact" title="Компактная сетка">
+          <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+          Компактно
+        </button>
+        <button class="layout-btn active" data-layout="standard" title="Стандартная сетка">
+          <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg>
+          Сетка
+        </button>
+        <button class="layout-btn" data-layout="list" title="Вид списком">
+          <svg viewBox="0 0 24 24"><path d="M4 14h6v-4H4zm0 5h6v-4H4zM4 9h6V5H4zm8 5h8v-4h-8zm0 5h8v-4h-8zm0-9h8V5h-8z"/></svg>
+          Список
+        </button>
+      </div>
 
-    <div class="stats" id="statsLabel">Загрузка...</div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="searchInput" type="text" placeholder="Поиск скина...">
+      </div>
+
+      <div class="stats" id="statsLabel">Загрузка...</div>
+    </div>
   </div>
 
   <div class="categories" id="categoriesBar"></div>
 </header>
 
 <main>
-  <div class="grid" id="grid"></div>
+  <div class="grid layout-standard" id="grid"></div>
   <div id="sentinel"></div>
   <div class="empty-state" id="emptyState" style="display:none;">
     <h2>Ничего не найдено</h2>
@@ -403,7 +527,7 @@
 </main>
 
 <footer>
-  Skins Gallery &middot; работает на GitHub Pages &middot; 3D просмотр реализован через skinview3d
+  Skins Gallery &middot; ультрабыстрый рендеринг &middot; работает на GitHub Pages
 </footer>
 
 <script>
@@ -411,20 +535,17 @@
   "use strict";
 
   // ---------------------------------------------------------------------
-  // Стейт приложения
+  // Стейт
   // ---------------------------------------------------------------------
-  let allSkins = [];             // Полный нормализованный набор данных
-  let filteredSkins = [];        // Отфильтрованный набор данных
-  let displayedSkinsCount = 0;   // Количество уже отрисованных в DOM карточек
-  const CHUNK_SIZE = 24;         // Порция подгрузки скинов за один раз (бесконечный скролл)
+  let allSkins = [];             // Полный датасет
+  let filteredSkins = [];        // Отфильтрованный датасет
+  let displayedSkinsCount = 0;   // Сколько скинов сейчас в DOM
+  const CHUNK_SIZE = 48;         // Порция скинов (48 для более быстрой загрузки)
   
   let activeCategory = "All";
   let searchTerm = "";
+  let currentLayout = localStorage.getItem("gallery-layout") || "standard"; // compact, standard, list
   
-  const activeViewers = new Map(); // id -> { viewer, canvas, img, token, queued, isFlat }
-  const debounceTimers = new Map(); // id -> setTimeout id
-  
-  let cardObserver = null;
   let sentinelObserver = null;
 
   const BASE_URL = new URL("images/", window.location.href).href;
@@ -437,7 +558,39 @@
   const sentinelEl = document.getElementById("sentinel");
 
   // ---------------------------------------------------------------------
-  // Инициализация и загрузка данных
+  // Инициализация верстки и Layout
+  // ---------------------------------------------------------------------
+  function initLayout() {
+    // Установка активного класса кнопке переключения
+    document.querySelectorAll(".layout-btn").forEach(btn => {
+      if (btn.dataset.layout === currentLayout) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+    // Применение класса сетке
+    gridEl.className = `grid layout-${currentLayout}`;
+
+    // Слушатели клика для кнопок сетки
+    document.querySelectorAll(".layout-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const selectedLayout = btn.dataset.layout;
+        if (selectedLayout === currentLayout) return;
+
+        currentLayout = selectedLayout;
+        localStorage.setItem("gallery-layout", currentLayout);
+
+        // Мягко обновляем классы без перерендеривания DOM!
+        document.querySelectorAll(".layout-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        gridEl.className = `grid layout-${currentLayout}`;
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Загрузка данных
   // ---------------------------------------------------------------------
   async function loadData() {
     try {
@@ -472,7 +625,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Построение панели категорий
+  // Категории
   // ---------------------------------------------------------------------
   function extractCategories(skins) {
     const set = new Set();
@@ -501,7 +654,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Фильтрация и Бесконечный скролл (Pagination)
+  // Фильтрация и Бесконечный скролл
   // ---------------------------------------------------------------------
   function applyFilters() {
     filteredSkins = allSkins.filter(skin => {
@@ -510,8 +663,6 @@
       return matchesCategory && matchesSearch;
     });
 
-    // Сброс рендеринга
-    destroyAllViewers();
     gridEl.innerHTML = "";
     displayedSkinsCount = 0;
 
@@ -523,7 +674,7 @@
     }
 
     emptyStateEl.style.display = "none";
-    sentinelEl.style.display = "flex";
+    sentinelEl.style.display = "block";
     updateStats(filteredSkins.length);
 
     loadMoreSkins();
@@ -548,12 +699,10 @@
     if (displayedSkinsCount >= filteredSkins.length) {
       sentinelEl.style.display = "none";
     }
-
-    setupCardObserver();
   }
 
   function updateStats(count) {
-    statsLabelEl.textContent = `${count} из ${allSkins.length} скинов`;
+    statsLabelEl.textContent = `${count} из ${allSkins.length} файлов`;
   }
 
   function setupSentinel() {
@@ -563,40 +712,49 @@
       if (entries[0].isIntersecting && filteredSkins.length > displayedSkinsCount) {
         loadMoreSkins();
       }
-    }, { rootMargin: "300px" });
+    }, { rootMargin: "400px" }); // Заранее подгружаем за 400px до скролла
 
     sentinelObserver.observe(sentinelEl);
   }
 
   // ---------------------------------------------------------------------
-  // Рендеринг карточки DOM
+  // Генерация карточки (Ультра-лёгкий DOM)
   // ---------------------------------------------------------------------
   function buildCard(skin) {
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.id = skin.id;
-    card.dataset.url = skin.url;
 
+    // Бокс для изображения с сеткой прозрачности
     const viewerBox = document.createElement("div");
     viewerBox.className = "viewer-box";
 
-    const placeholder = document.createElement("div");
-    placeholder.className = "placeholder";
-    placeholder.innerHTML = `<div class="spinner"></div>`;
-    viewerBox.appendChild(placeholder);
+    // Нативная ленивая загрузка изображения (Идеально быстро!)
+    const img = document.createElement("img");
+    img.src = skin.url;
+    img.alt = skin.filename;
+    img.loading = "lazy";
+    viewerBox.appendChild(img);
 
     card.appendChild(viewerBox);
+
+    // Обертка информации для поддержки списочного вида
+    const info = document.createElement("div");
+    info.className = "card-info";
 
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = skin.filename;
-    card.appendChild(name);
+    info.appendChild(name);
 
     const catTag = document.createElement("div");
     catTag.className = "cat-tag";
     catTag.textContent = skin.category;
-    card.appendChild(catTag);
+    info.appendChild(catTag);
 
+    card.appendChild(info);
+
+    // Панель кнопок действий
     const actions = document.createElement("div");
     actions.className = "actions";
 
@@ -607,8 +765,11 @@
         <rect x="9" y="9" width="13" height="13" rx="2"></rect>
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
       </svg>
-      Copy URL`;
-    copyBtn.addEventListener("click", () => copyUrl(skin.url, copyBtn));
+      Копировать`;
+    copyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      copyUrl(skin.url, copyBtn);
+    });
     actions.appendChild(copyBtn);
 
     const openBtn = document.createElement("button");
@@ -619,8 +780,11 @@
         <polyline points="15 3 21 3 21 9"></polyline>
         <line x1="10" y1="14" x2="21" y2="3"></line>
       </svg>
-      Open Image`;
-    openBtn.addEventListener("click", () => window.open(skin.url, "_blank", "noopener"));
+      Открыть`;
+    openBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      window.open(skin.url, "_blank", "noopener");
+    });
     actions.appendChild(openBtn);
 
     card.appendChild(actions);
@@ -644,306 +808,11 @@
 
     const originalHTML = btn.innerHTML;
     btn.classList.add("copied");
-    btn.textContent = "Copied!";
+    btn.textContent = "Скопировано!";
     setTimeout(() => {
       btn.classList.remove("copied");
       btn.innerHTML = originalHTML;
     }, 1200);
-  }
-
-  // ---------------------------------------------------------------------
-  // Менеджмент 3D / 2D рендеринга (Пул ресурсов)
-  // ---------------------------------------------------------------------
-  const MAX_CONCURRENT_VIEWERS = 12; // Лимит одновременных WebGL-анимаций
-  let liveViewerCount = 0;
-  const pendingQueue = []; // Очередь ожидания { id, card, url, token, img }
-
-  function setupCardObserver() {
-    if (!cardObserver) {
-      cardObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const card = entry.target;
-          const id = card.dataset.id;
-          const url = card.dataset.url;
-
-          if (entry.isIntersecting) {
-            queueViewerInitialization(card, id, url);
-          } else {
-            cancelOrDestroy(id);
-          }
-        });
-      }, { root: null, rootMargin: "150px", threshold: 0.01 });
-    }
-
-    document.querySelectorAll(".card").forEach(card => cardObserver.observe(card));
-  }
-
-  // Debounce скролла для предотвращения лагов на мобильных устройствах
-  function queueViewerInitialization(card, id, url) {
-    if (activeViewers.has(id) || debounceTimers.has(id)) return;
-
-    const timerId = setTimeout(() => {
-      debounceTimers.delete(id);
-      
-      const token = Symbol("viewerToken");
-      activeViewers.set(id, { viewer: null, canvas: null, img: null, token, queued: true });
-
-      validateAndLoadImage(card, id, url, token);
-    }, 120);
-    
-    debounceTimers.set(id, timerId);
-  }
-
-  // Загружаем и анализируем пропорции файла перед решением запустить 3D
-  function validateAndLoadImage(card, id, url, token) {
-    const entry = activeViewers.get(id);
-    if (!entry || entry.token !== token) return;
-
-    const img = new Image();
-    img.onload = () => {
-      img.onload = null;
-      img.onerror = null;
-
-      const stillHere = activeViewers.get(id);
-      if (!stillHere || stillHere.token !== token) return;
-
-      const w = img.naturalWidth;
-      const h = img.naturalHeight;
-      const ratio = w / h;
-
-      // Пропорции скина Minecraft: строго 1:1 (64x64, 128x128) или 2:1 (64x32, 128x64)
-      const isSkinRatio = Math.abs(ratio - 1) < 0.02 || Math.abs(ratio - 2) < 0.02;
-
-      if (isSkinRatio) {
-        // Запускаем 3D плеер, если есть свободные слоты WebGL
-        if (liveViewerCount < MAX_CONCURRENT_VIEWERS) {
-          spawnViewer(card, id, url, token, img);
-        } else {
-          pendingQueue.push({ id, card, url, token, img });
-        }
-      } else {
-        // Если это не скин (аватарка, скриншот, арт), просто показываем его как картинку
-        showFlatImage(card, id, img, token);
-      }
-    };
-
-    img.onerror = () => {
-      img.onload = null;
-      img.onerror = null;
-
-      const stillHere = activeViewers.get(id);
-      if (!stillHere || stillHere.token !== token) return;
-
-      const placeholder = card.querySelector(".placeholder");
-      placeholder.innerHTML = `<span style="color:#f87171; font-size:11px; text-align:center; padding: 4px;">Ошибка загрузки</span>`;
-    };
-
-    img.src = url;
-  }
-
-  // Отрисовка плоского файла (без WebGL)
-  function showFlatImage(card, id, img, token) {
-    const entry = activeViewers.get(id);
-    if (!entry || entry.token !== token) return;
-
-    const viewerBox = card.querySelector(".viewer-box");
-    const placeholder = viewerBox.querySelector(".placeholder");
-
-    // Удаляем старый canvas если он был
-    const existingCanvas = viewerBox.querySelector("canvas");
-    if (existingCanvas) existingCanvas.remove();
-
-    img.className = "fallback-img";
-    
-    // Пикселизация для мелких изображений (Minecraft пиксель-арт)
-    if (img.naturalWidth <= 512) {
-      img.style.imageRendering = "pixelated";
-    } else {
-      img.style.imageRendering = "auto";
-    }
-
-    viewerBox.appendChild(img);
-    placeholder.style.display = "none";
-
-    activeViewers.set(id, { viewer: null, canvas: null, img, token, queued: false, isFlat: true });
-  }
-
-  // Отрисовка 3D модели скина
-  function spawnViewer(card, id, url, token, img) {
-    const entry = activeViewers.get(id);
-    if (!entry || entry.token !== token) return;
-
-    const viewerBox = card.querySelector(".viewer-box");
-    const placeholder = viewerBox.querySelector(".placeholder");
-
-    const canvas = document.createElement("canvas");
-    canvas.width = 220;
-    canvas.height = 320;
-    canvas.style.display = "none";
-    viewerBox.appendChild(canvas);
-
-    let viewer;
-    try {
-      viewer = new skinview3d.SkinViewer({
-        canvas: canvas,
-        width: 220,
-        height: 320
-      });
-    } catch (err) {
-      console.warn("WebGL недоступен, откат к 2D для:", url, err);
-      canvas.remove();
-      showFlatImage(card, id, img, token);
-      releaseSlotAndProcessQueue();
-      return;
-    }
-
-    liveViewerCount++;
-
-    viewer.fov = 45;
-    viewer.zoom = 0.92;
-    viewer.autoRotate = true;
-    viewer.autoRotateSpeed = 0.8;
-
-    if (viewer.controls) {
-      viewer.controls.enableZoom = true;
-      viewer.controls.enableRotate = true;
-      viewer.controls.enablePan = false;
-    }
-
-    if (skinview3d.IdleAnimation) {
-      viewer.animation = new skinview3d.IdleAnimation();
-    }
-
-    if (viewer.globalLight) viewer.globalLight.intensity = 2.4;
-    if (viewer.cameraLight) viewer.cameraLight.intensity = 1.4;
-
-    if (window.THREE && viewer.scene) {
-      const fillFront = new THREE.DirectionalLight(0xffffff, 0.9);
-      fillFront.position.set(0, 10, 20);
-      viewer.scene.add(fillFront);
-
-      const fillBack = new THREE.DirectionalLight(0xffffff, 0.6);
-      fillBack.position.set(0, 10, -20);
-      viewer.scene.add(fillBack);
-
-      const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-      viewer.scene.add(ambient);
-    }
-
-    if (viewer.renderer && "toneMappingExposure" in viewer.renderer) {
-      viewer.renderer.toneMappingExposure = 1.3;
-    }
-
-    activeViewers.set(id, { viewer, canvas, img, token, queued: false });
-
-    const loadPromise = typeof viewer.loadSkin === "function"
-      ? Promise.resolve(viewer.loadSkin(url))
-      : Promise.resolve().then(() => { viewer.skin = url; });
-
-    loadPromise
-      .then(() => {
-        const stillHere = activeViewers.get(id);
-        if (!stillHere || stillHere.token !== token) return;
-
-        canvas.style.display = "block";
-        placeholder.style.display = "none";
-      })
-      .catch((err) => {
-        const stillHere = activeViewers.get(id);
-        if (!stillHere || stillHere.token !== token) return;
-
-        console.warn("Не удалось натянуть скин в 3D, откат к плоскому выводу:", url, err);
-        destroyViewer(id);
-        showFlatImage(card, id, img, token);
-      });
-  }
-
-  function releaseSlotAndProcessQueue() {
-    const next = pendingQueue.shift();
-    if (!next) return;
-
-    const current = activeViewers.get(next.id);
-    if (!current || current.token !== next.token) {
-      releaseSlotAndProcessQueue();
-      return;
-    }
-
-    spawnViewer(next.card, next.id, next.url, next.token, next.img);
-  }
-
-  function cancelOrDestroy(id) {
-    const scrollTimer = debounceTimers.get(id);
-    if (scrollTimer) {
-      clearTimeout(scrollTimer);
-      debounceTimers.delete(id);
-    }
-
-    const idx = pendingQueue.findIndex(item => item.id === id);
-    if (idx !== -1) pendingQueue.splice(idx, 1);
-
-    destroyViewer(id);
-  }
-
-  function destroyViewer(id) {
-    const entry = activeViewers.get(id);
-    if (!entry) return;
-
-    activeViewers.delete(id);
-
-    let freedSlot = false;
-    if (entry.viewer) {
-      if (entry.canvas) {
-        try {
-          const gl = entry.canvas.getContext("webgl") || entry.canvas.getContext("experimental-webgl");
-          if (gl) {
-            const loseExt = gl.getExtension('WEBGL_lose_context');
-            if (loseExt) loseExt.loseContext();
-          }
-        } catch (e) {}
-      }
-
-      try {
-        entry.viewer.dispose();
-      } catch (err) {}
-
-      liveViewerCount = Math.max(0, liveViewerCount - 1);
-      freedSlot = true;
-    }
-
-    if (entry.canvas) {
-      try { entry.canvas.remove(); } catch (e) {}
-    }
-
-    const card = document.querySelector(`.card[data-id="${id}"]`);
-    if (card) {
-      const viewerBox = card.querySelector(".viewer-box");
-      if (viewerBox) {
-        const fallbackImg = viewerBox.querySelector(".fallback-img");
-        if (fallbackImg) {
-          try { fallbackImg.remove(); } catch (e) {}
-        }
-        const placeholder = viewerBox.querySelector(".placeholder");
-        if (placeholder) {
-          placeholder.style.display = "flex";
-          placeholder.innerHTML = `<div class="spinner"></div>`;
-        }
-      }
-    }
-
-    if (freedSlot) releaseSlotAndProcessQueue();
-  }
-
-  function destroyAllViewers() {
-    debounceTimers.forEach(timerId => clearTimeout(timerId));
-    debounceTimers.clear();
-
-    pendingQueue.length = 0;
-    Array.from(activeViewers.keys()).forEach(id => destroyViewer(id));
-    
-    if (cardObserver) {
-      cardObserver.disconnect();
-      cardObserver = null;
-    }
   }
 
   // ---------------------------------------------------------------------
@@ -956,13 +825,14 @@
     searchDebounceTimer = setTimeout(() => {
       searchTerm = value.trim().toLowerCase();
       applyFilters();
-    }, 200);
+    }, 150);
   });
 
   // ---------------------------------------------------------------------
   // Старт приложения
   // ---------------------------------------------------------------------
   async function init() {
+    initLayout();
     await loadData();
     renderCategories();
     applyFilters();
