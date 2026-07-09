@@ -285,20 +285,22 @@
   /* Элементы отображения скинов */
   .skin-flat-img, .skin-model-canvas {
     display:none;
-    max-width:95%;
-    max-height:95%;
+    width:100%;
+    height:100%;
+    max-width:98%;
+    max-height:98%;
     object-fit:contain;
-    image-rendering:pixelated;
-    image-rendering:crisp-edges;
     transition:transform 0.2s ease;
   }
 
   .skin-flat-img {
-    padding:10px;
+    padding:6px; /* Меньше отступ - больше текстура скина! */
   }
 
   .skin-model-canvas {
     filter:drop-shadow(0 6px 12px rgba(0,0,0,0.45));
+    max-width:92%;
+    max-height:92%;
   }
 
   .card:hover .viewer-box img,
@@ -384,17 +386,17 @@
 
   .btn svg{width:13px;height:13px;flex-shrink:0;}
 
-  /* ---------- Layout 1: СТАНДАРТНАЯ СЕТКА (Текстура) ---------- */
+  /* ---------- Layout 1: УВЕЛИЧЕННАЯ СТАНДАРТНАЯ СЕТКА (Текстура) ---------- */
   .grid.layout-standard {
-    grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); /* Увеличен размер сетки до 250px */
   }
   .grid.layout-standard .viewer-box {
-    height:210px;
+    height:250px; /* Увеличена высота бокса до 250px */
   }
 
-  /* ---------- Layout 2: КОМПАКТНАЯ СЕТКА (Текстура) ---------- */
+  /* ---------- Layout 2: УВЕЛИЧЕННАЯ КОМПАКТНАЯ СЕТКА (Текстура) ---------- */
   .grid.layout-compact {
-    grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(155px, 1fr)); /* Увеличен компактный размер до 155px */
     gap:12px;
   }
   .grid.layout-compact .card {
@@ -402,7 +404,7 @@
     border-radius:12px;
   }
   .grid.layout-compact .viewer-box {
-    height:120px;
+    height:150px; /* Увеличена высота бокса до 150px */
   }
   .grid.layout-compact .card-info {
     margin-top:8px;
@@ -423,12 +425,12 @@
     border-radius:6px;
   }
 
-  /* ---------- Layout 3: 3D ФОТО (Собранный персонаж) ---------- */
+  /* ---------- Layout 3: 3D ФОТО ---------- */
   .grid.layout-model {
-    grid-template-columns:repeat(auto-fill, minmax(170px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
   }
   .grid.layout-model .viewer-box {
-    height:240px;
+    height:250px;
   }
 
   /* ---------- Конец стилей сеток ---------- */
@@ -648,7 +650,6 @@
         analysisCanvas.width = img.naturalWidth;
         analysisCanvas.height = img.naturalHeight;
         analysisCtx.drawImage(img, 0, 0);
-        // Точка считывания альфа-канала правого плеча Steve/Alex
         isSlim = analysisCtx.getImageData(47, 20, 1, 1).data[3] === 0;
       } catch(e) {}
     }
@@ -659,22 +660,19 @@
 
     ctx.imageSmoothingEnabled = false;
 
-    // Сохраняем состояние контекста и масштабируем виртуальную сетку 16x32 до размеров canvas
+    // Масштабируем виртуальную координатную сетку 16x32 до размеров canvas
     ctx.save();
     const scale = canvas.width / 16;
     ctx.scale(scale, scale);
 
     // 1. Ноги
-    // Правая нога (Базовая текстура + слой одежды)
     ctx.drawImage(img, 4, 20, 4, 12, 4, 20, 4, 12);
     if (is64x64) ctx.drawImage(img, 4, 36, 4, 12, 4, 20, 4, 12);
 
-    // Левая нога
     if (is64x64) {
       ctx.drawImage(img, 20, 52, 4, 12, 8, 20, 4, 12);
       ctx.drawImage(img, 4, 52, 4, 12, 8, 20, 4, 12);
     } else {
-      // Для ретро-скинов зеркалим правую ногу
       ctx.save();
       ctx.translate(12, 20);
       ctx.scale(-1, 1);
@@ -682,21 +680,18 @@
       ctx.restore();
     }
 
-    // 2. Тело/Торс (Базовая текстура + слой одежды)
+    // 2. Тело/Торс
     ctx.drawImage(img, 20, 20, 8, 12, 4, 8, 8, 12);
     if (is64x64) ctx.drawImage(img, 20, 36, 8, 12, 4, 8, 8, 12);
 
     // 3. Руки
-    // Правая рука (Базовая текстура + слой одежды)
     ctx.drawImage(img, 44, 20, armW, 12, rightArmX, 8, armW, 12);
     if (is64x64) ctx.drawImage(img, 44, 36, armW, 12, rightArmX, 8, armW, 12);
 
-    // Левая рука
     if (is64x64) {
       ctx.drawImage(img, 36, 52, armW, 12, leftArmX, 8, armW, 12);
       ctx.drawImage(img, 52, 52, armW, 12, leftArmX, 8, armW, 12);
     } else {
-      // Для ретро-скинов зеркалим правую руку
       ctx.save();
       ctx.translate(leftArmX + armW, 8);
       ctx.scale(-1, 1);
@@ -704,7 +699,7 @@
       ctx.restore();
     }
 
-    // 4. Голова (Голова + Шлем/Аксессуары)
+    // 4. Голова
     ctx.drawImage(img, 8, 8, 8, 8, 4, 0, 8, 8);
     ctx.drawImage(img, 40, 8, 8, 8, 4, 0, 8, 8);
 
@@ -807,7 +802,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Ленивый рендеринг через JS (Гарантирует 100% скорость загрузки)
+  // Ленивый рендеринг изображений
   // ---------------------------------------------------------------------
   function setupCardObserver() {
     if (cardObserver) cardObserver.disconnect();
@@ -828,16 +823,12 @@
     const id = card.dataset.id;
     const url = card.dataset.url;
 
-    // Если скин уже загружен из сети ранее, берем его из памяти ОЗУ мгновенно
     if (imgCache.has(url)) {
       renderCardContent(card, imgCache.get(url));
       return;
     }
 
-    if (activeLoads.has(id)) return; // Уже качается
-
-    const token = Symbol("loadToken");
-    activeLoads.set(id, token);
+    if (activeLoads.has(id)) return;
 
     const img = new Image();
     img.onload = () => {
@@ -869,11 +860,27 @@
 
     if (placeholder) placeholder.style.display = "none";
 
-    if (currentLayout === "model") {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    const ratio = w / h;
+    
+    // Пропорции скина Minecraft: строго 1:1 или 2:1 (с погрешностью)
+    const isSkin = Math.abs(ratio - 1) < 0.03 || Math.abs(ratio - 2) < 0.03;
+
+    // Включаем пиксельный рендеринг только для оригинальных мелких файлов (текстур)
+    if (w <= 256) {
+      flatImg.style.imageRendering = "pixelated";
+    } else {
+      flatImg.style.imageRendering = "auto";
+    }
+
+    // Если режим 3D-модели И файл является валидным скином
+    if (currentLayout === "model" && isSkin) {
       flatImg.style.display = "none";
       canvas.style.display = "block";
       drawSkinFront(img, canvas);
     } else {
+      // Иначе (для скриншотов, картинок, либо в режиме плоской сетки) выводим просто картинку
       canvas.style.display = "none";
       flatImg.style.display = "block";
       if (flatImg.src !== img.src) {
@@ -883,7 +890,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Генерация карточки (Ультра-лёгкий DOM)
+  // Генерация карточки (Быстрый DOM)
   // ---------------------------------------------------------------------
   function buildCard(skin) {
     const card = document.createElement("div");
@@ -894,19 +901,17 @@
     const viewerBox = document.createElement("div");
     viewerBox.className = "viewer-box";
 
-    // Спиннер ожидания
     const placeholder = document.createElement("div");
     placeholder.className = "placeholder";
     placeholder.innerHTML = `<div class="spinner"></div>`;
     viewerBox.appendChild(placeholder);
 
-    // Тег для плоской текстуры
     const img = document.createElement("img");
     img.alt = skin.filename;
     img.className = "skin-flat-img";
     viewerBox.appendChild(img);
 
-    // Холст для собранной модели (Увеличен до 160x320 для четкости и размера)
+    // Холст для собранной модели (160x320 пикселей для идеальной четкости)
     const canvas = document.createElement("canvas");
     canvas.width = 160;
     canvas.height = 320;
@@ -915,14 +920,13 @@
 
     card.appendChild(viewerBox);
 
-    // Информация
     const info = document.createElement("div");
     info.className = "card-info";
 
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = skin.filename;
-    name.title = skin.filename; // При наведении виден весь текст, если урезан
+    name.title = skin.filename;
     info.appendChild(name);
 
     const catTag = document.createElement("div");
@@ -932,7 +936,6 @@
 
     card.appendChild(info);
 
-    // Панель кнопок
     const actions = document.createElement("div");
     actions.className = "actions";
 
@@ -994,7 +997,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Поиск (Ввод с задержкой)
+  // Поиск (Debounce)
   // ---------------------------------------------------------------------
   let searchDebounceTimer = null;
   searchInputEl.addEventListener("input", (e) => {
