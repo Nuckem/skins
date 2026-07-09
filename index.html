@@ -605,18 +605,14 @@
         if (entry.isIntersecting) {
           createViewerForCard(card, id, url);
         } else {
-          const existing = activeViewers.get(id);
-          // Keep a viewer alive once it has fully loaded — only tear
-          // down viewers that are still loading (or stuck on an error)
-          // when the card scrolls off screen, so we don't cancel a
-          // real in-flight load. Fully loaded skins persist until the
-          // grid itself is re-rendered (category change / search /
-          // page reload).
-          if (!existing || !existing.ready) {
-            destroyViewer(id);
-          }
-          // else: fully loaded viewer — leave it alone, it stays
-          // rendered until the grid is rebuilt or the page reloads.
+          // Always dispose when off-screen. Browsers cap the number of
+          // simultaneous WebGL contexts (usually 8–16); keeping every
+          // viewer alive forever eventually hits that cap and every
+          // new card silently fails to render ("Ошибка загрузки"
+          // forever, even scrolling back). The image itself is cached
+          // by the browser, so re-creating the viewer on re-entry is
+          // fast and doesn't re-download anything.
+          destroyViewer(id);
         }
       });
     }, { root: null, rootMargin: "150px", threshold: 0.01 });
@@ -737,12 +733,20 @@
       });
   }
 
+  // Cache validation results per URL so scrolling a card back into view
+  // doesn't repeat the same network check every single time.
+  const skinValidationCache = new Map(); // url -> Promise (resolved or rejected)
+
   // Verifies the image actually exists and has valid Minecraft skin
   // dimensions (64x64, 64x32, or an exact multiple of either) before
   // handing it to skinview3d. This lets us show a precise reason instead
   // of a generic "Ошибка загрузки" for every failure.
   function validateSkinImage(url) {
-    return new Promise((resolve, reject) => {
+    if (skinValidationCache.has(url)) {
+      return skinValidationCache.get(url);
+    }
+
+    const promise = new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const w = img.naturalWidth;
@@ -761,6 +765,12 @@
       };
       img.src = url;
     });
+
+    skinValidationCache.set(url, promise);
+    // Don't let an unhandled rejection warning bubble up from the cache
+    // itself — callers still get the rejection via their own .catch().
+    promise.catch(() => {});
+    return promise;
   }
 
   function destroyViewer(id) {
