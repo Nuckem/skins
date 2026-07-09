@@ -125,7 +125,7 @@
     stroke:var(--text-dim);
   }
 
-  /* ---------- Переключатель сетки (Layout Controls) ---------- */
+  /* ---------- Layout Switcher ---------- */
   .layout-switcher {
     display:flex;
     background:rgba(0,0,0,0.25);
@@ -217,7 +217,7 @@
   .grid{
     display:grid;
     gap:22px;
-    transition:all 0.3s ease;
+    transition:all 0.25s ease;
   }
 
   .card{
@@ -228,6 +228,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
+    justify-content:space-between;
     box-shadow:var(--shadow);
     transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     position:relative;
@@ -241,7 +242,7 @@
     box-shadow:0 12px 30px rgba(0,0,0,0.55);
   }
 
-  /* Шахматная сетка прозрачности на фоне */
+  /* Сетка прозрачности на фоне */
   .viewer-box{
     width:100%;
     border-radius:12px;
@@ -261,9 +262,29 @@
     justify-content:center;
   }
 
-  /* Переключение видимости в зависимости от режима */
+  .placeholder{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-dim);
+  }
+
+  .placeholder .spinner{
+    width:24px;
+    height:26px;
+    border-radius:50%;
+    border:3px solid rgba(59,130,246,0.15);
+    border-top-color:var(--accent);
+    animation:spin .8s linear infinite;
+  }
+
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Элементы отображения скинов */
   .skin-flat-img {
-    display:block;
+    display:none;
     max-width:100%;
     max-height:100%;
     object-fit:contain;
@@ -277,24 +298,33 @@
     display:none;
     image-rendering:pixelated;
     image-rendering:crisp-edges;
-    filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35));
+    filter:drop-shadow(0 6px 12px rgba(0,0,0,0.45));
     transition:transform 0.2s ease;
   }
 
-  /* Эффект увеличения на наведении */
   .card:hover .viewer-box img,
   .card:hover .viewer-box canvas {
     transform:scale(1.08);
   }
 
-  .name{
+  /* Информация о файле */
+  .card-info {
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
     margin-top:14px;
-    font-size:14px;
+  }
+
+  .name{
+    font-size:13.5px;
     font-weight:700;
     text-align:center;
     color:var(--text);
-    word-break:break-word;
-    max-width:100%;
+    width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
   .cat-tag{
@@ -304,30 +334,41 @@
     text-transform:uppercase;
     letter-spacing:0.6px;
     font-weight:700;
+    width:100%;
+    text-align:center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
+  /* Кнопки действий */
   .actions{
     margin-top:14px;
     display:flex;
-    gap:8px;
+    gap:6px;
     width:100%;
+    flex-wrap:wrap; /* Позволяет кнопкам переноситься, если они не влезают */
   }
 
   .btn{
-    flex:1;
-    padding:9px 10px;
+    flex:1 1 calc(50% - 3px);
+    min-width:84px; /* Если карточка меньше 168px, кнопки автоматически выстроятся вертикально */
+    padding:8px 6px;
     border-radius:10px;
     border:1px solid var(--border);
     background:rgba(255,255,255,0.04);
     color:var(--text);
-    font-size:12.5px;
+    font-size:11.5px;
     font-weight:600;
     cursor:pointer;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
+    gap:4px;
     transition:all .15s ease;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
   .btn:hover{
@@ -342,19 +383,17 @@
     color:#fff;
   }
 
-  .btn svg{width:14px;height:14px;flex-shrink:0;}
+  .btn svg{width:13px;height:13px;flex-shrink:0;}
 
-  /* ---------- РЕЖИМ 1: СТАНДАРТНАЯ СЕТКА (Текстура) ---------- */
+  /* ---------- Layout 1: СТАНДАРТНАЯ СЕТКА (Текстура) ---------- */
   .grid.layout-standard {
-    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
   }
   .grid.layout-standard .viewer-box {
-    height:220px;
+    height:210px;
   }
-  .grid.layout-standard .skin-flat-img { display:block; }
-  .grid.layout-standard .skin-model-canvas { display:none; }
 
-  /* ---------- РЕЖИМ 2: КОМПАКТНАЯ СЕТКА (Текстура) ---------- */
+  /* ---------- Layout 2: КОМПАКТНАЯ СЕТКА (Текстура) ---------- */
   .grid.layout-compact {
     grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
     gap:12px;
@@ -366,43 +405,31 @@
   .grid.layout-compact .viewer-box {
     height:120px;
   }
-  .grid.layout-compact .viewer-box img {
-    padding:4px;
-  }
-  .grid.layout-compact .name {
-    font-size:12px;
+  .grid.layout-compact .card-info {
     margin-top:8px;
   }
+  .grid.layout-compact .name {
+    font-size:11.5px;
+  }
   .grid.layout-compact .cat-tag {
-    font-size:10px;
+    font-size:9.5px;
     margin-top:2px;
   }
   .grid.layout-compact .actions {
     margin-top:8px;
-    flex-direction:column;
-    gap:4px;
   }
   .grid.layout-compact .btn {
     padding:6px 4px;
-    font-size:11px;
+    font-size:10.5px;
     border-radius:6px;
   }
-  .grid.layout-compact .skin-flat-img { display:block; }
-  .grid.layout-compact .skin-model-canvas { display:none; }
 
-  /* ---------- РЕЖИМ 3: 3D ФОТО (Собранный скин) ---------- */
+  /* ---------- Layout 3: 3D ФОТО (Собранный персонаж) ---------- */
   .grid.layout-model {
-    grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns:repeat(auto-fill, minmax(170px, 1fr));
   }
   .grid.layout-model .viewer-box {
-    height:250px;
-  }
-  .grid.layout-model .skin-flat-img { display:none; }
-  .grid.layout-model .skin-model-canvas {
-    display:block;
-    width:auto !important;
-    height:90% !important;
-    aspect-ratio:16 / 32;
+    height:240px;
   }
 
   /* ---------- Конец стилей сеток ---------- */
@@ -504,16 +531,25 @@
   // ---------------------------------------------------------------------
   // Стейт
   // ---------------------------------------------------------------------
-  let allSkins = [];             // Полный датасет
+  let allSkins = [];             // Полный нормализованный датасет
   let filteredSkins = [];        // Отфильтрованный датасет
-  let displayedSkinsCount = 0;   // Сколько скинов сейчас в DOM
-  const CHUNK_SIZE = 48;         // Порция скинов
+  let displayedSkinsCount = 0;   // Количество скинов в DOM
+  const CHUNK_SIZE = 48;         // Порция скинов на подгрузку
   
   let activeCategory = "All";
   let searchTerm = "";
-  let currentLayout = localStorage.getItem("gallery-layout") || "model"; // По умолчанию открываем "3D Фото"
+  let currentLayout = localStorage.getItem("gallery-layout") || "model"; 
   
+  // Кеш загруженных изображений для устранения повторных сетевых запросов
+  const imgCache = new Map();     // url -> HTMLImageElement
+  const activeLoads = new Map();  // cardId -> Token
+  
+  let cardObserver = null;
   let sentinelObserver = null;
+
+  // Одноразовый скрытый холст для быстрого считывания альфа-каналов Alex/Steve
+  const analysisCanvas = document.createElement('canvas');
+  const analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true });
 
   const BASE_URL = new URL("images/", window.location.href).href;
 
@@ -525,15 +561,11 @@
   const sentinelEl = document.getElementById("sentinel");
 
   // ---------------------------------------------------------------------
-  // Инициализация верстки и Layout
+  // Управление версткой (Layout)
   // ---------------------------------------------------------------------
   function initLayout() {
     document.querySelectorAll(".layout-btn").forEach(btn => {
-      if (btn.dataset.layout === currentLayout) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
+      btn.classList.toggle("active", btn.dataset.layout === currentLayout);
     });
     gridEl.className = `grid layout-${currentLayout}`;
 
@@ -545,10 +577,24 @@
         currentLayout = selectedLayout;
         localStorage.setItem("gallery-layout", currentLayout);
 
-        document.querySelectorAll(".layout-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
+        document.querySelectorAll(".layout-btn").forEach(b => {
+          b.classList.toggle("active", b.dataset.layout === currentLayout);
+        });
         gridEl.className = `grid layout-${currentLayout}`;
+        
+        // Мгновенно обновляем все видимые карточки на экране без перезагрузки из сети!
+        updateAllVisibleCards();
       });
+    });
+  }
+
+  function updateAllVisibleCards() {
+    document.querySelectorAll(".card").forEach(card => {
+      const url = card.dataset.url;
+      const cachedImg = imgCache.get(url);
+      if (cachedImg) {
+        renderCardContent(card, cachedImg);
+      }
     });
   }
 
@@ -588,33 +634,23 @@
   }
 
   // ---------------------------------------------------------------------
-  // Алгоритмический Рендерер Скина (Flat 2D Minecraft Skin Assembler)
+  // Алгоритмический 2D рендеринг фигурки персонажа
   // ---------------------------------------------------------------------
   function drawSkinFront(img, canvas) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = img.naturalWidth;
-    tempCanvas.height = img.naturalHeight;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.drawImage(img, 0, 0);
-
     const is64x64 = img.naturalHeight === img.naturalWidth;
 
-    // Автоопределение тонких рук Alex (3px) или классических Steve (4px)
+    // Считывание толщины рук (Steve 4px / Alex 3px)
     let isSlim = false;
     if (is64x64) {
       try {
-        const armColData = tempCtx.getImageData(47, 20, 1, 12).data;
-        let isAlphaZero = true;
-        for (let i = 3; i < armColData.length; i += 4) {
-          if (armColData[i] > 0) {
-            isAlphaZero = false;
-            break;
-          }
-        }
-        isSlim = isAlphaZero;
+        analysisCanvas.width = img.naturalWidth;
+        analysisCanvas.height = img.naturalHeight;
+        analysisCtx.drawImage(img, 0, 0);
+        // Точка считывания альфа-канала правого плеча Steve/Alex
+        isSlim = analysisCtx.getImageData(47, 20, 1, 1).data[3] === 0;
       } catch(e) {}
     }
 
@@ -624,49 +660,49 @@
 
     ctx.imageSmoothingEnabled = false;
 
-    // 1. Ноги (Отрисовываем первыми)
-    // Правая нога (База + Верхний слой одежды)
-    ctx.drawImage(tempCanvas, 4, 20, 4, 12, 4, 20, 4, 12);
-    if (is64x64) ctx.drawImage(tempCanvas, 4, 36, 4, 12, 4, 20, 4, 12);
+    // 1. Ноги
+    // Правая нога (Базовая текстура + слой одежды)
+    ctx.drawImage(img, 4, 20, 4, 12, 4, 20, 4, 12);
+    if (is64x64) ctx.drawImage(img, 4, 36, 4, 12, 4, 20, 4, 12);
 
-    // Левая нога (База + Верхний слой одежды)
+    // Левая нога
     if (is64x64) {
-      ctx.drawImage(tempCanvas, 20, 52, 4, 12, 8, 20, 4, 12);
-      ctx.drawImage(tempCanvas, 4, 52, 4, 12, 8, 20, 4, 12);
+      ctx.drawImage(img, 20, 52, 4, 12, 8, 20, 4, 12);
+      ctx.drawImage(img, 4, 52, 4, 12, 8, 20, 4, 12);
     } else {
-      // Для старых 64x32 скинов просто зеркалим правую ногу
+      // Для ретро-скинов зеркалим правую ногу
       ctx.save();
       ctx.translate(12, 20);
       ctx.scale(-1, 1);
-      ctx.drawImage(tempCanvas, 4, 20, 4, 12, 0, 0, 4, 12);
+      ctx.drawImage(img, 4, 20, 4, 12, 0, 0, 4, 12);
       ctx.restore();
     }
 
-    // 2. Тело/Торс (База + Верхний слой одежды)
-    ctx.drawImage(tempCanvas, 20, 20, 8, 12, 4, 8, 8, 12);
-    if (is64x64) ctx.drawImage(tempCanvas, 20, 36, 8, 12, 4, 8, 8, 12);
+    // 2. Тело/Торс (Базовая текстура + слой одежды)
+    ctx.drawImage(img, 20, 20, 8, 12, 4, 8, 8, 12);
+    if (is64x64) ctx.drawImage(img, 20, 36, 8, 12, 4, 8, 8, 12);
 
     // 3. Руки
-    // Правая рука (База + Верхний слой)
-    ctx.drawImage(tempCanvas, 44, 20, armW, 12, rightArmX, 8, armW, 12);
-    if (is64x64) ctx.drawImage(tempCanvas, 44, 36, armW, 12, rightArmX, 8, armW, 12);
+    // Правая рука (Базовая текстура + слой одежды)
+    ctx.drawImage(img, 44, 20, armW, 12, rightArmX, 8, armW, 12);
+    if (is64x64) ctx.drawImage(img, 44, 36, armW, 12, rightArmX, 8, armW, 12);
 
-    // Левая рука (База + Верхний слой)
+    // Левая рука
     if (is64x64) {
-      ctx.drawImage(tempCanvas, 36, 52, armW, 12, leftArmX, 8, armW, 12);
-      ctx.drawImage(tempCanvas, 52, 52, armW, 12, leftArmX, 8, armW, 12);
+      ctx.drawImage(img, 36, 52, armW, 12, leftArmX, 8, armW, 12);
+      ctx.drawImage(img, 52, 52, armW, 12, leftArmX, 8, armW, 12);
     } else {
-      // Для старых 64x32 скинов зеркалим правую руку
+      // Для ретро-скинов зеркалим правую руку
       ctx.save();
       ctx.translate(leftArmX + armW, 8);
       ctx.scale(-1, 1);
-      ctx.drawImage(tempCanvas, 44, 20, armW, 12, 0, 0, armW, 12);
+      ctx.drawImage(img, 44, 20, armW, 12, 0, 0, armW, 12);
       ctx.restore();
     }
 
-    // 4. Голова (База + Шлем/Волосы сверху)
-    ctx.drawImage(tempCanvas, 8, 8, 8, 8, 4, 0, 8, 8);
-    ctx.drawImage(tempCanvas, 40, 8, 8, 8, 4, 0, 8, 8);
+    // 4. Голова (Голова + Шлем/Аксессуары)
+    ctx.drawImage(img, 8, 8, 8, 8, 4, 0, 8, 8);
+    ctx.drawImage(img, 40, 8, 8, 8, 4, 0, 8, 8);
   }
 
   // ---------------------------------------------------------------------
@@ -744,6 +780,8 @@
     if (displayedSkinsCount >= filteredSkins.length) {
       sentinelEl.style.display = "none";
     }
+
+    setupCardObserver();
   }
 
   function updateStats(count) {
@@ -757,51 +795,128 @@
       if (entries[0].isIntersecting && filteredSkins.length > displayedSkinsCount) {
         loadMoreSkins();
       }
-    }, { rootMargin: "400px" });
+    }, { rootMargin: "450px" });
 
     sentinelObserver.observe(sentinelEl);
   }
 
   // ---------------------------------------------------------------------
-  // Генерация карточки (Быстрый плоский DOM)
+  // Ленивый рендеринг через JS (Гарантирует 100% скорость загрузки)
+  // ---------------------------------------------------------------------
+  function setupCardObserver() {
+    if (cardObserver) cardObserver.disconnect();
+
+    cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          loadCardImage(card);
+        }
+      });
+    }, { rootMargin: "180px" });
+
+    document.querySelectorAll(".card").forEach(card => cardObserver.observe(card));
+  }
+
+  function loadCardImage(card) {
+    const id = card.dataset.id;
+    const url = card.dataset.url;
+
+    // Если скин уже загружен из сети ранее, берем его из памяти ОЗУ мгновенно
+    if (imgCache.has(url)) {
+      renderCardContent(card, imgCache.get(url));
+      return;
+    }
+
+    if (activeLoads.has(id)) return; // Уже качается
+
+    const token = Symbol("loadToken");
+    activeLoads.set(id, token);
+
+    const img = new Image();
+    img.onload = () => {
+      img.onload = null;
+      img.onerror = null;
+      activeLoads.delete(id);
+
+      imgCache.set(url, img);
+      renderCardContent(card, img);
+    };
+    img.onerror = () => {
+      img.onload = null;
+      img.onerror = null;
+      activeLoads.delete(id);
+
+      const placeholder = card.querySelector(".placeholder");
+      if (placeholder) {
+        placeholder.innerHTML = `<span style="color:#f87171; font-size:11px;">Сбой загрузки</span>`;
+      }
+    };
+    img.src = url;
+  }
+
+  function renderCardContent(card, img) {
+    const viewerBox = card.querySelector(".viewer-box");
+    const placeholder = viewerBox.querySelector(".placeholder");
+    const flatImg = viewerBox.querySelector(".skin-flat-img");
+    const canvas = viewerBox.querySelector(".skin-model-canvas");
+
+    if (placeholder) placeholder.style.display = "none";
+
+    if (currentLayout === "model") {
+      flatImg.style.display = "none";
+      canvas.style.display = "block";
+      drawSkinFront(img, canvas);
+    } else {
+      canvas.style.display = "none";
+      flatImg.style.display = "block";
+      if (flatImg.src !== img.src) {
+        flatImg.src = img.src;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Генерация карточки (Ультра-лёгкий DOM)
   // ---------------------------------------------------------------------
   function buildCard(skin) {
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.id = skin.id;
+    card.dataset.url = skin.url;
 
     const viewerBox = document.createElement("div");
     viewerBox.className = "viewer-box";
 
-    // Нативная ленивая загрузка развернутой текстуры
+    // Спиннер ожидания
+    const placeholder = document.createElement("div");
+    placeholder.className = "placeholder";
+    placeholder.innerHTML = `<div class="spinner"></div>`;
+    viewerBox.appendChild(placeholder);
+
+    // Тег для плоской текстуры
     const img = document.createElement("img");
-    img.src = skin.url;
     img.alt = skin.filename;
-    img.loading = "lazy";
     img.className = "skin-flat-img";
     viewerBox.appendChild(img);
 
-    // Легковесный нативный 16x32 холст для отображения собранного персонажа
+    // Холст для собранной модели (16x32 пикселей для нулевого веса)
     const canvas = document.createElement("canvas");
     canvas.width = 16;
     canvas.height = 32;
     canvas.className = "skin-model-canvas";
     viewerBox.appendChild(canvas);
 
-    // Когда браузер загрузит текстуру (лениво, при приближении к экрану),
-    // мгновенно запускаем прорисовку персонажа на canvas.
-    img.onload = () => {
-      drawSkinFront(img, canvas);
-    };
-
     card.appendChild(viewerBox);
 
+    // Информация
     const info = document.createElement("div");
     info.className = "card-info";
 
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = skin.filename;
+    name.title = skin.filename; // При наведении виден весь текст, если урезан
     info.appendChild(name);
 
     const catTag = document.createElement("div");
@@ -811,7 +926,7 @@
 
     card.appendChild(info);
 
-    // Панель кнопок действий
+    // Панель кнопок
     const actions = document.createElement("div");
     actions.className = "actions";
 
@@ -865,7 +980,7 @@
 
     const originalHTML = btn.innerHTML;
     btn.classList.add("copied");
-    btn.textContent = "Скопировано!";
+    btn.textContent = "Готово!";
     setTimeout(() => {
       btn.classList.remove("copied");
       btn.innerHTML = originalHTML;
@@ -873,7 +988,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Поиск (Debounce ввода)
+  // Поиск (Ввод с задержкой)
   // ---------------------------------------------------------------------
   let searchDebounceTimer = null;
   searchInputEl.addEventListener("input", (e) => {
