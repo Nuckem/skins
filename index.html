@@ -594,6 +594,25 @@
   // ---------------------------------------------------------------------
   // 3D viewer lifecycle (lazy load via IntersectionObserver)
   // ---------------------------------------------------------------------
+  //
+  // IMPORTANT: browsers hard-cap the number of simultaneous WebGL
+  // contexts a page can hold (commonly 8–16, sometimes lower on weak
+  // GPUs). Exceeding it forces the browser to silently kill old
+  // contexts ("Context Lost"), which corrupts three.js's renderer and
+  // cascades into every other 3D viewer failing too.
+  //
+  // To stay safely under that limit no matter how many cards exist or
+  // how fast the user scrolls, we:
+  //   1) Validate the image with a plain <img> (no WebGL involved) BEFORE
+  //      ever creating a SkinViewer — a broken file never touches WebGL.
+  //   2) Only allocate a real WebGL SkinViewer once validation succeeds,
+  //      and only if we're under MAX_CONCURRENT_VIEWERS. If we're at the
+  //      cap, the request waits in a small queue until a slot frees up
+  //      (another card scrolls away and gets disposed).
+  const MAX_CONCURRENT_VIEWERS = 8;
+  let liveViewerCount = 0;
+  const pendingQueue = []; // { id, card, url, token } waiting for a free slot
+
   function setupObserver() {
     if (observer) observer.disconnect();
 
@@ -604,16 +623,9 @@
         const url = card.dataset.url;
 
         if (entry.isIntersecting) {
-          createViewerForCard(card, id, url);
+          requestViewer(card, id, url);
         } else {
-          // Always dispose when off-screen. Browsers cap the number of
-          // simultaneous WebGL contexts (usually 8–16); keeping every
-          // viewer alive forever eventually hits that cap and every
-          // new card silently fails to render ("Ошибка загрузки"
-          // forever, even scrolling back). The image itself is cached
-          // by the browser, so re-creating the viewer on re-entry is
-          // fast and doesn't re-download anything.
-          destroyViewer(id);
+          cancelOrDestroy(id);
         }
       });
     }, { root: null, rootMargin: "150px", threshold: 0.01 });
@@ -621,14 +633,65 @@
     document.querySelectorAll(".card").forEach(card => observer.observe(card));
   }
 
-  function createViewerForCard(card, id, url) {
+  // Entry point when a card becomes visible: start the (cheap) image
+  // validation immediately; the actual WebGL viewer is only created
+  // once validation passes AND a concurrency slot is available.
+  function requestViewer(card, id, url) {
     if (activeViewers.has(id)) return;
+    if (pendingQueue.some(item => item.id === id)) return;
 
-    // Token used to guard against race conditions: if the card scrolls
-    // out of view (and gets destroyed) before the skin texture finishes
-    // loading, we must ignore the late load/error callback instead of
-    // showing a spurious "Ошибка загрузки" message.
     const token = Symbol("viewerToken");
+    activeViewers.set(id, { viewer: null, canvas: null, token, ready: false, queued: true });
+
+    validateAndQueue(card, id, url, token);
+  }
+
+  function validateAndQueue(card, id, url, token) {
+    const entry = activeViewers.get(id);
+    if (!entry || entry.token !== token) return; // card gone already
+
+    const viewerBox = card.querySelector(".viewer-box");
+    const placeholder = viewerBox.querySelector(".placeholder");
+
+    validateSkinImage(url)
+      .then(() => {
+        const stillHere = activeViewers.get(id);
+        if (!stillHere || stillHere.token !== token) return;
+
+        if (liveViewerCount < MAX_CONCURRENT_VIEWERS) {
+          spawnViewer(card, id, url, token);
+        } else {
+          // No free WebGL slot right now — wait for one to open up.
+          pendingQueue.push({ id, card, url, token });
+        }
+      })
+      .catch((err) => {
+        const stillHere = activeViewers.get(id);
+        if (!stillHere || stillHere.token !== token) return;
+
+        console.error("Ошибка загрузки скина:", url, err);
+        const reason = err && err.reason ? err.reason : "неизвестная ошибка";
+        placeholder.innerHTML = `<span style="color:#f87171; text-align:center; padding:0 10px;">Ошибка загрузки<br><small style="color:#94a3b8; font-weight:400;">${reason}</small></span>`;
+
+        // Auto-retry every 3 seconds. This is a cheap <img> check only —
+        // it never allocates a WebGL context, so a permanently broken
+        // file can retry forever without ever contributing to context
+        // exhaustion.
+        const timerId = setTimeout(() => {
+          retryTimers.delete(id);
+          const current = activeViewers.get(id);
+          if (!current || current.token !== token) return;
+          validateAndQueue(card, id, url, token);
+        }, 3000);
+        retryTimers.set(id, timerId);
+      });
+  }
+
+  // Actually creates the WebGL SkinViewer. Only called once validation
+  // succeeded and a concurrency slot is confirmed free.
+  function spawnViewer(card, id, url, token) {
+    const entry = activeViewers.get(id);
+    if (!entry || entry.token !== token) return;
 
     const viewerBox = card.querySelector(".viewer-box");
     const canvas = viewerBox.querySelector("canvas");
@@ -646,9 +709,11 @@
       });
     } catch (err) {
       console.error("Не удалось инициализировать 3D просмотр:", err);
-      placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки</span>`;
+      placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки 3D</span>`;
       return;
     }
+
+    liveViewerCount++;
 
     viewer.fov = 45;
     viewer.zoom = 0.9;
@@ -665,14 +730,11 @@
       viewer.animation = new skinview3d.IdleAnimation();
     }
 
-    // Make the lighting brighter so the skin doesn't look like it's
-    // standing in shadow. skinview3d exposes an ambient light
-    // (globalLight) and a directional light (cameraLight).
+    // Brighter lighting so the skin doesn't look like it's standing in
+    // shadow.
     if (viewer.globalLight) viewer.globalLight.intensity = 2.4;
     if (viewer.cameraLight) viewer.cameraLight.intensity = 1.4;
 
-    // Add extra fill lights from multiple directions so there are no
-    // harsh dark patches on the model, whichever way it's rotated.
     if (window.THREE && viewer.scene) {
       const fillFront = new THREE.DirectionalLight(0xffffff, 0.9);
       fillFront.position.set(0, 10, 20);
@@ -694,71 +756,66 @@
       viewer.scene.add(ambient);
     }
 
-    // Some renderer builds expose exposure controls — push it up a bit
-    // so the model reads brighter overall instead of murky/dim.
     if (viewer.renderer && "toneMappingExposure" in viewer.renderer) {
       viewer.renderer.toneMappingExposure = 1.3;
     }
 
-    // Register the viewer immediately so a fast scroll-out can find and
-    // dispose it even while the skin texture is still loading.
-    activeViewers.set(id, { viewer, canvas, token, ready: false });
+    activeViewers.set(id, { viewer, canvas, token, ready: false, queued: false });
 
-    attemptLoad(card, id, url, token, viewer, canvas, placeholder);
-  }
+    const loadPromise = typeof viewer.loadSkin === "function"
+      ? Promise.resolve(viewer.loadSkin(url))
+      : Promise.resolve().then(() => { viewer.skin = url; });
 
-  // Tries to load the skin texture. On any failure, shows the error
-  // message and automatically retries the same card every 3 seconds
-  // until it either succeeds or the card is destroyed (scrolled away /
-  // grid re-rendered), at which point the token check stops the loop.
-  function attemptLoad(card, id, url, token, viewer, canvas, placeholder) {
-    validateSkinImage(url)
+    loadPromise
       .then(() => {
-        const entry = activeViewers.get(id);
-        if (!entry || entry.token !== token) return;
+        const stillHere = activeViewers.get(id);
+        if (!stillHere || stillHere.token !== token) return;
 
-        const loadPromise = typeof viewer.loadSkin === "function"
-          ? Promise.resolve(viewer.loadSkin(url))
-          : Promise.resolve().then(() => { viewer.skin = url; });
-
-        return loadPromise.then(() => {
-          const entry2 = activeViewers.get(id);
-          if (!entry2 || entry2.token !== token) return;
-
-          entry2.ready = true;
-          canvas.style.display = "block";
-          placeholder.style.display = "none";
-
-          // Loaded successfully — no more retries needed for this card.
-          const pending = retryTimers.get(id);
-          if (pending) {
-            clearTimeout(pending);
-            retryTimers.delete(id);
-          }
-        });
+        stillHere.ready = true;
+        canvas.style.display = "block";
+        placeholder.style.display = "none";
       })
       .catch((err) => {
-        const entry = activeViewers.get(id);
-        // The card is no longer showing this viewer (scrolled away /
-        // re-rendered) — stop retrying, nothing to fix anymore.
-        if (!entry || entry.token !== token) return;
+        const stillHere = activeViewers.get(id);
+        if (!stillHere || stillHere.token !== token) return;
 
-        console.error("Ошибка загрузки скина:", url, err);
-        const reason = err && err.reason ? err.reason : "неизвестная ошибка";
-        placeholder.innerHTML = `<span style="color:#f87171; text-align:center; padding:0 10px;">Ошибка загрузки<br><small style="color:#94a3b8; font-weight:400;">${reason}</small></span>`;
-
-        // Auto-retry every 3 seconds — many failures are transient
-        // (aborted request from fast scrolling, brief network hiccup).
-        const timerId = setTimeout(() => {
-          retryTimers.delete(id);
-          const stillActive = activeViewers.get(id);
-          // Only retry if this exact viewer/token is still the active
-          // one for this card (card hasn't been destroyed or replaced).
-          if (!stillActive || stillActive.token !== token) return;
-          attemptLoad(card, id, url, token, viewer, canvas, placeholder);
-        }, 3000);
-        retryTimers.set(id, timerId);
+        console.error("Ошибка загрузки текстуры скина:", url, err);
+        placeholder.innerHTML = `<span style="color:#f87171;">Ошибка загрузки</span>`;
       });
+  }
+
+  // Frees this card's slot in the concurrency limiter (if it held one)
+  // and immediately hands it to the next card waiting in the queue.
+  function releaseSlotAndProcessQueue() {
+    const next = pendingQueue.shift();
+    if (!next) return;
+
+    const current = activeViewers.get(next.id);
+    if (!current || current.token !== next.token) {
+      // That queued request is stale (card was destroyed while
+      // waiting) — try the next one instead.
+      releaseSlotAndProcessQueue();
+      return;
+    }
+
+    spawnViewer(next.card, next.id, next.url, next.token);
+  }
+
+  // Called when a card scrolls off-screen. If it was only queued
+  // (waiting for a WebGL slot, never actually got one), just drop it
+  // from the queue — nothing to dispose. If it has a real live viewer,
+  // dispose it properly and free up a slot for the next queued card.
+  function cancelOrDestroy(id) {
+    const pendingTimer = retryTimers.get(id);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      retryTimers.delete(id);
+    }
+
+    const idx = pendingQueue.findIndex(item => item.id === id);
+    if (idx !== -1) pendingQueue.splice(idx, 1);
+
+    destroyViewer(id);
   }
 
   // Cache validation results per URL so scrolling a card back into view
@@ -774,7 +831,10 @@
   // Verifies the image actually exists and has valid Minecraft skin
   // dimensions (64x64, 64x32, or an exact multiple of either) before
   // handing it to skinview3d. This lets us show a precise reason instead
-  // of a generic "Ошибка загрузки" for every failure.
+  // of a generic "Ошибка загрузки" for every failure. Crucially, this
+  // uses a plain <img> — it never touches WebGL, so retries on a
+  // permanently broken file cost nothing and never contribute to
+  // context exhaustion.
   function validateSkinImage(url) {
     if (skinValidationCache.has(url)) {
       return Promise.resolve();
@@ -803,21 +863,20 @@
   }
 
   function destroyViewer(id) {
-    const pendingTimer = retryTimers.get(id);
-    if (pendingTimer) {
-      clearTimeout(pendingTimer);
-      retryTimers.delete(id);
-    }
-
     const entry = activeViewers.get(id);
     if (!entry) return;
 
     activeViewers.delete(id);
 
-    try {
-      entry.viewer.dispose();
-    } catch (err) {
-      // ignore disposal errors (e.g. WebGL context already lost)
+    let freedSlot = false;
+    if (entry.viewer) {
+      try {
+        entry.viewer.dispose();
+      } catch (err) {
+        // ignore disposal errors (e.g. WebGL context already lost)
+      }
+      liveViewerCount = Math.max(0, liveViewerCount - 1);
+      freedSlot = true;
     }
 
     const card = document.querySelector(`.card[data-id="${id}"]`);
@@ -829,9 +888,14 @@
       placeholder.style.display = "flex";
       placeholder.innerHTML = `<div class="spinner"></div>`;
     }
+
+    // A real WebGL slot just freed up — hand it to the next card
+    // waiting in the queue, if any.
+    if (freedSlot) releaseSlotAndProcessQueue();
   }
 
   function destroyAllViewers() {
+    pendingQueue.length = 0;
     Array.from(activeViewers.keys()).forEach(id => destroyViewer(id));
     if (observer) {
       observer.disconnect();
