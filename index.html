@@ -292,6 +292,8 @@
     border-radius:10px;
     transition:all 0.15s ease;
     margin-bottom:2px;
+    user-select:none;
+    -webkit-user-select:none;
   }
 
   .tree-row:hover {
@@ -1086,8 +1088,7 @@
       });
       container.appendChild(childrenWrapper);
 
-      toggleBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
+      const toggleNode = () => {
         const expand = !expandedFolders.has(node.path);
         if (expand) {
           expandedFolders.add(node.path);
@@ -1098,7 +1099,30 @@
           toggleBtn.classList.remove("expanded");
           childrenWrapper.style.display = "none";
         }
+      };
+
+      // Клик по стрелке
+      toggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleNode();
       });
+
+      // ПК: Двойной клик по папке раскрывает/скрывает её
+      selectBtn.addEventListener("dblclick", (e) => {
+        e.stopPropagation();
+        toggleNode();
+      });
+
+      // Смартфоны: Быстрый двойной тап по всей папке сворачивает/разворачивает её
+      let lastTapTime = 0;
+      selectBtn.addEventListener("touchstart", (e) => {
+        const now = Date.now();
+        if (now - lastTapTime < 300) {
+          e.preventDefault(); // Исключает стандартный системный зум экрана браузером
+          toggleNode();
+        }
+        lastTapTime = now;
+      }, { passive: false });
     }
 
     selectBtn.addEventListener("click", () => {
