@@ -9,6 +9,9 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 
+<!-- Подключаем профессиональную библиотеку 3D-рендеринга скинов Minecraft -->
+<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
+
 <style>
   :root{
     --bg:#0f172a;
@@ -530,7 +533,7 @@
 
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  .skin-flat-img, .skin-model-canvas {
+  .skin-flat-img, .skin-2d-canvas {
     display:none;
     width:100%;
     height:100%;
@@ -544,17 +547,24 @@
     padding:6px;
   }
 
-  /* 3D модель теперь имеет курсор интерактивного перетаскивания */
-  .skin-model-canvas {
+  /* Плоский собранный 2D персонаж */
+  .skin-2d-canvas {
     filter:drop-shadow(0 6px 12px rgba(0,0,0,0.45));
-    max-width:92%;
-    max-height:92%;
+    max-width:90%;
+    max-height:90%;
     cursor:grab;
-    touch-action:none; 
   }
 
-  .skin-model-canvas:active {
+  .skin-2d-canvas:active {
     cursor:grabbing;
+  }
+
+  /* Глобальный WebGL Canvas, который будет перемещаться внутри карточек */
+  #global-3d-canvas {
+    cursor:grabbing;
+    width:100% !important;
+    height:100% !important;
+    display:none;
   }
 
   .card:hover .viewer-box img,
@@ -809,7 +819,7 @@
 </div>
 
 <footer>
-  Skins Gallery &middot; ультрабыстрый рендеринг &middot; работает на GitHub Pages
+  Skins Gallery &middot; ультрабыстрый рендеринг &middot; 3D просмотр реализован через skinview3d
 </footer>
 
 <script>
@@ -853,9 +863,36 @@
   const menuToggleBtn = document.getElementById("menuToggleBtn");
   const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
 
-  // Углы по умолчанию для красивого 3D-ракурса во время вращения
-  const DEFAULT_YAW = -0.4;
-  const DEFAULT_PITCH = -0.15;
+  // ---------------------------------------------------------------------
+  // ЕДИНСТВЕННЫЙ ГЛОБАЛЬНЫЙ 3D ПРОСМОТРЩИК (Экономит WebGL-ресурсы)
+  // ---------------------------------------------------------------------
+  const global3dCanvas = document.createElement("canvas");
+  global3dCanvas.id = "global-3d-canvas";
+
+  let globalViewer = null;
+  try {
+    globalViewer = new skinview3d.SkinViewer({
+      canvas: global3dCanvas,
+      width: 220,
+      height: 320,
+      alpha: true // Прозрачный фон
+    });
+    
+    // Мягкие и реалистичные настройки графики и камеры
+    globalViewer.fov = 45;
+    globalViewer.zoom = 0.95;
+    globalViewer.autoRotate = false;
+    
+    if (globalViewer.controls) {
+      globalViewer.controls.enabled = false; // Отключаем стандартные OrbitControls, т.к. пишем плавное кастомное управление
+    }
+
+    // Профессиональные настройки освещения
+    if (globalViewer.globalLight) globalViewer.globalLight.intensity = 2.4;
+    if (globalViewer.cameraLight) globalViewer.cameraLight.intensity = 1.4;
+  } catch (err) {
+    console.warn("Сбой инициализации глобального WebGL:", err);
+  }
 
   // ---------------------------------------------------------------------
   // Динамический подсчет высоты шапки
@@ -959,7 +996,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // ИДЕАЛЬНЫЙ 2D-ПОЗИНГ (Быстрый собранный персонаж в анфас)
+  // СВЕРХЛЕГКИЙ 2D-ПОЗИНГ (Плоский собранный персонаж)
   // ---------------------------------------------------------------------
   function drawSkinFront(img, canvas) {
     const ctx = canvas.getContext('2d');
@@ -1033,242 +1070,62 @@
   }
 
   // ---------------------------------------------------------------------
-  // 3D-ДВИЖОК РЕНДЕРИНГА НА CANVAS 2D
+  // ФИЗИЧЕСКОЕ ИНТЕРАКТИВНОЕ ВРАЩЕНИЕ (3D ПРИ ЗАХВАТЕ, 2D ПРИ ОТПУСКАНИИ)
   // ---------------------------------------------------------------------
+  let isDragging = false;
+  let activeCard = null;
+  let startX = 0, startY = 0;
+  let yaw = 0, pitch = 0;
 
-  function drawTexturedTriangle(ctx, img, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.closePath();
-    ctx.clip();
-
-    const den = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
-    if (Math.abs(den) > 1e-4) {
-      const iden = 1.0 / den;
-      const a = iden * (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1));
-      const b = iden * (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0));
-      const c = iden * (x0 * (u1 * v2 - u2 * v1) + x1 * (u2 * v0 - u0 * v2) + x2 * (u0 * v1 - u1 * v0));
-      const d = iden * (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1));
-      const e = iden * (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0));
-      const f = iden * (y0 * (u1 * v2 - u2 * v1) + y1 * (u2 * v0 - u0 * v2) + y2 * (u0 * v1 - u1 * v0));
-
-      ctx.transform(a, d, b, e, c, f);
-      ctx.drawImage(img, 0, 0);
-    }
-    ctx.restore();
-  }
-
-  function createCuboidFaces(u, v, w, h, d, posX, posY, posZ, uScale, scaleFactor = 1.0, mirrorX = false) {
-    const sw = w * scaleFactor;
-    const sh = h * scaleFactor;
-    const sd = d * scaleFactor;
-
-    const x0 = posX - sw/2, x1 = posX + sw/2;
-    const y0 = posY - sh/2, y1 = posY + sh/2;
-    const z0 = posZ - sd/2, z1 = posZ + sd/2;
-
-    const vertices = [
-      {x: x0, y: y1, z: z1}, // 0
-      {x: x1, y: y1, z: z1}, // 1
-      {x: x1, y: y0, z: z1}, // 2
-      {x: x0, y: y0, z: z1}, // 3
-      {x: x0, y: y1, z: z0}, // 4
-      {x: x1, y: y1, z: z0}, // 5
-      {x: x1, y: y0, z: z0}, // 6
-      {x: x0, y: y0, z: z0}  // 7
-    ];
-
-    const faces = [];
-
-    function addFace(i0, i1, i2, i3, tu, tv, tw, th) {
-      const pts = [vertices[i0], vertices[i1], vertices[i2], vertices[i3]];
-      let uv = [
-        {u: tu, v: tv},
-        {u: tu + tw, v: tv},
-        {u: tu + tw, v: tv + th},
-        {u: tu, v: tv + th}
-      ];
-
-      if (mirrorX) {
-        uv = [
-          {u: tu + tw, v: tv},
-          {u: tu, v: tv},
-          {u: tu, v: tv + th},
-          {u: tu + tw, v: tv + th}
-        ];
-      }
-
-      faces.push({ pts, uv });
-    }
-
-    addFace(4, 5, 1, 0, u + d*uScale, v, w*uScale, d*uScale); // Top
-    addFace(3, 2, 6, 7, u + (d + w)*uScale, v, w*uScale, d*uScale); // Bottom
-    addFace(4, 0, 3, 7, u, v + d*uScale, d*uScale, h*uScale); // Right
-    addFace(0, 1, 2, 3, u + d*uScale, v + d*uScale, w*uScale, h*uScale); // Front
-    addFace(1, 5, 6, 2, u + (d + w)*uScale, v + d*uScale, d*uScale, h*uScale); // Left
-    addFace(5, 4, 7, 6, u + (d * 2 + w)*uScale, v + d*uScale, w*uScale, h*uScale); // Back
-
-    return faces;
-  }
-
-  function getPlayerFaces(img) {
-    const u = img.naturalWidth / 64;
-    const is64x64 = img.naturalHeight === img.naturalWidth;
-
-    let isSlim = false;
-    try {
-      analysisCanvas.width = img.naturalWidth;
-      analysisCanvas.height = img.naturalHeight;
-      analysisCtx.drawImage(img, 0, 0);
-      const checkX = Math.round(47 * u);
-      const checkY = Math.round(20 * u);
-      isSlim = analysisCtx.getImageData(checkX, checkY, 1, 1).data[3] === 0;
-    } catch(e) {}
-
-    const faces = [];
-
-    // 1. Голова и Оверлей
-    faces.push(...createCuboidFaces(0*u, 0*u, 8, 8, 8, 0, 10, 0, u, 1.0));
-    faces.push(...createCuboidFaces(32*u, 0*u, 8, 8, 8, 0, 10, 0, u, 1.085));
-
-    // 2. Тело и Куртка
-    faces.push(...createCuboidFaces(16*u, 16*u, 8, 12, 4, 0, 0, 0, u, 1.0));
-    if (is64x64) {
-      faces.push(...createCuboidFaces(16*u, 32*u, 8, 12, 4, 0, 0, 0, u, 1.07));
-    }
-
-    const armW = isSlim ? 3 : 4;
-    const armXOffset = isSlim ? 5.5 : 6.0;
-
-    const legMirror = !is64x64;
-    const armMirror = !is64x64;
-
-    // 3. Правая рука и оверлей
-    faces.push(...createCuboidFaces(40*u, 16*u, armW, 12, 4, -armXOffset, 0, 0, u, 1.0));
-    if (is64x64) {
-      faces.push(...createCuboidFaces(40*u, 32*u, armW, 12, 4, -armXOffset, 0, 0, u, 1.07));
-    }
-
-    // 4. Левая рука и оверлей
-    if (is64x64) {
-      faces.push(...createCuboidFaces(32*u, 48*u, armW, 12, 4, armXOffset, 0, 0, u, 1.0));
-      faces.push(...createCuboidFaces(48*u, 48*u, armW, 12, 4, armXOffset, 0, 0, u, 1.07));
-    } else {
-      faces.push(...createCuboidFaces(40*u, 16*u, armW, 12, 4, armXOffset, 0, 0, u, 1.0, armMirror));
-    }
-
-    // 5. Правая нога и оверлей
-    faces.push(...createCuboidFaces(0*u, 16*u, 4, 12, 4, -2, -12, 0, u, 1.0));
-    if (is64x64) {
-      faces.push(...createCuboidFaces(0*u, 32*u, 4, 12, 4, -2, -12, 0, u, 1.07));
-    }
-
-    // 6. Левая нога и оверлей
-    if (is64x64) {
-      faces.push(...createCuboidFaces(16*u, 48*u, 4, 12, 4, 2, -12, 0, u, 1.0));
-      faces.push(...createCuboidFaces(0*u, 48*u, 4, 12, 4, 2, -12, 0, u, 1.07));
-    } else {
-      faces.push(...createCuboidFaces(0*u, 16*u, 4, 12, 4, 2, -12, 0, u, 1.0, legMirror));
-    }
-
-    return faces;
-  }
-
-  function render3DModel(canvas, img, yaw, pitch) {
-    if (!img._faces3d) {
-      img._faces3d = getPlayerFaces(img);
-    }
-    const faces = img._faces3d;
-
-    const cosP = Math.cos(pitch);
-    const sinP = Math.sin(pitch);
-    const cosY = Math.cos(yaw);
-    const sinY = Math.sin(yaw);
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2 + 10; 
-    const scale = canvas.height / 36; 
-
-    const projectedFaces = faces.map(face => {
-      let avgZ = 0;
-      const pts = face.pts.map(p => {
-        const y1 = p.y * cosP - p.z * sinP;
-        const z1 = p.y * sinP + p.z * cosP;
-        const rx = p.x * cosY + z1 * sinY;
-        const rz = -p.x * sinY + z1 * cosY;
-
-        avgZ += rz;
-        return {
-          x: centerX + rx * scale,
-          y: centerY - y1 * scale
-        };
-      });
-      return { pts, uv: face.uv, avgZ: avgZ / 4 };
-    });
-
-    projectedFaces.sort((a, b) => a.avgZ - b.avgZ);
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = false;
-
-    projectedFaces.forEach(face => {
-      const p = face.pts;
-      const u = face.uv;
-      drawTexturedTriangle(ctx, img, p[0].x, p[0].y, p[1].x, p[1].y, p[2].x, p[2].y, u[0].u, u[0].v, u[1].u, u[1].v, u[2].u, u[2].v);
-      drawTexturedTriangle(ctx, img, p[0].x, p[0].y, p[2].x, p[2].y, p[3].x, p[3].y, u[0].u, u[0].v, u[2].u, u[2].v, u[3].u, u[3].v);
-    });
-  }
-
-  // ---------------------------------------------------------------------
-  // КОНТРОЛЛЕР ИНТЕРАКТИВНОГО 3D ВРАЩЕНИЯ И СБРОСА В 2D
-  // ---------------------------------------------------------------------
-  function init3DDragControls(card, img) {
-    if (card.dataset.has3DDrag === "true") return;
-    card.dataset.has3DDrag = "true";
+  function init3DDragControls(card, skin) {
+    if (card.dataset.hasDragEvents === "true") return;
+    card.dataset.hasDragEvents = "true";
 
     const viewerBox = card.querySelector(".viewer-box");
-    const canvas = card.querySelector(".skin-model-canvas");
+    const canvas2d = card.querySelector(".skin-2d-canvas");
 
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let yaw = DEFAULT_YAW;
-    let pitch = DEFAULT_PITCH;
-
-    function onDown(e) {
-      if (e.type === "mousedown" && e.button !== 0) return; 
+    function startDrag(e) {
+      if (!globalViewer) return;
+      if (e.type === "mousedown" && e.button !== 0) return; // Только ЛКМ
       e.preventDefault();
 
       isDragging = true;
-      card.classList.add("interacting");
-      document.body.style.cursor = "grabbing";
+      activeCard = card;
 
       const pageX = e.type === "touchstart" ? e.touches[0].pageX : e.pageX;
       const pageY = e.type === "touchstart" ? e.touches[0].pageY : e.pageY;
       startX = pageX;
       startY = pageY;
 
-      yaw = DEFAULT_YAW;
-      pitch = DEFAULT_PITCH;
+      // Сбрасываем углы к красивому дефолту при клике
+      yaw = -0.4;
+      pitch = -0.15;
 
-      // Мгновенная прорисовка 3D при клике
-      render3DModel(canvas, img, yaw, pitch);
+      // Прячем плоский холст
+      canvas2d.style.display = "none";
+
+      // Внедряем WebGL-холст в контейнер
+      viewerBox.appendChild(global3dCanvas);
+      global3dCanvas.style.display = "block";
+
+      // Мгновенная загрузка скина в 3D
+      globalViewer.loadSkin(skin.url);
+      updateViewerRotation();
+
+      card.classList.add("interacting");
+      document.body.style.cursor = "grabbing";
 
       if (e.type === "touchstart") {
-        window.addEventListener("touchmove", onMove, { passive: false });
-        window.addEventListener("touchend", onUp);
+        window.addEventListener("touchmove", handleDrag, { passive: false });
+        window.addEventListener("touchend", stopDrag);
       } else {
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
+        window.addEventListener("mousemove", handleDrag);
+        window.addEventListener("mouseup", stopDrag);
       }
     }
 
-    function onMove(e) {
-      if (!isDragging) return;
+    function handleDrag(e) {
+      if (!isDragging || activeCard !== card) return;
       e.preventDefault();
 
       const pageX = e.type === "touchmove" ? e.touches[0].pageX : e.pageX;
@@ -1277,30 +1134,48 @@
       const dx = pageX - startX;
       const dy = pageY - startY;
 
-      // Чувствительность вращения
-      const currentYaw = yaw - dx * 0.015;
-      const currentPitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, pitch + dy * 0.015));
+      // Новое физическое вращение: плавное, аккуратное и естественное
+      yaw = -0.4 - dx * 0.015;
+      pitch = Math.max(-0.6, Math.min(0.6, -0.15 + dy * 0.012));
 
-      render3DModel(canvas, img, currentYaw, currentPitch);
+      updateViewerRotation();
     }
 
-    function onUp() {
+    function stopDrag() {
       if (!isDragging) return;
       isDragging = false;
-      card.classList.remove("interacting");
+
       document.body.style.cursor = "";
+      window.removeEventListener("mousemove", handleDrag);
+      window.removeEventListener("mouseup", stopDrag);
+      window.removeEventListener("touchmove", handleDrag);
+      window.removeEventListener("touchend", stopDrag);
 
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("touchend", onUp);
+      if (activeCard) {
+        activeCard.classList.remove("interacting");
 
-      // КЛЮЧЕВОЙ МОМЕНТ: При отпускании мыши возвращаем плоский 2D-рисунок собранного скина!
-      drawSkinFront(img, canvas);
+        // Возвращаем плоское легкое 2D-изображение
+        const oldCanvas2d = activeCard.querySelector(".skin-2d-canvas");
+        if (oldCanvas2d) {
+          oldCanvas2d.style.display = "block";
+        }
+        activeCard = null;
+      }
+
+      // Безопасно убираем и паркуем WebGL Canvas обратно
+      global3dCanvas.style.display = "none";
+      document.body.appendChild(global3dCanvas);
     }
 
-    viewerBox.addEventListener("mousedown", onDown);
-    viewerBox.addEventListener("touchstart", onDown, { passive: false });
+    viewerBox.addEventListener("mousedown", startDrag);
+    viewerBox.addEventListener("touchstart", startDrag, { passive: false });
+  }
+
+  function updateViewerRotation() {
+    if (globalViewer && globalViewer.playerObject) {
+      globalViewer.playerObject.rotation.y = yaw;
+      globalViewer.playerObject.rotation.x = pitch;
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -1600,7 +1475,7 @@
     const viewerBox = card.querySelector(".viewer-box");
     const placeholder = viewerBox.querySelector(".placeholder");
     const flatImg = viewerBox.querySelector(".skin-flat-img");
-    const canvas = viewerBox.querySelector(".skin-model-canvas");
+    const canvas = viewerBox.querySelector(".skin-2d-canvas");
 
     if (placeholder) placeholder.style.display = "none";
 
@@ -1611,17 +1486,20 @@
     const isSkin = Math.abs(ratio - 1) < 0.03 || Math.abs(ratio - 2) < 0.03;
 
     if (currentLayout === "model" && isSkin) {
-      // Режим 3D Фото: отображаем Canvas, скрываем плоскую сырую картинку
+      // Скрываем текстуру-развертку, показываем холст плоской сборки персонажа
       flatImg.style.display = "none";
       canvas.style.display = "block";
 
-      // Отрисовываем красивый собранный 2D персонаж
+      // Отрисовываем красивого собранного 2D-персонажа в анфас
       drawSkinFront(img, canvas);
 
-      // Подключаем интерактивное вращение ЛКМ/Касанием
-      init3DDragControls(card, img);
+      // Инициализируем контроллеры взаимодействия 3D Drag
+      const skinData = filteredSkins.find(s => s.id === card.dataset.id);
+      if (skinData) {
+        init3DDragControls(card, skinData);
+      }
     } else {
-      // Другие раскладки: Скрываем холст 3D, показываем картинку
+      // Скрываем все 2D/3D рендеры, возвращаем классическую текстуру-развертку (UV)
       canvas.style.display = "none";
       flatImg.style.display = "block";
       
@@ -1662,7 +1540,7 @@
     const canvas = document.createElement("canvas");
     canvas.width = 160;
     canvas.height = 320;
-    canvas.className = "skin-model-canvas";
+    canvas.className = "skin-2d-canvas";
     viewerBox.appendChild(canvas);
 
     card.appendChild(viewerBox);
