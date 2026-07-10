@@ -21,6 +21,8 @@
     --border:rgba(255,255,255,0.06);
     --shadow:0 10px 30px rgba(0,0,0,0.45);
     --radius:16px;
+    /* Высота шапки по умолчанию. Будет пересчитываться динамически через JS */
+    --header-h: 76px; 
   }
 
   *{box-sizing:border-box;}
@@ -36,6 +38,8 @@
     font-family:'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     min-height:100vh;
     overflow-x:hidden;
+    display:flex;
+    flex-direction:column;
   }
 
   ::selection{background:var(--accent); color:#fff;}
@@ -213,7 +217,9 @@
     max-width:1450px;
     margin:0 auto;
     position:relative;
-    min-height:calc(100vh - 80px);
+    width:100%;
+    min-height:calc(100vh - var(--header-h));
+    flex:1;
   }
 
   /* ---------- Sidebar (Дерево папок) ---------- */
@@ -229,8 +235,8 @@
     flex-direction:column;
     gap:16px;
     position:sticky;
-    top:80px;
-    height:calc(100vh - 80px);
+    top:var(--header-h);
+    height:calc(100vh - var(--header-h));
     overflow-y:auto;
     transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index:40;
@@ -338,7 +344,7 @@
     fill:none;
     stroke-width:2.5;
     stroke-linecap:round;
-    stroke-linejoin="round";
+    stroke-linejoin:round;
     transition:transform 0.25s ease;
   }
 
@@ -676,6 +682,19 @@
     height:250px;
   }
 
+  /* ---------- Footer ---------- */
+  footer {
+    text-align:center;
+    padding:24px;
+    font-size:13px;
+    color:var(--text-dim);
+    border-top:1px solid var(--border);
+    background:rgba(11, 18, 32, 0.4);
+    backdrop-filter:blur(10px);
+    margin-top:auto;
+    z-index:10;
+  }
+
   /* ---------- Responsive ---------- */
   @media (max-width:1024px){
     header{padding:16px 20px;}
@@ -836,6 +855,20 @@
   const sidebarOverlayEl = document.getElementById("sidebarOverlay");
   const menuToggleBtn = document.getElementById("menuToggleBtn");
   const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+
+  // ---------------------------------------------------------------------
+  // Динамический подсчет высоты шапки для идеального прилипания
+  // ---------------------------------------------------------------------
+  function updateHeaderHeight() {
+    const header = document.querySelector('header');
+    if (header) {
+      const height = header.offsetHeight;
+      document.documentElement.style.setProperty('--header-h', `${height}px`);
+    }
+  }
+
+  window.addEventListener("resize", updateHeaderHeight);
+  window.addEventListener("orientationchange", updateHeaderHeight);
 
   // ---------------------------------------------------------------------
   // Инициализация Layout
@@ -1177,6 +1210,9 @@
   // Фильтрация и Бесконечный скролл
   // ---------------------------------------------------------------------
   function applyFilters() {
+    // При переключении категории или поиске переносим пользователя вверх экрана
+    window.scrollTo(0, 0);
+
     filteredSkins = allSkins.filter(skin => {
       const matchesCategory = activeCategory === "All" || 
                               skin.category === activeCategory || 
@@ -1450,9 +1486,13 @@
   // ---------------------------------------------------------------------
   async function init() {
     initLayout();
+    updateHeaderHeight();
     await loadData();
     renderCategories(); // Строит дерево один раз при запуске
     applyFilters();
+    
+    // Повторный пересчет высоты шапки после полной загрузки данных
+    setTimeout(updateHeaderHeight, 150);
   }
 
   init();
