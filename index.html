@@ -224,7 +224,7 @@
     flex:1;
   }
 
-  /* ---------- Sidebar ---------- */
+  /* ---------- Sidebar (Дерево папок) ---------- */
   .sidebar {
     width:330px;
     flex-shrink:0;
@@ -282,7 +282,7 @@
     background:rgba(255,255,255,0.05);
   }
 
-  /* ---------- Дерево Каталогов ---------- */
+  /* ---------- Дерево Каталогов CSS ---------- */
   .categories-list {
     display:flex;
     flex-direction:column;
@@ -559,7 +559,7 @@
     cursor:grabbing;
   }
 
-  /* Глобальный WebGL Canvas */
+  /* Глобальный WebGL Canvas, который будет перемещаться внутри карточек */
   #global-3d-canvas {
     cursor:grabbing;
     width:100% !important;
@@ -691,22 +691,6 @@
   }
   .grid.layout-model .viewer-box {
     height:250px;
-  }
-
-  /* 
-    =====================================================================
-    ЖЕЛЕЗОБЕТОННАЯ CSS-ЗАЩИТА ОТ ДВОЙНОГО ОТОБРАЖЕНИЯ (UV + 2D МОДЕЛЬ)
-    =====================================================================
-  */
-  /* В сетках "Стандартно" и "Компактно" 2D холст с моделью физически заблокирован */
-  .grid.layout-standard .skin-2d-canvas,
-  .grid.layout-compact .skin-2d-canvas {
-    display: none !important;
-  }
-
-  /* В сетке "3D Фото" плоский UV-рисунок развертки физически заблокирован */
-  .grid.layout-model .skin-flat-img {
-    display: none !important;
   }
 
   /* ---------- Footer ---------- */
@@ -891,7 +875,7 @@
       canvas: global3dCanvas,
       width: 220,
       height: 320,
-      alpha: true 
+      alpha: true // Прозрачный фон
     });
     
     globalViewer.fov = 45;
@@ -899,7 +883,7 @@
     globalViewer.autoRotate = false;
     
     if (globalViewer.controls) {
-      globalViewer.controls.enabled = false; 
+      globalViewer.controls.enabled = false; // Отключаем стандартные OrbitControls
     }
 
     if (globalViewer.globalLight) globalViewer.globalLight.intensity = 2.4;
@@ -936,8 +920,10 @@
         const selectedLayout = btn.dataset.layout;
         if (selectedLayout === currentLayout) return;
 
-        // Железная очистка 3D сцен перед сменой разметки
-        forceResetGlobal3D();
+        // Мягко останавливаем драг перед сменой масштаба сетки
+        if (typeof globalStopDragFn === "function") {
+          globalStopDragFn();
+        }
 
         currentLayout = selectedLayout;
         localStorage.setItem("gallery-layout", currentLayout);
@@ -1093,7 +1079,7 @@
   let activeCard = null;
   let startX = 0, startY = 0;
   let yaw = 0, pitch = 0;
-  let globalStopDragFn = null; 
+  let globalStopDragFn = null; // Храним ссылку на функцию сброса во внешнем контексте
 
   function init3DDragControls(card, skin) {
     if (card.dataset.hasDragEvents === "true") return;
@@ -1103,7 +1089,7 @@
     const canvas2d = card.querySelector(".skin-2d-canvas");
 
     function startDrag(e) {
-      // КЛЮЧЕВОЙ БАРЬЕР: Если мы НЕ в режиме "3D Фото", полностью запрещаем перетаскивание!
+      // КЛЮЧЕВОЙ ХАК: Если мы НЕ в режиме "3D Фото", полностью запрещаем перетаскивание!
       if (currentLayout !== "model") return; 
       
       if (!globalViewer) return;
@@ -1129,7 +1115,7 @@
       viewerBox.appendChild(global3dCanvas);
       global3dCanvas.style.display = "block";
 
-      // Калибровка разрешения WebGL под размеры карточки (убирает размытие)
+      // Тонкая калибровка разрешения рендера WebGL под размеры карточки (убирает размытие)
       globalViewer.setSize(viewerBox.clientWidth, viewerBox.clientHeight);
 
       // Загружаем текстуру скина в сцену
@@ -1158,8 +1144,8 @@
       const dx = pageX - startX;
       const dy = pageY - startY;
 
-      // ИНВЕРТИРОВАНО ПО Х (Смена знака на "-"): Модель вращается в противоположную сторону по горизонтали (удобный глобусный метод)
-      yaw = -0.4 - dx * 0.015;
+      // Комфортная инвертированная ось X (модель послушно следует в направлении курсора)
+      yaw = -0.4 + dx * 0.015;
       pitch = Math.max(-0.6, Math.min(0.6, -0.15 + dy * 0.012));
 
       updateViewerRotation();
@@ -1178,15 +1164,14 @@
       if (activeCard) {
         activeCard.classList.remove("interacting");
 
-        // Отображаем 2D canvas только если мы ВСЁ ЕЩЕ находимся в режиме 3D Фото ("model")
         const oldCanvas2d = activeCard.querySelector(".skin-2d-canvas");
         if (oldCanvas2d) {
-          oldCanvas2d.style.display = (currentLayout === "model") ? "block" : "none";
+          oldCanvas2d.style.display = "block";
         }
         activeCard = null;
       }
 
-      // Безопасно паркуем WebGL холст обратно в body
+      // Безопасно паркуем WebGL холст обратно
       global3dCanvas.style.display = "none";
       document.body.appendChild(global3dCanvas);
       globalStopDragFn = null;
@@ -1196,20 +1181,6 @@
 
     viewerBox.addEventListener("mousedown", startDrag);
     viewerBox.addEventListener("touchstart", startDrag, { passive: false });
-  }
-
-  // ---------------------------------------------------------------------
-  // СВЕРХНАДЕЖНЫЙ СБРОС И БЛОКИРОВКА СЦЕНЫ
-  // ---------------------------------------------------------------------
-  function forceResetGlobal3D() {
-    if (typeof globalStopDragFn === "function") {
-      globalStopDragFn();
-    }
-    isDragging = false;
-    activeCard = null;
-    global3dCanvas.style.display = "none";
-    document.body.appendChild(global3dCanvas);
-    document.body.style.cursor = "";
   }
 
   function updateViewerRotation() {
@@ -1392,8 +1363,10 @@
   // Фильтрация и Бесконечный скролл
   // ---------------------------------------------------------------------
   function applyFilters() {
-    // Безопасное завершение драга и парковка WebGL при любой фильтрации/смене категории
-    forceResetGlobal3D();
+    // Безопасное завершение драга, если он был активен
+    if (typeof globalStopDragFn === "function") {
+      globalStopDragFn();
+    }
 
     window.scrollTo({ top: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
