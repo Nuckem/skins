@@ -878,16 +878,14 @@
       alpha: true // Прозрачный фон
     });
     
-    // Мягкие и реалистичные настройки графики и камеры
     globalViewer.fov = 45;
     globalViewer.zoom = 0.95;
     globalViewer.autoRotate = false;
     
     if (globalViewer.controls) {
-      globalViewer.controls.enabled = false; // Отключаем стандартные OrbitControls, т.к. пишем плавное кастомное управление
+      globalViewer.controls.enabled = false; // Отключаем стандартные OrbitControls
     }
 
-    // Профессиональные настройки освещения
     if (globalViewer.globalLight) globalViewer.globalLight.intensity = 2.4;
     if (globalViewer.cameraLight) globalViewer.cameraLight.intensity = 1.4;
   } catch (err) {
@@ -921,6 +919,11 @@
       btn.addEventListener("click", () => {
         const selectedLayout = btn.dataset.layout;
         if (selectedLayout === currentLayout) return;
+
+        // Мягко останавливаем драг перед сменой масштаба сетки
+        if (typeof globalStopDragFn === "function") {
+          globalStopDragFn();
+        }
 
         currentLayout = selectedLayout;
         localStorage.setItem("gallery-layout", currentLayout);
@@ -1076,6 +1079,7 @@
   let activeCard = null;
   let startX = 0, startY = 0;
   let yaw = 0, pitch = 0;
+  let globalStopDragFn = null; // Храним ссылку на функцию сброса во внешнем контексте
 
   function init3DDragControls(card, skin) {
     if (card.dataset.hasDragEvents === "true") return;
@@ -1085,8 +1089,11 @@
     const canvas2d = card.querySelector(".skin-2d-canvas");
 
     function startDrag(e) {
+      // КЛЮЧЕВОЙ ХАК: Если мы НЕ в режиме "3D Фото", полностью запрещаем перетаскивание!
+      if (currentLayout !== "model") return; 
+      
       if (!globalViewer) return;
-      if (e.type === "mousedown" && e.button !== 0) return; // Только ЛКМ
+      if (e.type === "mousedown" && e.button !== 0) return; 
       e.preventDefault();
 
       isDragging = true;
@@ -1097,18 +1104,21 @@
       startX = pageX;
       startY = pageY;
 
-      // Сбрасываем углы к красивому дефолту при клике
+      // Дефолтный красивый полуанфас
       yaw = -0.4;
       pitch = -0.15;
 
-      // Прячем плоский холст
+      // Скрываем статичный 2D холст
       canvas2d.style.display = "none";
 
-      // Внедряем WebGL-холст в контейнер
+      // Внедряем WebGL Canvas на законное место внутри карточки
       viewerBox.appendChild(global3dCanvas);
       global3dCanvas.style.display = "block";
 
-      // Мгновенная загрузка скина в 3D
+      // Тонкая калибровка разрешения рендера WebGL под размеры карточки (убирает размытие)
+      globalViewer.setSize(viewerBox.clientWidth, viewerBox.clientHeight);
+
+      // Загружаем текстуру скина в сцену
       globalViewer.loadSkin(skin.url);
       updateViewerRotation();
 
@@ -1134,8 +1144,8 @@
       const dx = pageX - startX;
       const dy = pageY - startY;
 
-      // Новое физическое вращение: плавное, аккуратное и естественное
-      yaw = -0.4 - dx * 0.015;
+      // Комфортная инвертированная ось X (модель послушно следует в направлении курсора)
+      yaw = -0.4 + dx * 0.015;
       pitch = Math.max(-0.6, Math.min(0.6, -0.15 + dy * 0.012));
 
       updateViewerRotation();
@@ -1154,7 +1164,6 @@
       if (activeCard) {
         activeCard.classList.remove("interacting");
 
-        // Возвращаем плоское легкое 2D-изображение
         const oldCanvas2d = activeCard.querySelector(".skin-2d-canvas");
         if (oldCanvas2d) {
           oldCanvas2d.style.display = "block";
@@ -1162,10 +1171,13 @@
         activeCard = null;
       }
 
-      // Безопасно убираем и паркуем WebGL Canvas обратно
+      // Безопасно паркуем WebGL холст обратно
       global3dCanvas.style.display = "none";
       document.body.appendChild(global3dCanvas);
+      globalStopDragFn = null;
     }
+
+    globalStopDragFn = stopDrag;
 
     viewerBox.addEventListener("mousedown", startDrag);
     viewerBox.addEventListener("touchstart", startDrag, { passive: false });
@@ -1351,6 +1363,11 @@
   // Фильтрация и Бесконечный скролл
   // ---------------------------------------------------------------------
   function applyFilters() {
+    // Безопасное завершение драга, если он был активен
+    if (typeof globalStopDragFn === "function") {
+      globalStopDragFn();
+    }
+
     window.scrollTo({ top: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
@@ -1486,20 +1503,16 @@
     const isSkin = Math.abs(ratio - 1) < 0.03 || Math.abs(ratio - 2) < 0.03;
 
     if (currentLayout === "model" && isSkin) {
-      // Скрываем текстуру-развертку, показываем холст плоской сборки персонажа
       flatImg.style.display = "none";
       canvas.style.display = "block";
 
-      // Отрисовываем красивого собранного 2D-персонажа в анфас
       drawSkinFront(img, canvas);
 
-      // Инициализируем контроллеры взаимодействия 3D Drag
       const skinData = filteredSkins.find(s => s.id === card.dataset.id);
       if (skinData) {
         init3DDragControls(card, skinData);
       }
     } else {
-      // Скрываем все 2D/3D рендеры, возвращаем классическую текстуру-развертку (UV)
       canvas.style.display = "none";
       flatImg.style.display = "block";
       
