@@ -209,13 +209,13 @@
 
   /* ---------- Sidebar (Дерево папок) ---------- */
   .sidebar {
-    width:320px;
+    width:330px;
     flex-shrink:0;
     background:rgba(15, 23, 42, 0.45);
     backdrop-filter:blur(16px);
     -webkit-backdrop-filter:blur(16px);
     border-right:1px solid var(--border);
-    padding:24px 16px;
+    padding:24px 12px;
     display:flex;
     flex-direction:column;
     gap:16px;
@@ -234,6 +234,7 @@
     padding-bottom:12px;
     border-bottom:1px solid var(--border);
     margin-bottom:8px;
+    padding-left:12px;
   }
 
   .sidebar-header h3 {
@@ -262,72 +263,162 @@
     background:rgba(255,255,255,0.05);
   }
 
-  /* Список категорий с отступами дерева */
+  /* ---------- Дерево Каталогов CSS ---------- */
   .categories-list {
     display:flex;
     flex-direction:column;
-    gap:4px;
+    gap:2px;
   }
 
-  .cat-btn {
+  .tree-node {
+    display:flex;
+    flex-direction:column;
     width:100%;
+  }
+
+  .tree-row {
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:10px 12px;
+    width:100%;
     border-radius:10px;
-    background:transparent;
-    border:1px solid transparent;
-    color:var(--text-dim);
-    font-size:13px;
-    font-weight:600;
-    cursor:pointer;
-    text-align:left;
     transition:all 0.15s ease;
+    margin-bottom:2px;
   }
 
-  .cat-btn:hover {
-    color:var(--text);
+  .tree-row:hover {
     background:rgba(255, 255, 255, 0.03);
-    border-color:rgba(59, 130, 246, 0.15);
   }
 
-  .cat-btn.active {
+  .tree-row.active {
     background:linear-gradient(135deg, var(--accent), #2563eb);
     color:#fff;
-    border-color:transparent;
-    box-shadow:0 4px 12px rgba(59, 130, 246, 0.2);
   }
 
-  .cat-btn .folder-icon {
+  /* Кнопка открытия/закрытия подпапки (Стрелочка) */
+  .tree-toggle {
+    background:transparent;
+    border:none;
+    color:var(--text-dim);
+    cursor:pointer;
+    padding:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform 0.2s ease, color 0.15s ease;
+    width:28px;
+    height:28px;
+    border-radius:6px;
+    flex-shrink:0;
+  }
+
+  .tree-toggle:hover {
+    color:var(--text);
+    background:rgba(255, 255, 255, 0.05);
+  }
+
+  .tree-row.active .tree-toggle {
+    color:#fff;
+  }
+
+  .tree-toggle svg {
+    width:14px;
+    height:14px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin="round";
+    transition:transform 0.25s ease;
+  }
+
+  /* Развернутая стрелочка */
+  .tree-toggle.expanded svg {
+    transform:rotate(90deg);
+  }
+
+  .tree-toggle.hidden {
+    visibility:hidden;
+    pointer-events:none;
+  }
+
+  /* Тело кнопки выбора папки */
+  .tree-select-btn {
+    flex:1;
+    background:transparent;
+    border:none;
+    color:inherit;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 8px 8px 2px;
+    cursor:pointer;
+    text-align:left;
+    font-size:13px;
+    font-weight:600;
+    width:calc(100% - 28px);
+    overflow:hidden;
+  }
+
+  /* Контейнер подпапок с вертикальной линией */
+  .tree-children {
+    margin-left:19px; /* Смещение для вложенности */
+    border-left:1px dashed rgba(255, 255, 255, 0.08); /* Линия вложенности */
+    padding-left:4px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+
+  /* Иконки папок */
+  .folder-icon {
     width:16px;
     height:16px;
     flex-shrink:0;
-    stroke:currentColor;
     fill:none;
+    stroke:currentColor;
+    stroke-width:2;
   }
 
-  .cat-btn .cat-name {
+  /* Специфические цвета для разных типов папок */
+  .folder-icon.all-folder {
+    color:#a78bfa; /* Фиолетовый для корня */
+  }
+
+  .folder-icon.root-folder {
+    color:#fbbf24; /* Янтарный для основных папок */
+  }
+
+  .folder-icon.sub-folder {
+    color:#38bdf8; /* Небесно-голубой для подпапок */
+  }
+
+  .tree-row.active .folder-icon {
+    color:#fff !important;
+  }
+
+  .cat-name {
     flex:1;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
   }
 
-  .cat-btn .cat-count {
+  .cat-count {
     font-size:10px;
     background:rgba(255, 255, 255, 0.06);
     color:var(--text-dim);
-    padding:2px 8px;
+    padding:2px 7px;
     border-radius:999px;
     font-weight:700;
+    flex-shrink:0;
   }
 
-  .cat-btn.active .cat-count {
+  .tree-row.active .cat-count {
     background:rgba(255, 255, 255, 0.2);
     color:#fff;
   }
 
+  /* Мобильная подложка */
   .sidebar-overlay {
     display:none;
     position:fixed;
@@ -653,7 +744,7 @@
 </header>
 
 <div class="app-container">
-  <!-- Сайдбар (Дерево директорий) -->
+  <!-- Сайдбар (Дерево папок) -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h3>Директории</h3>
@@ -693,7 +784,7 @@
   // ---------------------------------------------------------------------
   let allSkins = [];             // Полный датасет
   let filteredSkins = [];        // Отфильтрованный датасет
-  let displayedSkinsCount = 0;   // Количество скинов на странице
+  let displayedSkinsCount = 0;   // Количество скинов в DOM
   const CHUNK_SIZE = 48;         // Порция скинов на подгрузку
   
   let activeCategory = "All";
@@ -704,10 +795,13 @@
   const imgCache = new Map();     // url -> HTMLImageElement
   const activeLoads = new Map();  // cardId -> Token
   
+  // Мемоизация раскрытых веток в дереве каталогов (по умолчанию открыт корень)
+  const expandedFolders = new Set(["All"]); 
+  
   let cardObserver = null;
   let sentinelObserver = null;
 
-  // Одноразовый холст анализа Steve/Alex
+  // Скрытый холст для считывания альфа-каналов Steve/Alex
   const analysisCanvas = document.createElement('canvas');
   const analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true });
 
@@ -800,9 +894,7 @@
         const file = item.file.replace(/^\/+/, "");
         const parts = file.split("/");
         
-        const filename = parts.pop(); // Извлекаем имя файла
-        
-        // Категория содержит полный путь (например, Additional_Skins2/People_in_winter)
+        const filename = parts.pop(); 
         const category = parts.length > 0 ? parts.join("/") : "Other"; 
         
         return {
@@ -824,10 +916,8 @@
 
     const is64x64 = img.naturalHeight === img.naturalWidth;
     
-    // Коэффициент масштаба для HD
     const u = img.naturalWidth / 64; 
 
-    // Считывание толщины рук Alex (3px HD) / Steve (4px HD)
     let isSlim = false;
     if (is64x64) {
       try {
@@ -847,12 +937,11 @@
 
     ctx.imageSmoothingEnabled = false;
 
-    // Масштабируем виртуальную координатную сетку 16x32 до размеров холста
     ctx.save();
     const scale = canvas.width / 16;
     ctx.scale(scale, scale);
 
-    // 1. Ноги (База + Оверлей)
+    // 1. Ноги
     ctx.drawImage(img, 4*u, 20*u, 4*u, 12*u, 4, 20, 4, 12);
     if (is64x64) ctx.drawImage(img, 4*u, 36*u, 4*u, 12*u, 4, 20, 4, 12);
 
@@ -867,11 +956,11 @@
       ctx.restore();
     }
 
-    // 2. Тело (База + Оверлей)
+    // 2. Тело
     ctx.drawImage(img, 20*u, 20*u, 8*u, 12*u, 4, 8, 8, 12);
     if (is64x64) ctx.drawImage(img, 20*u, 36*u, 8*u, 12*u, 4, 8, 8, 12);
 
-    // 3. Руки (База + Оверлей)
+    // 3. Руки
     ctx.drawImage(img, 44*u, 20*u, armW*u, 12*u, rightArmX, 8, armW, 12);
     if (is64x64) ctx.drawImage(img, 44*u, 36*u, armW*u, 12*u, rightArmX, 8, armW, 12);
 
@@ -886,7 +975,7 @@
       ctx.restore();
     }
 
-    // 4. Голова (База + Оверлей)
+    // 4. Голова
     ctx.drawImage(img, 8*u, 8*u, 8*u, 8*u, 4, 0, 8, 8);
     ctx.drawImage(img, 40*u, 8*u, 8*u, 8*u, 4, 0, 8, 8);
 
@@ -894,89 +983,134 @@
   }
 
   // ---------------------------------------------------------------------
-  // Построение рекурсивного дерева папок сайдбара
+  // Построение рекурсивного дерева папок (Пул данных)
   // ---------------------------------------------------------------------
-  function extractCategories(skins) {
-    const set = new Set();
-    skins.forEach(s => {
-      set.add(s.category);
-      // Добавляем промежуточные пустые родительские папки в дерево
-      const parts = s.category.split("/");
-      while (parts.length > 1) {
-        parts.pop();
-        set.add(parts.join("/"));
-      }
-    });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }
-
-  function getCategoryCounts() {
-    const counts = { "All": allSkins.length };
-    allSkins.forEach(skin => {
-      // Инкрементируем счетчик текущей папки
-      counts[skin.category] = (counts[skin.category] || 0) + 1;
-      
-      // Инкрементируем рекурсивно всех родителей
+  function buildTree(skins) {
+    const rootNode = { name: "Все скины", path: "All", children: {}, count: skins.length };
+    
+    skins.forEach(skin => {
       const parts = skin.category.split("/");
-      while (parts.length > 1) {
-        parts.pop();
-        const parentCat = parts.join("/");
-        counts[parentCat] = (counts[parentCat] || 0) + 1;
-      }
+      let current = rootNode;
+      let currentPath = [];
+      
+      parts.forEach(part => {
+        currentPath.push(part);
+        const pathStr = currentPath.join("/");
+        if (!current.children[part]) {
+          current.children[part] = {
+            name: part.replace(/_/g, ' '),
+            path: pathStr,
+            children: {},
+            count: 0
+          };
+        }
+        current = current.children[part];
+        current.count++;
+      });
     });
-    return counts;
+    return rootNode;
   }
 
   function renderCategories() {
-    const categories = extractCategories(allSkins);
-    const counts = getCategoryCounts();
     categoriesBarEl.innerHTML = "";
+    const tree = buildTree(allSkins);
+    categoriesBarEl.appendChild(createTreeNodeDOM(tree, 0));
+  }
 
-    const makeBtn = (label, displayName, depth) => {
-      const btn = document.createElement("button");
-      btn.className = "cat-btn" + (label === activeCategory ? " active" : "");
-      
-      // Отрисовка структуры отступа дерева
-      btn.style.paddingLeft = `${14 + (depth * 18)}px`;
-      if (depth > 0) {
-        btn.style.borderLeft = "1px dashed rgba(255,255,255,0.08)";
-        btn.style.borderRadius = "0 10px 10px 0";
-      }
+  function createTreeNodeDOM(node, depth = 0) {
+    const container = document.createElement("div");
+    container.className = "tree-node";
 
-      const icon = `
-        <svg class="folder-icon" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-        </svg>
-      `;
+    const row = document.createElement("div");
+    row.className = "tree-row" + (activeCategory === node.path ? " active" : "");
 
-      btn.innerHTML = `
-        ${icon}
-        <span class="cat-name">${displayName}</span>
-        <span class="cat-count">${counts[label] || 0}</span>
-      `;
+    const hasChildren = Object.keys(node.children).length > 0;
 
-      btn.addEventListener("click", () => {
-        activeCategory = label;
-        renderCategories();
-        applyFilters();
+    // Кнопка сворачивания (Стрелочка)
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = "tree-toggle" + (hasChildren ? "" : " hidden");
+    toggleBtn.innerHTML = `
+      <svg viewBox="0 0 24 24">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    `;
 
-        if (window.innerWidth <= 1024) {
-          sidebarEl.classList.remove("open");
-          sidebarOverlayEl.classList.remove("open");
+    const isExpanded = expandedFolders.has(node.path);
+    if (isExpanded && hasChildren) {
+      toggleBtn.classList.add("expanded");
+    }
+
+    // Кнопка выбора папки
+    const selectBtn = document.createElement("button");
+    selectBtn.className = "tree-select-btn";
+
+    // Уникальная стилизация иконок папок по глубине дерева
+    const isRoot = depth === 0;
+    const isFirstLevel = depth === 1;
+
+    let folderIconClass = "sub-folder";
+    if (isRoot) {
+      folderIconClass = "all-folder";
+    } else if (isFirstLevel) {
+      folderIconClass = "root-folder";
+    }
+
+    const folderIcon = `
+      <svg class="folder-icon ${folderIconClass}" viewBox="0 0 24 24">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+    `;
+
+    selectBtn.innerHTML = `
+      ${folderIcon}
+      <span class="cat-name">${node.name}</span>
+      <span class="cat-count">${node.count}</span>
+    `;
+
+    row.appendChild(toggleBtn);
+    row.appendChild(selectBtn);
+    container.appendChild(row);
+
+    // Дочерний контейнер подпапок
+    if (hasChildren) {
+      const childrenWrapper = document.createElement("div");
+      childrenWrapper.className = "tree-children";
+      childrenWrapper.style.display = isExpanded ? "flex" : "none";
+
+      Object.values(node.children).forEach(child => {
+        childrenWrapper.appendChild(createTreeNodeDOM(child, depth + 1));
+      });
+      container.appendChild(childrenWrapper);
+
+      // Событие открытия/закрытия
+      toggleBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const expand = !expandedFolders.has(node.path);
+        if (expand) {
+          expandedFolders.add(node.path);
+          toggleBtn.classList.add("expanded");
+          childrenWrapper.style.display = "flex";
+        } else {
+          expandedFolders.delete(node.path);
+          toggleBtn.classList.remove("expanded");
+          childrenWrapper.style.display = "none";
         }
       });
-      return btn;
-    };
+    }
 
-    categoriesBarEl.appendChild(makeBtn("All", "Все скины", 0));
-    
-    categories.forEach(cat => {
-      const parts = cat.split("/");
-      const depth = parts.length - 1;
-      const cleanName = parts[parts.length - 1].replace(/_/g, ' ');
-      
-      categoriesBarEl.appendChild(makeBtn(cat, cleanName, depth));
+    // Выбор директории для фильтрации
+    selectBtn.addEventListener("click", () => {
+      activeCategory = node.path;
+      renderCategories(); // Перерисовываем дерево для обновления .active
+      applyFilters();
+
+      if (window.innerWidth <= 1024) {
+        sidebarEl.classList.remove("open");
+        sidebarOverlayEl.classList.remove("open");
+      }
     });
+
+    return container;
   }
 
   // ---------------------------------------------------------------------
@@ -984,7 +1118,6 @@
   // ---------------------------------------------------------------------
   function applyFilters() {
     filteredSkins = allSkins.filter(skin => {
-      // Рекурсивный выбор: скин совпадает с категорией или лежит в ее подпапке
       const matchesCategory = activeCategory === "All" || 
                               skin.category === activeCategory || 
                               skin.category.startsWith(activeCategory + "/");
@@ -1174,7 +1307,7 @@
 
     const catTag = document.createElement("div");
     catTag.className = "cat-tag";
-    catTag.textContent = skin.category.split("/").pop().replace(/_/g, ' '); // Показываем крайнюю подпапку
+    catTag.textContent = skin.category.split("/").pop().replace(/_/g, ' '); 
     info.appendChild(catTag);
 
     card.appendChild(info);
