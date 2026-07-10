@@ -21,13 +21,13 @@
     --border:rgba(255,255,255,0.06);
     --shadow:0 10px 30px rgba(0,0,0,0.45);
     --radius:16px;
-    /* Высота шапки по умолчанию. Будет пересчитываться динамически через JS */
+    /* Высота шапки по умолчанию. Пересчитывается динамически через JS */
     --header-h: 76px; 
   }
 
   *{box-sizing:border-box;}
 
-  html,body{
+  html, body {
     margin:0;
     padding:0;
     background:
@@ -37,7 +37,8 @@
     color:var(--text);
     font-family:'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     min-height:100vh;
-    overflow-x:hidden;
+    /* overflow-x: clip решает проблему поломки position: sticky во всех браузерах */
+    overflow-x: clip; 
     display:flex;
     flex-direction:column;
   }
@@ -52,9 +53,10 @@
 
   /* ---------- Header ---------- */
   header{
+    position:-webkit-sticky;
     position:sticky;
     top:0;
-    z-index:50;
+    z-index:110; /* Выше мобильного сайдбара */
     padding:18px 32px;
     background:rgba(15,23,42,0.75);
     backdrop-filter:blur(14px);
@@ -105,7 +107,6 @@
     letter-spacing:0.3px;
   }
 
-  /* Красивый пиксельный логотип из вашего favicon.png */
   .logo .logo-img{
     width:34px;
     height:34px;
@@ -234,12 +235,14 @@
     display:flex;
     flex-direction:column;
     gap:16px;
+    position:-webkit-sticky;
     position:sticky;
     top:var(--header-h);
     height:calc(100vh - var(--header-h));
     overflow-y:auto;
     transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index:40;
+    align-self:flex-start; /* ВАЖНО: позволяет липкому сайдбару скользить внутри flex-контейнера */
   }
 
   .sidebar-header {
@@ -311,7 +314,6 @@
     color:#fff;
   }
 
-  /* Стрелочка */
   .tree-toggle {
     background:transparent;
     border:none;
@@ -357,7 +359,6 @@
     pointer-events:none;
   }
 
-  /* Кнопка выбора папки */
   .tree-select-btn {
     flex:1;
     background:transparent;
@@ -375,7 +376,6 @@
     overflow:hidden;
   }
 
-  /* Линии вложенности с плавной анимацией раскрытия */
   .tree-children {
     margin-left:19px;
     border-left:1px dashed rgba(255, 255, 255, 0.08);
@@ -391,11 +391,10 @@
 
   .tree-children.open {
     display:flex;
-    max-height:1000px; /* Достаточный лимит высоты подпапок */
+    max-height:1000px;
     opacity:1;
   }
 
-  /* Разные цвета папок для уровней иерархии */
   .folder-icon {
     width:16px;
     height:16px;
@@ -531,7 +530,6 @@
 
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  /* Элементы отображения скинов */
   .skin-flat-img, .skin-model-canvas {
     display:none;
     width:100%;
@@ -557,7 +555,6 @@
     transform:scale(1.08);
   }
 
-  /* Информация о файле */
   .card-info {
     width:100%;
     display:flex;
@@ -591,7 +588,6 @@
     text-overflow:ellipsis;
   }
 
-  /* Кнопки действий */
   .actions{
     margin-top:14px;
     display:flex;
@@ -635,7 +631,7 @@
 
   .btn svg{width:13px;height:13px;flex-shrink:0;}
 
-  /* ---------- Layout 1: СТАНДАРТНАЯ СЕТКА ---------- */
+  /* ---------- Layouts ---------- */
   .grid.layout-standard {
     grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
   }
@@ -643,7 +639,6 @@
     height:250px;
   }
 
-  /* ---------- Layout 2: КОМПАКТНАЯ СЕТКА ---------- */
   .grid.layout-compact {
     grid-template-columns:repeat(auto-fill, minmax(155px, 1fr));
     gap:12px;
@@ -674,7 +669,6 @@
     border-radius:6px;
   }
 
-  /* ---------- Layout 3: 3D ФОТО ---------- */
   .grid.layout-model {
     grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
   }
@@ -708,7 +702,7 @@
       width:290px;
       transform:translateX(-100%);
       background:var(--card);
-      z-index:100;
+      z-index:120; /* Выше шапки на мобильных */
       box-shadow:20px 0 40px rgba(0,0,0,0.6);
     }
     .sidebar.open {
@@ -743,7 +737,6 @@
       </button>
 
       <div class="logo" title="Skins Gallery">
-        <!-- Пиксельное лого на основе загруженного вами favicon.png -->
         <img src="favicon.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
         NuckemSkins
         <span class="sub">by Frixx_x</span>
@@ -838,7 +831,6 @@
   let cardObserver = null;
   let sentinelObserver = null;
 
-  // Одноразовый холст анализа Steve/Alex
   const analysisCanvas = document.createElement('canvas');
   const analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true });
 
@@ -1033,7 +1025,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Построение рекурсивного дерева папок (Пул данных)
+  // Построение дерева папок
   // ---------------------------------------------------------------------
   function buildTree(skins) {
     const rootNode = { name: "Все скины", path: "All", children: {}, count: skins.length };
@@ -1067,7 +1059,6 @@
     categoriesBarEl.appendChild(createTreeNodeDOM(tree, 0));
   }
 
-  // Переключение активного класса в DOM без полной перерисовки дерева
   function updateActiveFolderDOM(targetPath) {
     document.querySelectorAll(".tree-row").forEach(row => {
       row.classList.toggle("active", row.dataset.path === targetPath);
@@ -1080,11 +1071,10 @@
 
     const row = document.createElement("div");
     row.className = "tree-row" + (activeCategory === node.path ? " active" : "");
-    row.dataset.path = node.path; // Сохраняем путь в дата-атрибут для обновления классов
+    row.dataset.path = node.path;
 
     const hasChildren = Object.keys(node.children).length > 0;
 
-    // Стрелочка для раскрытия
     const toggleBtn = document.createElement("button");
     toggleBtn.className = "tree-toggle" + (hasChildren ? "" : " hidden");
     toggleBtn.innerHTML = `
@@ -1098,7 +1088,6 @@
       toggleBtn.classList.add("expanded");
     }
 
-    // Выбор папки
     const selectBtn = document.createElement("button");
     selectBtn.className = "tree-select-btn";
 
@@ -1128,12 +1117,10 @@
     row.appendChild(selectBtn);
     container.appendChild(row);
 
-    // Дочерний узел
     if (hasChildren) {
       const childrenWrapper = document.createElement("div");
       childrenWrapper.className = "tree-children";
       
-      // Плавное раскрытие через класс с использованием CSS переходов
       if (isExpanded) {
         childrenWrapper.classList.add("open");
         childrenWrapper.style.display = "flex";
@@ -1150,7 +1137,6 @@
           expandedFolders.add(node.path);
           toggleBtn.classList.add("expanded");
           childrenWrapper.style.display = "flex";
-          // Небольшой таймаут для запуска CSS transition плавности
           requestAnimationFrame(() => {
             childrenWrapper.classList.add("open");
           });
@@ -1158,7 +1144,6 @@
           expandedFolders.delete(node.path);
           toggleBtn.classList.remove("expanded");
           childrenWrapper.classList.remove("open");
-          // Скрываем элемент после завершения транзишена
           setTimeout(() => {
             if (!expandedFolders.has(node.path)) {
               childrenWrapper.style.display = "none";
@@ -1167,35 +1152,37 @@
         }
       };
 
-      // Клик по стрелке
       toggleBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleNode();
       });
 
-      // ПК: Быстрый двойной клик на всю папку сворачивает/разворачивает её
       selectBtn.addEventListener("dblclick", (e) => {
         e.stopPropagation();
         toggleNode();
       });
 
-      // Смартфоны: Быстрый двойной тап по всей папке сворачивает/разворачивает её
       let lastTapTime = 0;
       selectBtn.addEventListener("touchstart", (e) => {
         const now = Date.now();
         if (now - lastTapTime < 250) {
-          e.preventDefault(); // Предотвращает системное приближение (зум) страницы браузером
+          e.preventDefault();
           toggleNode();
         }
         lastTapTime = now;
       }, { passive: false });
     }
 
-    // Одиночный клик по папке (Мгновенный выбор папки)
+    // Клик по папке
     selectBtn.addEventListener("click", () => {
       activeCategory = node.path;
-      updateActiveFolderDOM(node.path); // Мягко обновляем активный класс в DOM (без перерисовки дерева!)
+      updateActiveFolderDOM(node.path); 
       applyFilters();
+
+      // Моментальный скролл наверх (дублируется для надежности на мобильных)
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
 
       if (window.innerWidth <= 1024) {
         sidebarEl.classList.remove("open");
@@ -1210,8 +1197,10 @@
   // Фильтрация и Бесконечный скролл
   // ---------------------------------------------------------------------
   function applyFilters() {
-    // При переключении категории или поиске переносим пользователя вверх экрана
-    window.scrollTo(0, 0);
+    // Надежный сброс Y-координаты при изменении категорий или поиске
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
 
     filteredSkins = allSkins.filter(skin => {
       const matchesCategory = activeCategory === "All" || 
@@ -1488,10 +1477,10 @@
     initLayout();
     updateHeaderHeight();
     await loadData();
-    renderCategories(); // Строит дерево один раз при запуске
+    renderCategories();
     applyFilters();
     
-    // Повторный пересчет высоты шапки после полной загрузки данных
+    // Повторный пересчет высоты шапки после отрисовки
     setTimeout(updateHeaderHeight, 150);
   }
 
