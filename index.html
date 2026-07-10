@@ -290,7 +290,7 @@
     align-items:center;
     width:100%;
     border-radius:10px;
-    transition:all 0.15s ease;
+    transition:background 0.15s ease, color 0.15s ease;
     margin-bottom:2px;
     user-select:none;
     -webkit-user-select:none;
@@ -369,14 +369,24 @@
     overflow:hidden;
   }
 
-  /* Линии вложенности */
+  /* Линии вложенности с плавной анимацией раскрытия */
   .tree-children {
     margin-left:19px;
     border-left:1px dashed rgba(255, 255, 255, 0.08);
     padding-left:4px;
-    display:flex;
+    display:none;
     flex-direction:column;
     gap:2px;
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transition:max-height 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease;
+  }
+
+  .tree-children.open {
+    display:flex;
+    max-height:1000px; /* Достаточный лимит высоты подпапок */
+    opacity:1;
   }
 
   /* Разные цвета папок для уровней иерархии */
@@ -1024,12 +1034,20 @@
     categoriesBarEl.appendChild(createTreeNodeDOM(tree, 0));
   }
 
+  // Переключение активного класса в DOM без полной перерисовки дерева
+  function updateActiveFolderDOM(targetPath) {
+    document.querySelectorAll(".tree-row").forEach(row => {
+      row.classList.toggle("active", row.dataset.path === targetPath);
+    });
+  }
+
   function createTreeNodeDOM(node, depth = 0) {
     const container = document.createElement("div");
     container.className = "tree-node";
 
     const row = document.createElement("div");
     row.className = "tree-row" + (activeCategory === node.path ? " active" : "");
+    row.dataset.path = node.path; // Сохраняем путь в дата-атрибут для обновления классов
 
     const hasChildren = Object.keys(node.children).length > 0;
 
@@ -1081,7 +1099,12 @@
     if (hasChildren) {
       const childrenWrapper = document.createElement("div");
       childrenWrapper.className = "tree-children";
-      childrenWrapper.style.display = isExpanded ? "flex" : "none";
+      
+      // Плавное раскрытие через класс с использованием CSS переходов
+      if (isExpanded) {
+        childrenWrapper.classList.add("open");
+        childrenWrapper.style.display = "flex";
+      }
 
       Object.values(node.children).forEach(child => {
         childrenWrapper.appendChild(createTreeNodeDOM(child, depth + 1));
@@ -1094,10 +1117,20 @@
           expandedFolders.add(node.path);
           toggleBtn.classList.add("expanded");
           childrenWrapper.style.display = "flex";
+          // Небольшой таймаут для запуска CSS transition плавности
+          requestAnimationFrame(() => {
+            childrenWrapper.classList.add("open");
+          });
         } else {
           expandedFolders.delete(node.path);
           toggleBtn.classList.remove("expanded");
-          childrenWrapper.style.display = "none";
+          childrenWrapper.classList.remove("open");
+          // Скрываем элемент после завершения транзишена
+          setTimeout(() => {
+            if (!expandedFolders.has(node.path)) {
+              childrenWrapper.style.display = "none";
+            }
+          }, 220);
         }
       };
 
@@ -1107,7 +1140,7 @@
         toggleNode();
       });
 
-      // ПК: Двойной клик по папке раскрывает/скрывает её
+      // ПК: Быстрый двойной клик на всю папку сворачивает/разворачивает её
       selectBtn.addEventListener("dblclick", (e) => {
         e.stopPropagation();
         toggleNode();
@@ -1117,17 +1150,18 @@
       let lastTapTime = 0;
       selectBtn.addEventListener("touchstart", (e) => {
         const now = Date.now();
-        if (now - lastTapTime < 300) {
-          e.preventDefault(); // Исключает стандартный системный зум экрана браузером
+        if (now - lastTapTime < 250) {
+          e.preventDefault(); // Предотвращает системное приближение (зум) страницы браузером
           toggleNode();
         }
         lastTapTime = now;
       }, { passive: false });
     }
 
+    // Одиночный клик по папке (Мгновенный выбор папки)
     selectBtn.addEventListener("click", () => {
       activeCategory = node.path;
-      renderCategories();
+      updateActiveFolderDOM(node.path); // Мягко обновляем активный класс в DOM (без перерисовки дерева!)
       applyFilters();
 
       if (window.innerWidth <= 1024) {
@@ -1417,7 +1451,7 @@
   async function init() {
     initLayout();
     await loadData();
-    renderCategories();
+    renderCategories(); // Строит дерево один раз при запуске
     applyFilters();
   }
 
