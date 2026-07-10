@@ -30,6 +30,7 @@
     color:var(--text);
     font-family:'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     min-height:100vh;
+    overflow-x:hidden;
   }
 
   ::selection{background:var(--accent); color:#fff;}
@@ -45,7 +46,7 @@
     position:sticky;
     top:0;
     z-index:50;
-    padding:22px 32px 16px;
+    padding:18px 32px;
     background:rgba(15,23,42,0.75);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
@@ -60,6 +61,30 @@
     flex-wrap:wrap;
     max-width:1400px;
     margin:0 auto;
+  }
+
+  .logo-wrap {
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+
+  .menu-toggle-btn {
+    display:none; /* Скрыто на десктопе */
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px;
+    border-radius:12px;
+    cursor:pointer;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.2s ease;
+  }
+
+  .menu-toggle-btn:hover {
+    background:var(--accent);
+    border-color:var(--accent);
   }
 
   .logo{
@@ -173,45 +198,157 @@
     white-space:nowrap;
   }
 
-  .categories{
-    max-width:1400px;
-    margin:16px auto 0;
+  /* ---------- Layout Wrapper (Sidebar + Main) ---------- */
+  .app-container {
     display:flex;
-    gap:10px;
-    flex-wrap:wrap;
+    max-width:1450px;
+    margin:0 auto;
+    position:relative;
+    min-height:calc(100vh - 80px);
   }
 
-  .cat-btn{
-    padding:9px 18px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,0.03);
+  /* ---------- Sidebar (Левая шторка) ---------- */
+  .sidebar {
+    width:290px;
+    flex-shrink:0;
+    background:rgba(15, 23, 42, 0.45);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-right:1px solid var(--border);
+    padding:24px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    position:sticky;
+    top:80px;
+    height:calc(100vh - 80px);
+    overflow-y:auto;
+    transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index:40;
+  }
+
+  .sidebar-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:8px;
+  }
+
+  .sidebar-header h3 {
+    margin:0;
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:0.8px;
+    color:var(--text);
+    text-transform:uppercase;
+  }
+
+  .sidebar-close-btn {
+    display:none; /* Только на мобильных */
+    background:transparent;
+    border:none;
     color:var(--text-dim);
-    font-size:13px;
+    cursor:pointer;
+    padding:4px;
+    border-radius:8px;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .sidebar-close-btn:hover {
+    color:var(--text);
+    background:rgba(255,255,255,0.05);
+  }
+
+  /* Список категорий */
+  .categories-list {
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .cat-btn {
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 14px;
+    border-radius:12px;
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--text-dim);
+    font-size:13.5px;
     font-weight:600;
     cursor:pointer;
-    transition:all .2s ease;
-    user-select:none;
+    text-align:left;
+    transition:all 0.2s ease;
   }
 
-  .cat-btn:hover{
+  .cat-btn:hover {
     color:var(--text);
-    border-color:var(--accent-2);
-    transform:translateY(-1px);
+    background:rgba(255, 255, 255, 0.03);
+    border-color:rgba(59, 130, 246, 0.2);
+    transform:translateX(4px);
   }
 
-  .cat-btn.active{
+  .cat-btn.active {
     background:linear-gradient(135deg, var(--accent), #2563eb);
     color:#fff;
     border-color:transparent;
-    box-shadow:0 6px 16px rgba(59,130,246,0.4);
+    box-shadow:0 4px 12px rgba(59, 130, 246, 0.25);
   }
 
-  /* ---------- Grid Base ---------- */
-  main{
-    max-width:1400px;
-    margin:0 auto;
+  .cat-btn .folder-icon {
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    stroke:currentColor;
+    fill:none;
+  }
+
+  .cat-btn .cat-name {
+    flex:1;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .cat-btn .cat-count {
+    font-size:11px;
+    background:rgba(255, 255, 255, 0.06);
+    color:var(--text-dim);
+    padding:2px 8px;
+    border-radius:999px;
+    font-weight:700;
+  }
+
+  .cat-btn.active .cat-count {
+    background:rgba(255, 255, 255, 0.2);
+    color:#fff;
+  }
+
+  /* Подложка на мобильном */
+  .sidebar-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    z-index:90;
+  }
+
+  .sidebar-overlay.open {
+    display:block;
+  }
+
+  /* ---------- Main Content ---------- */
+  .main-content {
+    flex:1;
     padding:28px 32px 60px;
+    min-width:0; /* Фикс переполнения сетки */
   }
 
   .grid{
@@ -242,7 +379,7 @@
     box-shadow:0 12px 30px rgba(0,0,0,0.55);
   }
 
-  /* Сетка прозрачности на фоне */
+  /* Сетка прозрачности */
   .viewer-box{
     width:100%;
     border-radius:12px;
@@ -294,7 +431,7 @@
   }
 
   .skin-flat-img {
-    padding:6px; /* Меньше отступ - больше текстура скина! */
+    padding:6px;
   }
 
   .skin-model-canvas {
@@ -386,17 +523,17 @@
 
   .btn svg{width:13px;height:13px;flex-shrink:0;}
 
-  /* ---------- Layout 1: УВЕЛИЧЕННАЯ СТАНДАРТНАЯ СЕТКА (Текстура) ---------- */
+  /* ---------- Layout 1: СТАНДАРТНАЯ СЕТКА ---------- */
   .grid.layout-standard {
-    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); /* Увеличен размер сетки до 250px */
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
   }
   .grid.layout-standard .viewer-box {
-    height:250px; /* Увеличена высота бокса до 250px */
+    height:250px;
   }
 
-  /* ---------- Layout 2: УВЕЛИЧЕННАЯ КОМПАКТНАЯ СЕТКА (Текстура) ---------- */
+  /* ---------- Layout 2: КОМПАКТНАЯ СЕТКА ---------- */
   .grid.layout-compact {
-    grid-template-columns:repeat(auto-fill, minmax(155px, 1fr)); /* Увеличен компактный размер до 155px */
+    grid-template-columns:repeat(auto-fill, minmax(155px, 1fr));
     gap:12px;
   }
   .grid.layout-compact .card {
@@ -404,7 +541,7 @@
     border-radius:12px;
   }
   .grid.layout-compact .viewer-box {
-    height:150px; /* Увеличена высота бокса до 150px */
+    height:150px;
   }
   .grid.layout-compact .card-info {
     margin-top:8px;
@@ -462,11 +599,38 @@
   }
 
   /* ---------- Responsive ---------- */
+  @media (max-width:1024px){
+    header{padding:16px 20px;}
+    .menu-toggle-btn { display:flex; }
+    
+    /* Шторка (Slide-out Sidebar) */
+    .sidebar {
+      position:fixed;
+      top:0;
+      left:0;
+      height:100vh;
+      width:290px;
+      transform:translateX(-100%);
+      background:var(--card);
+      z-index:100;
+      box-shadow:20px 0 40px rgba(0,0,0,0.6);
+    }
+    .sidebar.open {
+      transform:translateX(0);
+    }
+    .sidebar-close-btn {
+      display:flex;
+    }
+    .main-content {
+      padding:20px 16px 40px;
+    }
+  }
+
   @media (max-width:768px){
-    header{padding:16px 16px 12px;}
-    main{padding:20px 16px 40px;}
-    .logo{font-size:18px;}
-    .search-wrap{width:100%;}
+    .logo .cube { width:30px; height:30px; }
+    .logo { font-size:18px; }
+    .logo span.sub { display:none; }
+    .search-wrap { width:100%; }
   }
 </style>
 </head>
@@ -474,10 +638,21 @@
 
 <header>
   <div class="header-top">
-    <div class="logo">
-      <div class="cube"></div>
-      Skins Gallery
-      <span class="sub">Fast Skin Viewer</span>
+    <div class="logo-wrap">
+      <!-- Кнопка вызова меню (только на мобильных) -->
+      <button class="menu-toggle-btn" id="menuToggleBtn" title="Открыть папки">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="logo">
+        <div class="cube"></div>
+        Skins Gallery
+        <span class="sub">Fast Skin Viewer</span>
+      </div>
     </div>
 
     <div class="controls-group">
@@ -508,18 +683,36 @@
       <div class="stats" id="statsLabel">Загрузка...</div>
     </div>
   </div>
-
-  <div class="categories" id="categoriesBar"></div>
 </header>
 
-<main>
-  <div class="grid" id="grid"></div>
-  <div id="sentinel"></div>
-  <div class="empty-state" id="emptyState" style="display:none;">
-    <h2>Ничего не найдено</h2>
-    <p>Попробуйте изменить поисковый запрос или выбрать другую категорию.</p>
-  </div>
-</main>
+<div class="app-container">
+  <!-- Сайдбар (Левая шторка) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Папки / Категории</h3>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Закрыть">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="categories-list" id="categoriesBar"></div>
+  </aside>
+
+  <!-- Затемнение для мобильного меню -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Основной контент -->
+  <main class="main-content">
+    <div class="grid" id="grid"></div>
+    <div id="sentinel"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <h2>Ничего не найдено</h2>
+      <p>Попробуйте изменить поисковый запрос или выбрать другую папку.</p>
+    </div>
+  </main>
+</div>
 
 <footer>
   Skins Gallery &middot; ультрабыстрый рендеринг &middot; работает на GitHub Pages
@@ -541,14 +734,14 @@
   let searchTerm = "";
   let currentLayout = localStorage.getItem("gallery-layout") || "model"; 
   
-  // Кеш загруженных изображений для устранения повторных сетевых запросов
+  // Кеш загруженных изображений
   const imgCache = new Map();     // url -> HTMLImageElement
   const activeLoads = new Map();  // cardId -> Token
   
   let cardObserver = null;
   let sentinelObserver = null;
 
-  // Одноразовый скрытый холст для быстрого считывания альфа-каналов Alex/Steve
+  // Одноразовый скрытый холст для быстрого считывания альфа-каналов Steve/Alex
   const analysisCanvas = document.createElement('canvas');
   const analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true });
 
@@ -561,8 +754,14 @@
   const emptyStateEl = document.getElementById("emptyState");
   const sentinelEl = document.getElementById("sentinel");
 
+  // DOM Элементы левой шторки
+  const sidebarEl = document.getElementById("sidebar");
+  const sidebarOverlayEl = document.getElementById("sidebarOverlay");
+  const menuToggleBtn = document.getElementById("menuToggleBtn");
+  const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+
   // ---------------------------------------------------------------------
-  // Управление версткой (Layout)
+  // Управление версткой (Layout & Sidebar)
   // ---------------------------------------------------------------------
   function initLayout() {
     document.querySelectorAll(".layout-btn").forEach(btn => {
@@ -583,10 +782,23 @@
         });
         gridEl.className = `grid layout-${currentLayout}`;
         
-        // Мгновенно обновляем все видимые карточки на экране без перезагрузки из сети!
         updateAllVisibleCards();
       });
     });
+
+    // Обработчики шторки
+    menuToggleBtn.addEventListener("click", () => {
+      sidebarEl.classList.add("open");
+      sidebarOverlayEl.classList.add("open");
+    });
+
+    const closeSidebar = () => {
+      sidebarEl.classList.remove("open");
+      sidebarOverlayEl.classList.remove("open");
+    };
+
+    sidebarCloseBtn.addEventListener("click", closeSidebar);
+    sidebarOverlayEl.addEventListener("click", closeSidebar);
   }
 
   function updateAllVisibleCards() {
@@ -635,7 +847,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Алгоритмический 2D рендеринг фигурки персонажа
+  // Алгоритмический Рендеринг (Поддержка HD 128px - 512px)
   // ---------------------------------------------------------------------
   function drawSkinFront(img, canvas) {
     const ctx = canvas.getContext('2d');
@@ -643,14 +855,20 @@
 
     const is64x64 = img.naturalHeight === img.naturalWidth;
 
-    // Считывание толщины рук (Steve 4px / Alex 3px)
+    // u - масштабный коэффициент относительно классического Minecraft скина (64px)
+    const u = img.naturalWidth / 64; 
+
+    // Считывание толщины рук с поддержкой HD разрешений
     let isSlim = false;
     if (is64x64) {
       try {
         analysisCanvas.width = img.naturalWidth;
         analysisCanvas.height = img.naturalHeight;
         analysisCtx.drawImage(img, 0, 0);
-        isSlim = analysisCtx.getImageData(47, 20, 1, 1).data[3] === 0;
+        
+        const checkX = Math.round(47 * u);
+        const checkY = Math.round(20 * u);
+        isSlim = analysisCtx.getImageData(checkX, checkY, 1, 1).data[3] === 0;
       } catch(e) {}
     }
 
@@ -666,48 +884,48 @@
     ctx.scale(scale, scale);
 
     // 1. Ноги
-    ctx.drawImage(img, 4, 20, 4, 12, 4, 20, 4, 12);
-    if (is64x64) ctx.drawImage(img, 4, 36, 4, 12, 4, 20, 4, 12);
+    ctx.drawImage(img, 4*u, 20*u, 4*u, 12*u, 4, 20, 4, 12);
+    if (is64x64) ctx.drawImage(img, 4*u, 36*u, 4*u, 12*u, 4, 20, 4, 12);
 
     if (is64x64) {
-      ctx.drawImage(img, 20, 52, 4, 12, 8, 20, 4, 12);
-      ctx.drawImage(img, 4, 52, 4, 12, 8, 20, 4, 12);
+      ctx.drawImage(img, 20*u, 52*u, 4*u, 12*u, 8, 20, 4, 12);
+      ctx.drawImage(img, 4*u, 52*u, 4*u, 12*u, 8, 20, 4, 12);
     } else {
       ctx.save();
       ctx.translate(12, 20);
       ctx.scale(-1, 1);
-      ctx.drawImage(img, 4, 20, 4, 12, 0, 0, 4, 12);
+      ctx.drawImage(img, 4*u, 20*u, 4*u, 12*u, 0, 0, 4, 12);
       ctx.restore();
     }
 
     // 2. Тело/Торс
-    ctx.drawImage(img, 20, 20, 8, 12, 4, 8, 8, 12);
-    if (is64x64) ctx.drawImage(img, 20, 36, 8, 12, 4, 8, 8, 12);
+    ctx.drawImage(img, 20*u, 20*u, 8*u, 12*u, 4, 8, 8, 12);
+    if (is64x64) ctx.drawImage(img, 20*u, 36*u, 8*u, 12*u, 4, 8, 8, 12);
 
     // 3. Руки
-    ctx.drawImage(img, 44, 20, armW, 12, rightArmX, 8, armW, 12);
-    if (is64x64) ctx.drawImage(img, 44, 36, armW, 12, rightArmX, 8, armW, 12);
+    ctx.drawImage(img, 44*u, 20*u, armW*u, 12*u, rightArmX, 8, armW, 12);
+    if (is64x64) ctx.drawImage(img, 44*u, 36*u, armW*u, 12*u, rightArmX, 8, armW, 12);
 
     if (is64x64) {
-      ctx.drawImage(img, 36, 52, armW, 12, leftArmX, 8, armW, 12);
-      ctx.drawImage(img, 52, 52, armW, 12, leftArmX, 8, armW, 12);
+      ctx.drawImage(img, 36*u, 52*u, armW*u, 12*u, leftArmX, 8, armW, 12);
+      ctx.drawImage(img, 52*u, 52*u, armW*u, 12*u, leftArmX, 8, armW, 12);
     } else {
       ctx.save();
       ctx.translate(leftArmX + armW, 8);
       ctx.scale(-1, 1);
-      ctx.drawImage(img, 44, 20, armW, 12, 0, 0, armW, 12);
+      ctx.drawImage(img, 44*u, 20*u, armW*u, 12*u, 0, 0, armW, 12);
       ctx.restore();
     }
 
     // 4. Голова
-    ctx.drawImage(img, 8, 8, 8, 8, 4, 0, 8, 8);
-    ctx.drawImage(img, 40, 8, 8, 8, 4, 0, 8, 8);
+    ctx.drawImage(img, 8*u, 8*u, 8*u, 8*u, 4, 0, 8, 8);
+    ctx.drawImage(img, 40*u, 8*u, 8*u, 8*u, 4, 0, 8, 8);
 
     ctx.restore();
   }
 
   // ---------------------------------------------------------------------
-  // Категории
+  // Построение структуры категорий во фрейме сайдбара
   // ---------------------------------------------------------------------
   function extractCategories(skins) {
     const set = new Set();
@@ -715,24 +933,54 @@
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }
 
+  function getCategoryCounts() {
+    const counts = { "All": allSkins.length };
+    allSkins.forEach(skin => {
+      counts[skin.category] = (counts[skin.category] || 0) + 1;
+    });
+    return counts;
+  }
+
   function renderCategories() {
     const categories = extractCategories(allSkins);
+    const counts = getCategoryCounts();
     categoriesBarEl.innerHTML = "";
 
-    const makeBtn = (label) => {
+    const makeBtn = (label, displayName) => {
       const btn = document.createElement("button");
       btn.className = "cat-btn" + (label === activeCategory ? " active" : "");
-      btn.textContent = label;
+      
+      const iconSvg = `
+        <svg class="folder-icon" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>
+      `;
+
+      btn.innerHTML = `
+        ${iconSvg}
+        <span class="cat-name">${displayName}</span>
+        <span class="cat-count">${counts[label] || 0}</span>
+      `;
+
       btn.addEventListener("click", () => {
         activeCategory = label;
         renderCategories();
         applyFilters();
+
+        // Закрываем шторку на мобильных при тапе
+        if (window.innerWidth <= 1024) {
+          sidebarEl.classList.remove("open");
+          sidebarOverlayEl.classList.remove("open");
+        }
       });
       return btn;
     };
 
-    categoriesBarEl.appendChild(makeBtn("All"));
-    categories.forEach(cat => categoriesBarEl.appendChild(makeBtn(cat)));
+    categoriesBarEl.appendChild(makeBtn("All", "Все папки"));
+    categories.forEach(cat => {
+      const formattedName = cat.replace(/_/g, ' '); // Красивый вывод папок
+      categoriesBarEl.appendChild(makeBtn(cat, formattedName));
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -802,7 +1050,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Ленивый рендеринг изображений
+  // Ленивая загрузка
   // ---------------------------------------------------------------------
   function setupCardObserver() {
     if (cardObserver) cardObserver.disconnect();
@@ -864,23 +1112,20 @@
     const h = img.naturalHeight;
     const ratio = w / h;
     
-    // Пропорции скина Minecraft: строго 1:1 или 2:1 (с погрешностью)
     const isSkin = Math.abs(ratio - 1) < 0.03 || Math.abs(ratio - 2) < 0.03;
 
-    // Включаем пиксельный рендеринг только для оригинальных мелких файлов (текстур)
+    // Включаем pixel-art рендеринг только для оригинальных текстур (до 256px)
     if (w <= 256) {
       flatImg.style.imageRendering = "pixelated";
     } else {
       flatImg.style.imageRendering = "auto";
     }
 
-    // Если режим 3D-модели И файл является валидным скином
     if (currentLayout === "model" && isSkin) {
       flatImg.style.display = "none";
       canvas.style.display = "block";
       drawSkinFront(img, canvas);
     } else {
-      // Иначе (для скриншотов, картинок, либо в режиме плоской сетки) выводим просто картинку
       canvas.style.display = "none";
       flatImg.style.display = "block";
       if (flatImg.src !== img.src) {
@@ -890,7 +1135,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Генерация карточки (Быстрый DOM)
+  // Генерация карточки (DOM)
   // ---------------------------------------------------------------------
   function buildCard(skin) {
     const card = document.createElement("div");
@@ -911,7 +1156,6 @@
     img.className = "skin-flat-img";
     viewerBox.appendChild(img);
 
-    // Холст для собранной модели (160x320 пикселей для идеальной четкости)
     const canvas = document.createElement("canvas");
     canvas.width = 160;
     canvas.height = 320;
@@ -931,7 +1175,7 @@
 
     const catTag = document.createElement("div");
     catTag.className = "cat-tag";
-    catTag.textContent = skin.category;
+    catTag.textContent = skin.category.replace(/_/g, ' ');
     info.appendChild(catTag);
 
     card.appendChild(info);
