@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Галерея Нюкема</title>
+
+<!-- Подключение вашей иконки для вкладки браузера -->
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+
 <style>
   :root{
     --bg:#0f172a;
@@ -70,7 +75,7 @@
   }
 
   .menu-toggle-btn {
-    display:none; /* Видна только на мобильных */
+    display:none;
     background:rgba(255,255,255,0.04);
     border:1px solid var(--border);
     color:var(--text);
@@ -96,12 +101,16 @@
     letter-spacing:0.3px;
   }
 
-  .logo .cube{
+  /* Красивый пиксельный логотип из вашего favicon.png */
+  .logo .logo-img{
     width:34px;
     height:34px;
-    border-radius:9px;
-    background:linear-gradient(135deg, var(--accent), #8b5cf6);
-    box-shadow:0 4px 14px rgba(59,130,246,0.5);
+    border-radius:8px;
+    object-fit:cover;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.1);
   }
 
   .logo span.sub{
@@ -294,7 +303,7 @@
     color:#fff;
   }
 
-  /* Кнопка открытия/закрытия подпапки (Стрелочка) */
+  /* Стрелочка */
   .tree-toggle {
     background:transparent;
     border:none;
@@ -331,7 +340,6 @@
     transition:transform 0.25s ease;
   }
 
-  /* Развернутая стрелочка */
   .tree-toggle.expanded svg {
     transform:rotate(90deg);
   }
@@ -341,7 +349,7 @@
     pointer-events:none;
   }
 
-  /* Тело кнопки выбора папки */
+  /* Кнопка выбора папки */
   .tree-select-btn {
     flex:1;
     background:transparent;
@@ -359,17 +367,17 @@
     overflow:hidden;
   }
 
-  /* Контейнер подпапок с вертикальной линией */
+  /* Линии вложенности */
   .tree-children {
-    margin-left:19px; /* Смещение для вложенности */
-    border-left:1px dashed rgba(255, 255, 255, 0.08); /* Линия вложенности */
+    margin-left:19px;
+    border-left:1px dashed rgba(255, 255, 255, 0.08);
     padding-left:4px;
     display:flex;
     flex-direction:column;
     gap:2px;
   }
 
-  /* Иконки папок */
+  /* Разные цвета папок для уровней иерархии */
   .folder-icon {
     width:16px;
     height:16px;
@@ -379,17 +387,16 @@
     stroke-width:2;
   }
 
-  /* Специфические цвета для разных типов папок */
   .folder-icon.all-folder {
-    color:#a78bfa; /* Фиолетовый для корня */
+    color:#a78bfa;
   }
 
   .folder-icon.root-folder {
-    color:#fbbf24; /* Янтарный для основных папок */
+    color:#fbbf24;
   }
 
   .folder-icon.sub-folder {
-    color:#38bdf8; /* Небесно-голубой для подпапок */
+    color:#38bdf8;
   }
 
   .tree-row.active .folder-icon {
@@ -418,7 +425,6 @@
     color:#fff;
   }
 
-  /* Мобильная подложка */
   .sidebar-overlay {
     display:none;
     position:fixed;
@@ -468,7 +474,6 @@
     box-shadow:0 12px 30px rgba(0,0,0,0.55);
   }
 
-  /* Сетка прозрачности */
   .viewer-box{
     width:100%;
     border-radius:12px;
@@ -706,8 +711,9 @@
         </svg>
       </button>
 
-      <div class="logo">
-        <div class="cube"></div>
+      <div class="logo" title="Skins Gallery">
+        <!-- Пиксельное лого на основе загруженного вами favicon.png -->
+        <img src="favicon.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
         NuckemSkins
         <span class="sub">by Frixx_x</span>
       </div>
@@ -744,7 +750,7 @@
 </header>
 
 <div class="app-container">
-  <!-- Сайдбар (Дерево папок) -->
+  <!-- Сайдбар -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h3>Директории</h3>
@@ -795,13 +801,13 @@
   const imgCache = new Map();     // url -> HTMLImageElement
   const activeLoads = new Map();  // cardId -> Token
   
-  // Мемоизация раскрытых веток в дереве каталогов (по умолчанию открыт корень)
+  // Раскрытые папки в дереве (All открыта по умолчанию)
   const expandedFolders = new Set(["All"]); 
   
   let cardObserver = null;
   let sentinelObserver = null;
 
-  // Скрытый холст для считывания альфа-каналов Steve/Alex
+  // Одноразовый холст анализа Steve/Alex
   const analysisCanvas = document.createElement('canvas');
   const analysisCtx = analysisCanvas.getContext('2d', { willReadFrequently: true });
 
@@ -915,7 +921,6 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const is64x64 = img.naturalHeight === img.naturalWidth;
-    
     const u = img.naturalWidth / 64; 
 
     let isSlim = false;
@@ -1026,7 +1031,7 @@
 
     const hasChildren = Object.keys(node.children).length > 0;
 
-    // Кнопка сворачивания (Стрелочка)
+    // Стрелочка для раскрытия
     const toggleBtn = document.createElement("button");
     toggleBtn.className = "tree-toggle" + (hasChildren ? "" : " hidden");
     toggleBtn.innerHTML = `
@@ -1040,11 +1045,10 @@
       toggleBtn.classList.add("expanded");
     }
 
-    // Кнопка выбора папки
+    // Выбор папки
     const selectBtn = document.createElement("button");
     selectBtn.className = "tree-select-btn";
 
-    // Уникальная стилизация иконок папок по глубине дерева
     const isRoot = depth === 0;
     const isFirstLevel = depth === 1;
 
@@ -1071,7 +1075,7 @@
     row.appendChild(selectBtn);
     container.appendChild(row);
 
-    // Дочерний контейнер подпапок
+    // Дочерний узел
     if (hasChildren) {
       const childrenWrapper = document.createElement("div");
       childrenWrapper.className = "tree-children";
@@ -1082,7 +1086,6 @@
       });
       container.appendChild(childrenWrapper);
 
-      // Событие открытия/закрытия
       toggleBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         const expand = !expandedFolders.has(node.path);
@@ -1098,10 +1101,9 @@
       });
     }
 
-    // Выбор директории для фильтрации
     selectBtn.addEventListener("click", () => {
       activeCategory = node.path;
-      renderCategories(); // Перерисовываем дерево для обновления .active
+      renderCategories();
       applyFilters();
 
       if (window.innerWidth <= 1024) {
