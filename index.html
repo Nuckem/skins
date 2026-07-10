@@ -21,7 +21,6 @@
     --border:rgba(255,255,255,0.06);
     --shadow:0 10px 30px rgba(0,0,0,0.45);
     --radius:16px;
-    /* Высота шапки по умолчанию. Пересчитывается динамически через JS */
     --header-h: 76px; 
   }
 
@@ -37,7 +36,6 @@
     color:var(--text);
     font-family:'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     min-height:100vh;
-    /* overflow-x: clip решает проблему поломки position: sticky во всех браузерах */
     overflow-x: clip; 
     display:flex;
     flex-direction:column;
@@ -56,7 +54,7 @@
     position:-webkit-sticky;
     position:sticky;
     top:0;
-    z-index:110; /* Выше мобильного сайдбара */
+    z-index:110; 
     padding:18px 32px;
     background:rgba(15,23,42,0.75);
     backdrop-filter:blur(14px);
@@ -242,7 +240,7 @@
     overflow-y:auto;
     transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index:40;
-    align-self:flex-start; /* ВАЖНО: позволяет липкому сайдбару скользить внутри flex-контейнера */
+    align-self:flex-start; 
   }
 
   .sidebar-header {
@@ -508,6 +506,8 @@
     display:flex;
     align-items:center;
     justify-content:center;
+    user-select:none;
+    -webkit-user-select:none;
   }
 
   .placeholder{
@@ -544,15 +544,22 @@
     padding:6px;
   }
 
+  /* 3D модель теперь имеет курсор интерактивного перетаскивания */
   .skin-model-canvas {
     filter:drop-shadow(0 6px 12px rgba(0,0,0,0.45));
     max-width:92%;
     max-height:92%;
+    cursor:grab;
+    touch-action:none; /* Отключает браузерный свайп на телефонах во время вращения модели */
+  }
+
+  .skin-model-canvas:active {
+    cursor:grabbing;
   }
 
   .card:hover .viewer-box img,
   .card:hover .viewer-box canvas {
-    transform:scale(1.08);
+    transform:scale(1.04);
   }
 
   .card-info {
@@ -702,7 +709,7 @@
       width:290px;
       transform:translateX(-100%);
       background:var(--card);
-      z-index:120; /* Выше шапки на мобильных */
+      z-index:120; 
       box-shadow:20px 0 40px rgba(0,0,0,0.6);
     }
     .sidebar.open {
@@ -812,20 +819,18 @@
   // ---------------------------------------------------------------------
   // Стейт
   // ---------------------------------------------------------------------
-  let allSkins = [];             // Полный датасет
-  let filteredSkins = [];        // Отфильтрованный датасет
-  let displayedSkinsCount = 0;   // Количество скинов в DOM
-  const CHUNK_SIZE = 48;         // Порция скинов на подгрузку
+  let allSkins = [];             
+  let filteredSkins = [];        
+  let displayedSkinsCount = 0;   
+  const CHUNK_SIZE = 48;         
   
   let activeCategory = "All";
   let searchTerm = "";
   let currentLayout = localStorage.getItem("gallery-layout") || "model"; 
   
-  // Кэш ОЗУ для картинок
-  const imgCache = new Map();     // url -> HTMLImageElement
-  const activeLoads = new Map();  // cardId -> Token
+  const imgCache = new Map();     
+  const activeLoads = new Map();  
   
-  // Раскрытые папки в дереве (All открыта по умолчанию)
   const expandedFolders = new Set(["All"]); 
   
   let cardObserver = null;
@@ -848,8 +853,12 @@
   const menuToggleBtn = document.getElementById("menuToggleBtn");
   const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
 
+  // Настройки дефолтного красивого ракурса 3D (слегка изометрический вид)
+  const DEFAULT_YAW = -0.4;
+  const DEFAULT_PITCH = -0.15;
+
   // ---------------------------------------------------------------------
-  // Динамический подсчет высоты шапки для идеального прилипания
+  // Динамический подсчет высоты шапки
   // ---------------------------------------------------------------------
   function updateHeaderHeight() {
     const header = document.querySelector('header');
@@ -888,7 +897,6 @@
       });
     });
 
-    // Мобильная шторка
     menuToggleBtn.addEventListener("click", () => {
       sidebarEl.classList.add("open");
       sidebarOverlayEl.classList.add("open");
@@ -951,7 +959,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // HD Рендеринг (Поддержка разрешений 128px, 256px, 512px)
+  // СТАТИЧЕСКИЙ 2D РЕНДЕРИНГ (Лицо и фронт скина для быстрой инициализации)
   // ---------------------------------------------------------------------
   function drawSkinFront(img, canvas) {
     const ctx = canvas.getContext('2d');
@@ -1022,6 +1030,308 @@
     ctx.drawImage(img, 40*u, 8*u, 8*u, 8*u, 4, 0, 8, 8);
 
     ctx.restore();
+  }
+
+  // ---------------------------------------------------------------------
+  // ВЫСОКОПРОИЗВОДИТЕЛЬНЫЙ HTML5 CANVAS 3D-ДВИЖОК
+  // ---------------------------------------------------------------------
+
+  // Отрисовка затекстурированного треугольника (Аффинный софт-растеризатор)
+  function drawTexturedTriangle(ctx, img, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.closePath();
+    ctx.clip();
+
+    // Решение матрицы трансформации
+    const den = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
+    if (Math.abs(den) > 1e-4) {
+      const iden = 1.0 / den;
+      const a = iden * (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1));
+      const b = iden * (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0));
+      const c = iden * (x0 * (u1 * v2 - u2 * v1) + x1 * (u2 * v0 - u0 * v2) + x2 * (u0 * v1 - u1 * v0));
+      const d = iden * (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1));
+      const e = iden * (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0));
+      const f = iden * (y0 * (u1 * v2 - u2 * v1) + y1 * (u2 * v0 - u0 * v2) + y2 * (u0 * v1 - u1 * v0));
+
+      ctx.transform(a, d, b, e, c, f);
+      ctx.drawImage(img, 0, 0);
+    }
+    ctx.restore();
+  }
+
+  // Создание полигональной сетки для кубоида конечностей
+  function createCuboidFaces(u, v, w, h, d, posX, posY, posZ, uScale, scaleFactor = 1.0, mirrorX = false) {
+    const sw = w * scaleFactor;
+    const sh = h * scaleFactor;
+    const sd = d * scaleFactor;
+
+    // Локальные 3D вершины
+    const x0 = posX - sw/2, x1 = posX + sw/2;
+    const y0 = posY - sh/2, y1 = posY + sh/2;
+    const z0 = posZ - sd/2, z1 = posZ + sd/2;
+
+    const vertices = [
+      {x: x0, y: y1, z: z1}, // 0
+      {x: x1, y: y1, z: z1}, // 1
+      {x: x1, y: y0, z: z1}, // 2
+      {x: x0, y: y0, z: z1}, // 3
+      {x: x0, y: y1, z: z0}, // 4
+      {x: x1, y: y1, z: z0}, // 5
+      {x: x1, y: y0, z: z0}, // 6
+      {x: x0, y: y0, z: z0}  // 7
+    ];
+
+    const faces = [];
+
+    function addFace(i0, i1, i2, i3, tu, tv, tw, th) {
+      const pts = [vertices[i0], vertices[i1], vertices[i2], vertices[i3]];
+      let uv = [
+        {u: tu, v: tv},
+        {u: tu + tw, v: tv},
+        {u: tu + tw, v: tv + th},
+        {u: tu, v: tv + th}
+      ];
+
+      if (mirrorX) {
+        uv = [
+          {u: tu + tw, v: tv},
+          {u: tu, v: tv},
+          {u: tu, v: tv + th},
+          {u: tu + tw, v: tv + th}
+        ];
+      }
+
+      faces.push({ pts, uv });
+    }
+
+    // Стандартная развертка текстур кубоида Minecraft
+    addFace(4, 5, 1, 0, u + d*uScale, v, w*uScale, d*uScale); // Top
+    addFace(3, 2, 6, 7, u + (d + w)*uScale, v, w*uScale, d*uScale); // Bottom
+    addFace(4, 0, 3, 7, u, v + d*uScale, d*uScale, h*uScale); // Right
+    addFace(0, 1, 2, 3, u + d*uScale, v + d*uScale, w*uScale, h*uScale); // Front
+    addFace(1, 5, 6, 2, u + (d + w)*uScale, v + d*uScale, d*uScale, h*uScale); // Left
+    addFace(5, 4, 7, 6, u + (d * 2 + w)*uScale, v + d*uScale, w*uScale, h*uScale); // Back
+
+    return faces;
+  }
+
+  // Генерация 3D скелета персонажа Minecraft
+  function getPlayerFaces(img) {
+    const u = img.naturalWidth / 64;
+    const is64x64 = img.naturalHeight === img.naturalWidth;
+
+    // Определяем ширину рук (Steve или Alex)
+    let isSlim = false;
+    try {
+      analysisCanvas.width = img.naturalWidth;
+      analysisCanvas.height = img.naturalHeight;
+      analysisCtx.drawImage(img, 0, 0);
+      const checkX = Math.round(47 * u);
+      const checkY = Math.round(20 * u);
+      isSlim = analysisCtx.getImageData(checkX, checkY, 1, 1).data[3] === 0;
+    } catch(e) {}
+
+    const faces = [];
+
+    // 1. Голова и Шлем (Overlay)
+    faces.push(...createCuboidFaces(0*u, 0*u, 8, 8, 8, 0, 10, 0, u, 1.0));
+    faces.push(...createCuboidFaces(32*u, 0*u, 8, 8, 8, 0, 10, 0, u, 1.085));
+
+    // 2. Тело и Куртка
+    faces.push(...createCuboidFaces(16*u, 16*u, 8, 12, 4, 0, 0, 0, u, 1.0));
+    if (is64x64) {
+      faces.push(...createCuboidFaces(16*u, 32*u, 8, 12, 4, 0, 0, 0, u, 1.07));
+    }
+
+    const armW = isSlim ? 3 : 4;
+    const armXOffset = isSlim ? 5.5 : 6.0;
+
+    // X-отражения правых конечностей для 64х32
+    const legMirror = !is64x64;
+    const armMirror = !is64x64;
+
+    // 3. Правая рука и рукав
+    faces.push(...createCuboidFaces(40*u, 16*u, armW, 12, 4, -armXOffset, 0, 0, u, 1.0));
+    if (is64x64) {
+      faces.push(...createCuboidFaces(40*u, 32*u, armW, 12, 4, -armXOffset, 0, 0, u, 1.07));
+    }
+
+    // 4. Левая рука и рукав
+    if (is64x64) {
+      faces.push(...createCuboidFaces(32*u, 48*u, armW, 12, 4, armXOffset, 0, 0, u, 1.0));
+      faces.push(...createCuboidFaces(48*u, 48*u, armW, 12, 4, armXOffset, 0, 0, u, 1.07));
+    } else {
+      faces.push(...createCuboidFaces(40*u, 16*u, armW, 12, 4, armXOffset, 0, 0, u, 1.0, armMirror));
+    }
+
+    // 5. Правая нога и штанина
+    faces.push(...createCuboidFaces(0*u, 16*u, 4, 12, 4, -2, -12, 0, u, 1.0));
+    if (is64x64) {
+      faces.push(...createCuboidFaces(0*u, 32*u, 4, 12, 4, -2, -12, 0, u, 1.07));
+    }
+
+    // 6. Левая нога и штанина
+    if (is64x64) {
+      faces.push(...createCuboidFaces(16*u, 48*u, 4, 12, 4, 2, -12, 0, u, 1.0));
+      faces.push(...createCuboidFaces(0*u, 48*u, 4, 12, 4, 2, -12, 0, u, 1.07));
+    } else {
+      faces.push(...createCuboidFaces(0*u, 16*u, 4, 12, 4, 2, -12, 0, u, 1.0, legMirror));
+    }
+
+    return faces;
+  }
+
+  // Отрисовка 3D модели с расчетом тригонометрической матрицы вращения
+  function render3DModel(canvas, img, yaw, pitch) {
+    if (!img._faces3d) {
+      img._faces3d = getPlayerFaces(img);
+    }
+    const faces = img._faces3d;
+
+    const cosP = Math.cos(pitch);
+    const sinP = Math.sin(pitch);
+    const cosY = Math.cos(yaw);
+    const sinY = Math.sin(yaw);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2 + 10; 
+    const scale = canvas.height / 36; 
+
+    // Вращение и проекция
+    const projectedFaces = faces.map(face => {
+      let avgZ = 0;
+      const pts = face.pts.map(p => {
+        // Ротация X (Pitch)
+        const y1 = p.y * cosP - p.z * sinP;
+        const z1 = p.y * sinP + p.z * cosP;
+        // Ротация Y (Yaw)
+        const rx = p.x * cosY + z1 * sinY;
+        const rz = -p.x * sinY + z1 * cosY;
+
+        avgZ += rz;
+        return {
+          x: centerX + rx * scale,
+          y: centerY - y1 * scale
+        };
+      });
+      return { pts, uv: face.uv, avgZ: avgZ / 4 };
+    });
+
+    // Алгоритм художника (Painter's Algorithm) — сортировка граней по глубине Z
+    projectedFaces.sort((a, b) => a.avgZ - b.avgZ);
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+
+    // Отрисовка полигонов треугольниками
+    projectedFaces.forEach(face => {
+      const p = face.pts;
+      const u = face.uv;
+      drawTexturedTriangle(ctx, img, p[0].x, p[0].y, p[1].x, p[1].y, p[2].x, p[2].y, u[0].u, u[0].v, u[1].u, u[1].v, u[2].u, u[2].v);
+      drawTexturedTriangle(ctx, img, p[0].x, p[0].y, p[2].x, p[2].y, p[3].x, p[3].y, u[0].u, u[0].v, u[2].u, u[2].v, u[3].u, u[3].v);
+    });
+  }
+
+  // Навешивание слушателей событий на вращение мыши / пальца
+  function init3DDragControls(card, img) {
+    if (card.dataset.has3DDrag === "true") return;
+    card.dataset.has3DDrag = "true";
+
+    const viewerBox = card.querySelector(".viewer-box");
+    const canvas = card.querySelector(".skin-model-canvas");
+    const flatImg = card.querySelector(".skin-flat-img");
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let yaw = DEFAULT_YAW;
+    let pitch = DEFAULT_PITCH;
+
+    function activateInteractive3D() {
+      if (flatImg.style.display !== "none") {
+        flatImg.style.display = "none";
+        canvas.style.display = "block";
+      }
+    }
+
+    function onDown(e) {
+      if (e.type === "mousedown" && e.button !== 0) return; 
+      e.preventDefault();
+
+      isDragging = true;
+      card.classList.add("interacting");
+
+      const pageX = e.type === "touchstart" ? e.touches[0].pageX : e.pageX;
+      const pageY = e.type === "touchstart" ? e.touches[0].pageY : e.pageY;
+      startX = pageX;
+      startY = pageY;
+
+      yaw = parseFloat(canvas.dataset.yaw) || DEFAULT_YAW;
+      pitch = parseFloat(canvas.dataset.pitch) || DEFAULT_PITCH;
+
+      activateInteractive3D();
+      render3DModel(canvas, img, yaw, pitch);
+
+      if (e.type === "touchstart") {
+        window.addEventListener("touchmove", onMove, { passive: false });
+        window.addEventListener("touchend", onUp);
+      } else {
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
+      }
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+
+      const pageX = e.type === "touchmove" ? e.touches[0].pageX : e.pageX;
+      const pageY = e.type === "touchmove" ? e.touches[0].pageY : e.pageY;
+
+      const dx = pageX - startX;
+      const dy = pageY - startY;
+
+      // Модификация углов по движению курсора
+      const currentYaw = yaw - dx * 0.015;
+      // Ограничиваем Pitch во избежание резкого переворота вверх ногами
+      const currentPitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, pitch + dy * 0.015));
+
+      canvas.dataset.yaw = currentYaw;
+      canvas.dataset.pitch = currentPitch;
+
+      render3DModel(canvas, img, currentYaw, currentPitch);
+    }
+
+    function onUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      card.classList.remove("interacting");
+
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    }
+
+    // Сброс углов в дефолтный красивый ракурс по двойному щелчку
+    function onDblClick(e) {
+      e.preventDefault();
+      yaw = DEFAULT_YAW;
+      pitch = DEFAULT_PITCH;
+      canvas.dataset.yaw = yaw;
+      canvas.dataset.pitch = pitch;
+      activateInteractive3D();
+      render3DModel(canvas, img, yaw, pitch);
+    }
+
+    viewerBox.addEventListener("mousedown", onDown);
+    viewerBox.addEventListener("touchstart", onDown, { passive: false });
+    viewerBox.addEventListener("dblclick", onDblClick);
   }
 
   // ---------------------------------------------------------------------
@@ -1173,13 +1483,13 @@
       }, { passive: false });
     }
 
-    // Клик по папке
+    // Выбор папки
     selectBtn.addEventListener("click", () => {
       activeCategory = node.path;
       updateActiveFolderDOM(node.path); 
       applyFilters();
 
-      // Моментальный скролл наверх (дублируется для надежности на мобильных)
+      // Моментальный и надежный скролл наверх
       window.scrollTo({ top: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -1197,7 +1507,6 @@
   // Фильтрация и Бесконечный скролл
   // ---------------------------------------------------------------------
   function applyFilters() {
-    // Надежный сброс Y-координаты при изменении категорий или поиске
     window.scrollTo({ top: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
@@ -1268,7 +1577,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // Ленивая загрузка
+  // Ленивая загрузка изображений
   // ---------------------------------------------------------------------
   function setupCardObserver() {
     if (cardObserver) cardObserver.disconnect();
@@ -1339,10 +1648,17 @@
     }
 
     if (currentLayout === "model" && isSkin) {
-      flatImg.style.display = "none";
-      canvas.style.display = "block";
-      drawSkinFront(img, canvas);
+      // Инициализируем контроллеры перетаскивания (3D Drag) единожды для этой карточки
+      init3DDragControls(card, img);
+
+      // По умолчанию отображаем быструю и аккуратную 2D проекцию фронта
+      canvas.style.display = "none";
+      flatImg.style.display = "block";
+      if (flatImg.src !== img.src) {
+        flatImg.src = img.src;
+      }
     } else {
+      // Сброс в дефолтный 2D режим, если раскладка не 3D модель
       canvas.style.display = "none";
       flatImg.style.display = "block";
       if (flatImg.src !== img.src) {
@@ -1480,7 +1796,6 @@
     renderCategories();
     applyFilters();
     
-    // Повторный пересчет высоты шапки после отрисовки
     setTimeout(updateHeaderHeight, 150);
   }
 
