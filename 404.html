@@ -2,122 +2,551 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NuckemSkins</title>
 
-<script>
-(function(){
+<!-- ВАЖНО:
+     Этот base нужен для GitHub Pages.
+     Все относительные пути считаются от /skins/
+-->
+<base href="/skins/">
 
-  "use strict";
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 
-  /*
-   * GitHub Pages вызывает этот файл,
-   * когда пользователь напрямую открывает:
-   *
-   * https://nuckem.github.io/skins/Otec
-   *
-   * Нам нужно сохранить "Otec",
-   * вернуть пользователя в index.html,
-   * а index.html уже восстановит
-   * красивый URL.
-   */
-
-  const pathname =
-    decodeURIComponent(
-      window.location.pathname
-    );
-
-  const base =
-    "/skins/";
-
-  let route = "";
-
-  if(
-    pathname === base ||
-    pathname === base.slice(0,-1)
-  ){
-
-    route = "";
-
-  }else if(
-    pathname.startsWith(base)
-  ){
-
-    route =
-      pathname
-        .substring(base.length)
-        .replace(/^\/+/, "")
-        .replace(/\/+$/, "");
-
-  }
-
-  /*
-   * Если это неизвестный URL,
-   * не пытаемся ломать навигацию.
-   */
-
-  const target =
-    base +
-    (
-      route
-        ? "?route=" +
-          encodeURIComponent(route)
-        : ""
-    );
-
-  /*
-   * replace, а не href:
-   *
-   * временный ?route=... не остаётся
-   * в истории браузера.
-   */
-
-  window.location.replace(
-    target
-  );
-
-})();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
 
 <style>
+:root{
+  --bg:#0f172a;
+  --card:#111827;
+  --card-hover:#151f30;
+  --accent:#3b82f6;
+  --accent-2:#60a5fa;
+  --text:#e5e7eb;
+  --text-dim:#94a3b8;
+  --border:rgba(255,255,255,0.06);
+  --shadow:0 10px 30px rgba(0,0,0,0.45);
+  --radius:16px;
+  --header-h:76px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
 html,
 body{
   margin:0;
   padding:0;
-  width:100%;
-  height:100%;
-  background:#0f172a;
-  color:#e5e7eb;
-  font-family:
-    'Segoe UI',
-    Roboto,
-    Arial,
-    sans-serif;
+  background:
+    radial-gradient(circle at 20% 0%,rgba(59,130,246,0.12),transparent 40%),
+    radial-gradient(circle at 80% 10%,rgba(96,165,250,0.08),transparent 35%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Segoe UI',Roboto,-apple-system,BlinkMacSystemFont,sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
 }
 
-body{
+::selection{
+  background:var(--accent);
+  color:#fff;
+}
+
+::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+
+::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#1e293b;
+  border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:#293548;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:110;
+  padding:18px 32px;
+  background:rgba(15,23,42,0.75);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+
+.header-top{
   display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+  width:100%;
+  max-width:none;
+  margin:0 auto;
+}
+
+.logo-wrap{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.menu-toggle-btn{
+  display:none;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:10px;
+  border-radius:12px;
+  cursor:pointer;
   align-items:center;
   justify-content:center;
 }
 
-.loading{
-  text-align:center;
+.menu-toggle-btn:hover{
+  background:var(--accent);
+  border-color:var(--accent);
 }
 
-.spinner{
-  width:36px;
-  height:36px;
-  margin:0 auto 16px;
+.logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-weight:800;
+  font-size:22px;
+  letter-spacing:.3px;
+}
 
-  border:4px solid rgba(255,255,255,.1);
-  border-top-color:#3b82f6;
+.logo .logo-img{
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  object-fit:cover;
+  image-rendering:pixelated;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.1);
+}
 
+.logo span.sub{
+  color:var(--text-dim);
+  font-weight:500;
+  font-size:13px;
+  margin-left:4px;
+}
+
+.controls-group{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.search-wrap{
+  position:relative;
+  width:280px;
+}
+
+.search-wrap input{
+  width:100%;
+  padding:12px 16px 12px 42px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#0b1220;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+}
+
+.search-wrap input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(59,130,246,.25);
+}
+
+.search-wrap svg{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:16px;
+  height:16px;
+  stroke:var(--text-dim);
+}
+
+.layout-switcher{
+  display:flex;
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--border);
+  padding:4px;
+  border-radius:12px;
+  gap:4px;
+}
+
+.layout-btn{
+  background:transparent;
+  border:none;
+  color:var(--text-dim);
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.layout-btn:hover{
+  color:var(--text);
+  background:rgba(255,255,255,.04);
+}
+
+.layout-btn.active{
+  background:var(--accent);
+  color:#fff;
+}
+
+.layout-btn svg{
+  width:16px;
+  height:16px;
+  fill:currentColor;
+}
+
+.stats{
+  color:var(--text-dim);
+  font-size:13px;
+  white-space:nowrap;
+}
+
+/* ============================================================
+   APP
+   ============================================================ */
+
+.app-container{
+  display:flex;
+  width:100%;
+  max-width:none;
+  margin:0;
+  position:relative;
+  min-height:calc(100vh - var(--header-h));
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+
+.sidebar{
+  width:330px;
+  flex-shrink:0;
+  background:rgba(15,23,42,.45);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-right:1px solid var(--border);
+  padding:24px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  position:sticky;
+  top:var(--header-h);
+  height:calc(100vh - var(--header-h));
+  overflow-y:auto;
+  z-index:40;
+  align-self:flex-start;
+}
+
+.sidebar-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+  padding-left:12px;
+}
+
+.sidebar-header h3{
+  margin:0;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:1px;
+  color:var(--text);
+  text-transform:uppercase;
+}
+
+.sidebar-close-btn{
+  display:none;
+  background:transparent;
+  border:none;
+  color:var(--text-dim);
+  cursor:pointer;
+  padding:4px;
+  border-radius:8px;
+}
+
+.sidebar-close-btn:hover{
+  color:var(--text);
+  background:rgba(255,255,255,.05);
+}
+
+.categories-list{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.tree-node{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+}
+
+.tree-row{
+  display:flex;
+  align-items:center;
+  width:100%;
+  border-radius:10px;
+  transition:background .15s ease,color .15s ease;
+  margin-bottom:2px;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+.tree-row:hover{
+  background:rgba(255,255,255,.03);
+}
+
+.tree-row.active{
+  background:linear-gradient(135deg,var(--accent),#2563eb);
+  color:#fff;
+}
+
+.tree-toggle{
+  background:transparent;
+  border:none;
+  color:var(--text-dim);
+  cursor:pointer;
+  padding:6px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  flex-shrink:0;
+}
+
+.tree-toggle:hover{
+  color:var(--text);
+  background:rgba(255,255,255,.05);
+}
+
+.tree-row.active .tree-toggle{
+  color:#fff;
+}
+
+.tree-toggle svg{
+  width:14px;
+  height:14px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:2.5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  transition:transform .25s ease;
+}
+
+.tree-toggle.expanded svg{
+  transform:rotate(90deg);
+}
+
+.tree-toggle.hidden{
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.tree-select-btn{
+  flex:1;
+  background:transparent;
+  border:none;
+  color:inherit;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 8px 8px 2px;
+  cursor:pointer;
+  text-align:left;
+  font-size:13px;
+  font-weight:600;
+  width:calc(100% - 28px);
+  overflow:hidden;
+}
+
+.tree-children{
+  margin-left:19px;
+  border-left:1px dashed rgba(255,255,255,.08);
+  padding-left:4px;
+  display:none;
+  flex-direction:column;
+  gap:2px;
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transition:max-height .22s ease,opacity .18s ease;
+}
+
+.tree-children.open{
+  display:flex;
+  max-height:1000px;
+  opacity:1;
+}
+
+.folder-icon{
+  width:16px;
+  height:16px;
+  flex-shrink:0;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+}
+
+.folder-icon.all-folder{
+  color:#a78bfa;
+}
+
+.folder-icon.root-folder{
+  color:#fbbf24;
+}
+
+.folder-icon.sub-folder{
+  color:#38bdf8;
+}
+
+.tree-row.active .folder-icon{
+  color:#fff!important;
+}
+
+.cat-name{
+  flex:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.cat-count{
+  font-size:10px;
+  background:rgba(255,255,255,.06);
+  color:var(--text-dim);
+  padding:2px 7px;
+  border-radius:999px;
+  font-weight:700;
+  flex-shrink:0;
+}
+
+.tree-row.active .cat-count{
+  background:rgba(255,255,255,.2);
+  color:#fff;
+}
+
+.sidebar-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);
+  z-index:90;
+}
+
+.sidebar-overlay.open{
+  display:block;
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+
+.main-content{
+  flex:1;
+  min-width:0;
+  width:100%;
+  padding:28px 32px 60px;
+}
+
+.grid{
+  display:grid;
+  gap:22px;
+}
+
+.card{
+  background:linear-gradient(180deg,var(--card),#0d1420);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  box-shadow:var(--shadow);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  position:relative;
+  overflow:hidden;
+  contain:content;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(59,130,246,.4);
+  box-shadow:0 12px 30px rgba(0,0,0,.55);
+}
+
+.viewer-box{
+  width:100%;
+  border-radius:12px;
+  overflow:hidden;
+  background-color:#1e293b;
+  background-image:
+    linear-gradient(45deg,#131c2c 25%,transparent 25%),
+    linear-gradient(-45deg,#131c2c 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#131c2c 75%),
+    linear-gradient(-45deg,transparent 75%,#131c2c 75%);
+  background-size:16px 16px;
+  background-position:0 0,0 8px,8px -8px,-8px 0;
+  position:relative;
+  border:1px solid rgba(255,255,255,.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+.placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-dim);
+}
+
+.placeholder .spinner{
+  width:24px;
+  height:24px;
   border-radius:50%;
-
-  animation:
-    spin .7s linear infinite;
+  border:3px solid rgba(59,130,246,.15);
+  border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
 }
 
 @keyframes spin{
@@ -126,25 +555,2865 @@ body{
   }
 }
 
-.text{
-  color:#94a3b8;
-  font-size:14px;
+.skin-flat-link{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+}
+
+.skin-flat-img,
+.skin-2d-canvas{
+  display:none;
+  width:100%;
+  height:100%;
+  max-width:98%;
+  max-height:98%;
+  object-fit:contain;
+  transition:transform .2s ease;
+}
+
+.skin-flat-img{
+  padding:6px;
+  cursor:pointer;
+}
+
+.skin-2d-canvas{
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.45));
+  max-width:90%;
+  max-height:90%;
+  cursor:grab;
+}
+
+.skin-2d-canvas:active{
+  cursor:grabbing;
+}
+
+#global-3d-canvas{
+  cursor:grabbing;
+  width:100%!important;
+  height:100%!important;
+  display:none;
+}
+
+.card:hover .viewer-box img,
+.card:hover .viewer-box canvas{
+  transform:scale(1.04);
+}
+
+.card-info{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:10px;
+}
+
+.name{
+  font-size:13.5px;
+  font-weight:700;
+  text-align:center;
+  color:var(--text);
+  width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.actions{
+  margin-top:10px;
+  display:flex;
+  gap:6px;
+  width:100%;
+}
+
+.btn{
+  flex:1;
+  min-width:84px;
+  padding:8px 6px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  font-size:11.5px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  transition:all .15s ease;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.btn:hover{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+.btn.copied{
+  background:#16a34a;
+  border-color:#16a34a;
+  color:#fff;
+}
+
+.btn svg{
+  width:13px;
+  height:13px;
+  flex-shrink:0;
+}
+
+/* ============================================================
+   LAYOUTS
+   ============================================================ */
+
+.grid.layout-standard{
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+}
+
+.grid.layout-standard .viewer-box{
+  height:250px;
+}
+
+.grid.layout-compact{
+  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
+  gap:12px;
+}
+
+.grid.layout-compact .card{
+  padding:10px;
+  border-radius:12px;
+}
+
+.grid.layout-compact .viewer-box{
+  height:150px;
+}
+
+.grid.layout-compact .card-info{
+  margin-top:6px;
+}
+
+.grid.layout-compact .name{
+  font-size:11.5px;
+}
+
+.grid.layout-compact .actions{
+  margin-top:6px;
+}
+
+.grid.layout-compact .btn{
+  padding:6px 4px;
+  font-size:10.5px;
+  border-radius:6px;
+}
+
+.grid.layout-model{
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+}
+
+.grid.layout-model .viewer-box{
+  height:250px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+footer{
+  text-align:center;
+  padding:24px;
+  font-size:13px;
+  color:var(--text-dim);
+  border-top:1px solid var(--border);
+  background:rgba(11,18,32,.4);
+  backdrop-filter:blur(10px);
+}
+
+/* ============================================================
+   EMPTY
+   ============================================================ */
+
+.empty-state{
+  text-align:center;
+  padding:80px 20px;
+  color:var(--text-dim);
+}
+
+.empty-state h2{
+  color:var(--text);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media(max-width:1024px){
+
+  header{
+    padding:16px 20px;
+  }
+
+  .menu-toggle-btn{
+    display:flex;
+  }
+
+  .sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    width:290px;
+    transform:translateX(-100%);
+    background:var(--card);
+    z-index:120;
+    box-shadow:20px 0 40px rgba(0,0,0,.6);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+  }
+
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  .sidebar-close-btn{
+    display:flex;
+  }
+
+  .main-content{
+    padding:20px 16px 40px;
+  }
+}
+
+@media(max-width:768px){
+
+  .logo{
+    font-size:18px;
+  }
+
+  .logo .logo-img{
+    width:30px;
+    height:30px;
+  }
+
+  .controls-group{
+    width:100%;
+  }
+
+  .layout-switcher{
+    width:100%;
+  }
+
+  .layout-btn{
+    flex:1;
+  }
+
+  .search-wrap{
+    width:100%;
+  }
+
+  .stats{
+    width:100%;
+  }
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="loading">
+<header>
+  <div class="header-top">
 
-  <div class="spinner"></div>
+    <div class="logo-wrap">
 
-  <div class="text">
-    Загрузка NuckemSkins...
+      <button
+        class="menu-toggle-btn"
+        id="menuToggleBtn"
+        title="Открыть папки"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="logo">
+
+        <img
+          src="favicon.png"
+          alt="Logo"
+          class="logo-img"
+          onerror="this.style.display='none'"
+        >
+
+        NuckemSkins
+
+        <span class="sub">
+          by Frixx_x
+        </span>
+
+      </div>
+
+    </div>
+
+    <div class="controls-group">
+
+      <div class="layout-switcher">
+
+        <button
+          class="layout-btn"
+          data-layout="compact"
+          title="Компактная сетка"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
+          </svg>
+          Компактно
+        </button>
+
+        <button
+          class="layout-btn"
+          data-layout="standard"
+          title="Стандартная сетка"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/>
+          </svg>
+          Сетка
+        </button>
+
+        <button
+          class="layout-btn"
+          data-layout="model"
+          title="Вид 3D Фото"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>
+          </svg>
+          3D Фото
+        </button>
+
+      </div>
+
+      <div class="search-wrap">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Поиск скина..."
+        >
+
+      </div>
+
+      <div
+        class="stats"
+        id="statsLabel"
+      >
+        Загрузка...
+      </div>
+
+    </div>
+
   </div>
+</header>
+
+<div class="app-container">
+
+  <aside
+    class="sidebar"
+    id="sidebar"
+  >
+
+    <div class="sidebar-header">
+
+      <h3>Директории</h3>
+
+      <button
+        class="sidebar-close-btn"
+        id="sidebarCloseBtn"
+        title="Закрыть"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+    </div>
+
+    <div
+      class="categories-list"
+      id="categoriesBar"
+    ></div>
+
+  </aside>
+
+  <div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+  ></div>
+
+  <main class="main-content">
+
+    <div
+      class="grid"
+      id="grid"
+    ></div>
+
+    <div id="sentinel"></div>
+
+    <div
+      class="empty-state"
+      id="emptyState"
+      style="display:none;"
+    >
+      <h2>Ничего не найдено</h2>
+
+      <p>
+        Попробуйте изменить поисковый запрос или выбрать другую папку.
+      </p>
+    </div>
+
+  </main>
 
 </div>
+
+<footer>
+  Skins Gallery · ультрабыстрый рендеринг · 3D просмотр реализован через skinview3d
+</footer>
+
+<script>
+(() => {
+
+"use strict";
+
+/* ============================================================
+   BASE PATH
+   ============================================================ */
+
+function getBasePath(){
+
+  if(location.hostname.endsWith("github.io")){
+
+    const parts =
+      location.pathname
+        .split("/")
+        .filter(Boolean);
+
+    if(parts.length > 0){
+
+      return "/" + parts[0] + "/";
+
+    }
+
+  }
+
+  return "/";
+
+}
+
+const BASE_PATH =
+  getBasePath();
+
+const BASE_URL =
+  new URL(
+    "images/",
+    window.location.origin + BASE_PATH
+  ).href;
+
+const DATA_URL =
+  new URL(
+    "data.json",
+    window.location.origin + BASE_PATH
+  ).href;
+
+/* ============================================================
+   CATEGORY FROM URL
+   ============================================================ */
+
+function getCategoryFromURL(){
+
+  let path =
+    decodeURIComponent(
+      window.location.pathname
+    );
+
+  if(location.hostname.endsWith("github.io")){
+
+    const parts =
+      path
+        .split("/")
+        .filter(Boolean);
+
+    /*
+     * /skins/
+     */
+    if(parts.length <= 1){
+
+      return "All";
+
+    }
+
+    /*
+     * /skins/Otec
+     */
+    return parts
+      .slice(1)
+      .join("/");
+
+  }
+
+  const parts =
+    path
+      .split("/")
+      .filter(Boolean);
+
+  return parts.length
+    ? parts.join("/")
+    : "All";
+
+}
+
+let activeCategory =
+  getCategoryFromURL();
+
+let searchTerm = "";
+
+let allSkins = [];
+
+let filteredSkins = [];
+
+let displayedSkinsCount = 0;
+
+const CHUNK_SIZE = 48;
+
+const imgCache = new Map();
+
+const activeLoads = new Map();
+
+const expandedFolders =
+  new Set(["All"]);
+
+let cardObserver = null;
+
+let sentinelObserver = null;
+
+/*
+ * Сохраняем выбранный вид.
+ */
+let currentLayout =
+  localStorage.getItem("gallery-layout") || "model";
+
+/* ============================================================
+   DOM
+   ============================================================ */
+
+const gridEl =
+  document.getElementById("grid");
+
+const categoriesBarEl =
+  document.getElementById("categoriesBar");
+
+const searchInputEl =
+  document.getElementById("searchInput");
+
+const statsLabelEl =
+  document.getElementById("statsLabel");
+
+const emptyStateEl =
+  document.getElementById("emptyState");
+
+const sentinelEl =
+  document.getElementById("sentinel");
+
+const sidebarEl =
+  document.getElementById("sidebar");
+
+const sidebarOverlayEl =
+  document.getElementById("sidebarOverlay");
+
+const menuToggleBtn =
+  document.getElementById("menuToggleBtn");
+
+const sidebarCloseBtn =
+  document.getElementById("sidebarCloseBtn");
+
+/* ============================================================
+   IMAGE ANALYSIS
+   ============================================================ */
+
+const analysisCanvas =
+  document.createElement("canvas");
+
+const analysisCtx =
+  analysisCanvas.getContext(
+    "2d",
+    {
+      willReadFrequently:true
+    }
+  );
+
+/* ============================================================
+   GLOBAL 3D
+   ============================================================ */
+
+const global3dCanvas =
+  document.createElement("canvas");
+
+global3dCanvas.id =
+  "global-3d-canvas";
+
+let globalViewer = null;
+
+try{
+
+  globalViewer =
+    new skinview3d.SkinViewer({
+      canvas:global3dCanvas,
+      width:220,
+      height:320,
+      alpha:true
+    });
+
+  globalViewer.fov = 45;
+
+  globalViewer.zoom = .95;
+
+  globalViewer.autoRotate = false;
+
+  if(globalViewer.controls){
+
+    globalViewer.controls.enabled = false;
+
+  }
+
+  if(globalViewer.globalLight){
+
+    globalViewer.globalLight.intensity = 2.4;
+
+  }
+
+  if(globalViewer.cameraLight){
+
+    globalViewer.cameraLight.intensity = 1.4;
+
+  }
+
+}catch(err){
+
+  console.warn(
+    "Ошибка WebGL:",
+    err
+  );
+
+}
+
+/* ============================================================
+   HEADER HEIGHT
+   ============================================================ */
+
+function updateHeaderHeight(){
+
+  const header =
+    document.querySelector("header");
+
+  if(header){
+
+    document.documentElement
+      .style
+      .setProperty(
+        "--header-h",
+        header.offsetHeight + "px"
+      );
+
+  }
+
+}
+
+window.addEventListener(
+  "resize",
+  updateHeaderHeight
+);
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+function initLayout(){
+
+  document
+    .querySelectorAll(".layout-btn")
+    .forEach(btn => {
+
+      btn.classList.toggle(
+        "active",
+        btn.dataset.layout === currentLayout
+      );
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          if(
+            btn.dataset.layout === currentLayout
+          ){
+
+            return;
+
+          }
+
+          if(
+            typeof globalStopDragFn === "function"
+          ){
+
+            globalStopDragFn();
+
+          }
+
+          currentLayout =
+            btn.dataset.layout;
+
+          localStorage.setItem(
+            "gallery-layout",
+            currentLayout
+          );
+
+          document
+            .querySelectorAll(".layout-btn")
+            .forEach(b => {
+
+              b.classList.toggle(
+                "active",
+                b.dataset.layout === currentLayout
+              );
+
+            });
+
+          gridEl.className =
+            "grid layout-" +
+            currentLayout;
+
+          updateAllVisibleCards();
+
+        }
+
+      );
+
+    });
+
+  menuToggleBtn.addEventListener(
+    "click",
+    () => {
+
+      sidebarEl.classList.add("open");
+
+      sidebarOverlayEl.classList.add("open");
+
+    }
+  );
+
+  const closeSidebar =
+    () => {
+
+      sidebarEl.classList.remove("open");
+
+      sidebarOverlayEl.classList.remove("open");
+
+    };
+
+  sidebarCloseBtn.addEventListener(
+    "click",
+    closeSidebar
+  );
+
+  sidebarOverlayEl.addEventListener(
+    "click",
+    closeSidebar
+  );
+
+}
+
+function updateAllVisibleCards(){
+
+  document
+    .querySelectorAll(".card")
+    .forEach(card => {
+
+      const url =
+        card.dataset.url;
+
+      const cachedImg =
+        imgCache.get(url);
+
+      if(cachedImg){
+
+        renderCardContent(
+          card,
+          cachedImg
+        );
+
+      }
+
+    });
+
+}
+
+/* ============================================================
+   DATA
+   ============================================================ */
+
+async function loadData(){
+
+  try{
+
+    console.log(
+      "Загрузка data.json:",
+      DATA_URL
+    );
+
+    const res =
+      await fetch(
+        DATA_URL,
+        {
+          cache:"no-store"
+        }
+      );
+
+    if(!res.ok){
+
+      throw new Error(
+        "HTTP " + res.status
+      );
+
+    }
+
+    const raw =
+      await res.json();
+
+    allSkins =
+      normalizeData(raw);
+
+    console.log(
+      "Загружено скинов:",
+      allSkins.length
+    );
+
+  }catch(err){
+
+    console.error(
+      "Не удалось загрузить data.json:",
+      err
+    );
+
+    allSkins = [];
+
+    statsLabelEl.textContent =
+      "Ошибка загрузки data.json";
+
+  }
+
+}
+
+function normalizeData(raw){
+
+  if(!Array.isArray(raw)){
+
+    return [];
+
+  }
+
+  return raw
+    .filter(
+      item =>
+        item &&
+        typeof item.file === "string" &&
+        item.file.trim().length
+    )
+    .map(
+      (item,index) => {
+
+        const file =
+          item.file.replace(/^\/+/,"");
+
+        const parts =
+          file.split("/");
+
+        const filename =
+          parts.pop();
+
+        const category =
+          parts.length
+            ? parts.join("/")
+            : "Other";
+
+        return {
+
+          id:"skin_" + index,
+
+          file,
+
+          category,
+
+          filename,
+
+          url:
+            BASE_URL + file
+
+        };
+
+      }
+    );
+
+}
+
+/* ============================================================
+   2D SKIN
+   ============================================================ */
+
+function drawSkinFront(img,canvas){
+
+  const ctx =
+    canvas.getContext("2d");
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  const is64x64 =
+    img.naturalHeight === img.naturalWidth;
+
+  const u =
+    img.naturalWidth / 64;
+
+  let isSlim = false;
+
+  if(is64x64){
+
+    try{
+
+      analysisCanvas.width =
+        img.naturalWidth;
+
+      analysisCanvas.height =
+        img.naturalHeight;
+
+      analysisCtx.drawImage(
+        img,
+        0,
+        0
+      );
+
+      const checkX =
+        Math.round(47 * u);
+
+      const checkY =
+        Math.round(20 * u);
+
+      isSlim =
+        analysisCtx.getImageData(
+          checkX,
+          checkY,
+          1,
+          1
+        ).data[3] === 0;
+
+    }catch(e){}
+
+  }
+
+  const armW =
+    isSlim ? 3 : 4;
+
+  const rightArmX =
+    isSlim ? 1 : 0;
+
+  const leftArmX = 12;
+
+  ctx.imageSmoothingEnabled = false;
+
+  ctx.save();
+
+  const scale =
+    canvas.width / 16;
+
+  ctx.scale(
+    scale,
+    scale
+  );
+
+  ctx.drawImage(
+    img,
+    4*u,
+    20*u,
+    4*u,
+    12*u,
+    4,
+    20,
+    4,
+    12
+  );
+
+  if(is64x64){
+
+    ctx.drawImage(
+      img,
+      4*u,
+      36*u,
+      4*u,
+      12*u,
+      4,
+      20,
+      4,
+      12
+    );
+
+    ctx.drawImage(
+      img,
+      20*u,
+      52*u,
+      4*u,
+      12*u,
+      8,
+      20,
+      4,
+      12
+    );
+
+    ctx.drawImage(
+      img,
+      4*u,
+      52*u,
+      4*u,
+      12*u,
+      8,
+      20,
+      4,
+      12
+    );
+
+  }else{
+
+    ctx.save();
+
+    ctx.translate(
+      12,
+      20
+    );
+
+    ctx.scale(
+      -1,
+      1
+    );
+
+    ctx.drawImage(
+      img,
+      4*u,
+      20*u,
+      4*u,
+      12*u,
+      0,
+      0,
+      4,
+      12
+    );
+
+    ctx.restore();
+
+  }
+
+  ctx.drawImage(
+    img,
+    20*u,
+    20*u,
+    8*u,
+    12*u,
+    4,
+    8,
+    8,
+    12
+  );
+
+  if(is64x64){
+
+    ctx.drawImage(
+      img,
+      20*u,
+      36*u,
+      8*u,
+      12*u,
+      4,
+      8,
+      8,
+      12
+    );
+
+  }
+
+  ctx.drawImage(
+    img,
+    44*u,
+    20*u,
+    armW*u,
+    12*u,
+    rightArmX,
+    8,
+    armW,
+    12
+  );
+
+  if(is64x64){
+
+    ctx.drawImage(
+      img,
+      44*u,
+      36*u,
+      armW*u,
+      12*u,
+      rightArmX,
+      8,
+      armW,
+      12
+    );
+
+    ctx.drawImage(
+      img,
+      36*u,
+      52*u,
+      armW*u,
+      12*u,
+      leftArmX,
+      8,
+      armW,
+      12
+    );
+
+    ctx.drawImage(
+      img,
+      52*u,
+      52*u,
+      armW*u,
+      12*u,
+      leftArmX,
+      8,
+      armW,
+      12
+    );
+
+  }else{
+
+    ctx.save();
+
+    ctx.translate(
+      leftArmX + armW,
+      8
+    );
+
+    ctx.scale(
+      -1,
+      1
+    );
+
+    ctx.drawImage(
+      img,
+      44*u,
+      20*u,
+      armW*u,
+      12*u,
+      0,
+      0,
+      armW,
+      12
+    );
+
+    ctx.restore();
+
+  }
+
+  ctx.drawImage(
+    img,
+    8*u,
+    8*u,
+    8*u,
+    8*u,
+    4,
+    0,
+    8,
+    8
+  );
+
+  ctx.drawImage(
+    img,
+    40*u,
+    8*u,
+    8*u,
+    8*u,
+    4,
+    0,
+    8,
+    8
+  );
+
+  ctx.restore();
+
+}
+
+/* ============================================================
+   DRAG
+   ============================================================ */
+
+let isDragging = false;
+let activeCard = null;
+let startX = 0;
+let startY = 0;
+let yaw = 0;
+let pitch = 0;
+let globalStopDragFn = null;
+
+function init3DDragControls(card,skin){
+
+  if(
+    card.dataset.hasDragEvents === "true"
+  ){
+
+    return;
+
+  }
+
+  card.dataset.hasDragEvents = "true";
+
+  const viewerBox =
+    card.querySelector(".viewer-box");
+
+  const canvas2d =
+    card.querySelector(".skin-2d-canvas");
+
+  function startDrag(e){
+
+    if(
+      currentLayout !== "model"
+    ){
+
+      return;
+
+    }
+
+    if(!globalViewer){
+
+      return;
+
+    }
+
+    /*
+     * Только ЛКМ используется для вращения.
+     * СКМ теперь не перехватываем.
+     */
+    if(
+      e.type === "mousedown" &&
+      e.button !== 0
+    ){
+
+      return;
+
+    }
+
+    e.preventDefault();
+
+    isDragging = true;
+
+    activeCard = card;
+
+    const pageX =
+      e.type === "touchstart"
+        ? e.touches[0].pageX
+        : e.pageX;
+
+    const pageY =
+      e.type === "touchstart"
+        ? e.touches[0].pageY
+        : e.pageY;
+
+    startX = pageX;
+    startY = pageY;
+
+    yaw = -.4;
+    pitch = -.15;
+
+    canvas2d.style.display =
+      "none";
+
+    viewerBox.appendChild(
+      global3dCanvas
+    );
+
+    global3dCanvas.style.display =
+      "block";
+
+    globalViewer.setSize(
+      viewerBox.clientWidth,
+      viewerBox.clientHeight
+    );
+
+    globalViewer.loadSkin(
+      skin.url
+    );
+
+    updateViewerRotation();
+
+    document.body.style.cursor =
+      "grabbing";
+
+    if(
+      e.type === "touchstart"
+    ){
+
+      window.addEventListener(
+        "touchmove",
+        handleDrag,
+        {passive:false}
+      );
+
+      window.addEventListener(
+        "touchend",
+        stopDrag
+      );
+
+    }else{
+
+      window.addEventListener(
+        "mousemove",
+        handleDrag
+      );
+
+      window.addEventListener(
+        "mouseup",
+        stopDrag
+      );
+
+    }
+
+  }
+
+  function handleDrag(e){
+
+    if(
+      !isDragging ||
+      activeCard !== card
+    ){
+
+      return;
+
+    }
+
+    e.preventDefault();
+
+    const pageX =
+      e.type === "touchmove"
+        ? e.touches[0].pageX
+        : e.pageX;
+
+    const pageY =
+      e.type === "touchmove"
+        ? e.touches[0].pageY
+        : e.pageY;
+
+    const dx =
+      pageX - startX;
+
+    const dy =
+      pageY - startY;
+
+    yaw =
+      -.4 + dx * .015;
+
+    pitch =
+      Math.max(
+        -.6,
+        Math.min(
+          .6,
+          -.15 + dy * .012
+        )
+      );
+
+    updateViewerRotation();
+
+  }
+
+  function stopDrag(){
+
+    if(!isDragging){
+
+      return;
+
+    }
+
+    isDragging = false;
+
+    document.body.style.cursor = "";
+
+    window.removeEventListener(
+      "mousemove",
+      handleDrag
+    );
+
+    window.removeEventListener(
+      "mouseup",
+      stopDrag
+    );
+
+    window.removeEventListener(
+      "touchmove",
+      handleDrag
+    );
+
+    window.removeEventListener(
+      "touchend",
+      stopDrag
+    );
+
+    if(activeCard){
+
+      const oldCanvas2d =
+        activeCard.querySelector(
+          ".skin-2d-canvas"
+        );
+
+      if(oldCanvas2d){
+
+        oldCanvas2d.style.display =
+          "block";
+
+      }
+
+      activeCard = null;
+
+    }
+
+    global3dCanvas.style.display =
+      "none";
+
+    document.body.appendChild(
+      global3dCanvas
+    );
+
+    globalStopDragFn = null;
+
+  }
+
+  globalStopDragFn =
+    stopDrag;
+
+  viewerBox.addEventListener(
+    "mousedown",
+    startDrag
+  );
+
+  viewerBox.addEventListener(
+    "touchstart",
+    startDrag,
+    {passive:false}
+  );
+
+}
+
+function updateViewerRotation(){
+
+  if(
+    globalViewer &&
+    globalViewer.playerObject
+  ){
+
+    globalViewer.playerObject.rotation.y =
+      yaw;
+
+    globalViewer.playerObject.rotation.x =
+      pitch;
+
+  }
+
+}
+
+/* ============================================================
+   TREE
+   ============================================================ */
+
+function buildTree(skins){
+
+  const rootNode = {
+
+    name:"Все скины",
+    path:"All",
+    children:{},
+    count:skins.length
+
+  };
+
+  skins.forEach(
+    skin => {
+
+      const parts =
+        skin.category.split("/");
+
+      let current =
+        rootNode;
+
+      let currentPath = [];
+
+      parts.forEach(
+        part => {
+
+          currentPath.push(part);
+
+          const pathStr =
+            currentPath.join("/");
+
+          if(
+            !current.children[part]
+          ){
+
+            current.children[part] = {
+
+              name:part.replace(
+                /_/g,
+                " "
+              ),
+
+              path:pathStr,
+
+              children:{},
+
+              count:0
+
+            };
+
+          }
+
+          current =
+            current.children[part];
+
+          current.count++;
+
+        }
+      );
+
+    }
+  );
+
+  return rootNode;
+
+}
+
+function renderCategories(){
+
+  categoriesBarEl.innerHTML = "";
+
+  const tree =
+    buildTree(allSkins);
+
+  categoriesBarEl.appendChild(
+    createTreeNodeDOM(
+      tree,
+      0
+    )
+  );
+
+  updateActiveFolderDOM(
+    activeCategory
+  );
+
+}
+
+function updateActiveFolderDOM(path){
+
+  document
+    .querySelectorAll(".tree-row")
+    .forEach(row => {
+
+      row.classList.toggle(
+        "active",
+        row.dataset.path === path
+      );
+
+    });
+
+}
+
+/* ============================================================
+   CATEGORY URL
+   ============================================================ */
+
+function categoryURL(path){
+
+  if(path === "All"){
+
+    return (
+      window.location.origin +
+      BASE_PATH
+    );
+
+  }
+
+  /*
+   * encodeURI сохраняет / внутри
+   * вложенных категорий.
+   */
+  return (
+    window.location.origin +
+    BASE_PATH +
+    encodeURI(path)
+  );
+
+}
+
+/*
+ * Никаких window.open() здесь!
+ *
+ * Для СКМ используется настоящий <a href target="_blank">.
+ * Браузер сам открывает вкладку в фоне,
+ * как YouTube.
+ */
+
+/* ============================================================
+   TREE NODE
+   ============================================================ */
+
+function createTreeNodeDOM(
+  node,
+  depth = 0
+){
+
+  const container =
+    document.createElement("div");
+
+  container.className =
+    "tree-node";
+
+  const row =
+    document.createElement("div");
+
+  row.className =
+    "tree-row" +
+    (
+      activeCategory === node.path
+        ? " active"
+        : ""
+    );
+
+  row.dataset.path =
+    node.path;
+
+  const hasChildren =
+    Object.keys(
+      node.children
+    ).length > 0;
+
+  const toggleBtn =
+    document.createElement("button");
+
+  toggleBtn.className =
+    "tree-toggle" +
+    (
+      hasChildren
+        ? ""
+        : " hidden"
+    );
+
+  toggleBtn.innerHTML = `
+    <svg viewBox="0 0 24 24">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  `;
+
+  const isExpanded =
+    expandedFolders.has(
+      node.path
+    );
+
+  if(
+    isExpanded &&
+    hasChildren
+  ){
+
+    toggleBtn.classList.add(
+      "expanded"
+    );
+
+  }
+
+  /*
+   * Обычная кнопка категории.
+   */
+  const selectBtn =
+    document.createElement("button");
+
+  selectBtn.className =
+    "tree-select-btn";
+
+  const isRoot =
+    depth === 0;
+
+  const isFirstLevel =
+    depth === 1;
+
+  let folderIconClass =
+    "sub-folder";
+
+  if(isRoot){
+
+    folderIconClass =
+      "all-folder";
+
+  }else if(isFirstLevel){
+
+    folderIconClass =
+      "root-folder";
+
+  }
+
+  const folderIcon = `
+    <svg
+      class="folder-icon ${folderIconClass}"
+      viewBox="0 0 24 24"
+    >
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+    </svg>
+  `;
+
+  selectBtn.innerHTML = `
+    ${folderIcon}
+    <span class="cat-name">
+      ${node.name}
+    </span>
+    <span class="cat-count">
+      ${node.count}
+    </span>
+  `;
+
+  row.appendChild(
+    toggleBtn
+  );
+
+  row.appendChild(
+    selectBtn
+  );
+
+  container.appendChild(
+    row
+  );
+
+  /*
+   * Больше НЕТ window.open()
+   * для СКМ категории.
+   *
+   * Это оставляем браузеру.
+   */
+
+  if(hasChildren){
+
+    const childrenWrapper =
+      document.createElement("div");
+
+    childrenWrapper.className =
+      "tree-children";
+
+    if(isExpanded){
+
+      childrenWrapper.classList.add(
+        "open"
+      );
+
+      childrenWrapper.style.display =
+        "flex";
+
+    }
+
+    Object.values(
+      node.children
+    ).forEach(
+      child => {
+
+        childrenWrapper.appendChild(
+          createTreeNodeDOM(
+            child,
+            depth + 1
+          )
+        );
+
+      }
+    );
+
+    container.appendChild(
+      childrenWrapper
+    );
+
+    const toggleNode =
+      () => {
+
+        const expand =
+          !expandedFolders.has(
+            node.path
+          );
+
+        if(expand){
+
+          expandedFolders.add(
+            node.path
+          );
+
+          toggleBtn.classList.add(
+            "expanded"
+          );
+
+          childrenWrapper.style.display =
+            "flex";
+
+          requestAnimationFrame(
+            () => {
+
+              childrenWrapper.classList.add(
+                "open"
+              );
+
+            }
+          );
+
+        }else{
+
+          expandedFolders.delete(
+            node.path
+          );
+
+          toggleBtn.classList.remove(
+            "expanded"
+          );
+
+          childrenWrapper.classList.remove(
+            "open"
+          );
+
+          setTimeout(
+            () => {
+
+              if(
+                !expandedFolders.has(
+                  node.path
+                )
+              ){
+
+                childrenWrapper.style.display =
+                  "none";
+
+              }
+
+            },
+            220
+          );
+
+        }
+
+      };
+
+    toggleBtn.addEventListener(
+      "click",
+      e => {
+
+        e.stopPropagation();
+
+        toggleNode();
+
+      }
+    );
+
+    selectBtn.addEventListener(
+      "dblclick",
+      e => {
+
+        e.stopPropagation();
+
+        toggleNode();
+
+      }
+    );
+
+  }
+
+  selectBtn.addEventListener(
+    "click",
+    () => {
+
+      activeCategory =
+        node.path;
+
+      updateActiveFolderDOM(
+        node.path
+      );
+
+      const newURL =
+        categoryURL(
+          node.path
+        );
+
+      /*
+       * pushState сохраняет красивый URL.
+       */
+      window.history.pushState(
+        {
+          category:node.path
+        },
+        "",
+        newURL
+      );
+
+      applyFilters();
+
+      window.scrollTo({
+        top:0,
+        behavior:"instant"
+      });
+
+      document.documentElement.scrollTop =
+        0;
+
+      document.body.scrollTop =
+        0;
+
+      if(
+        window.innerWidth <= 1024
+      ){
+
+        sidebarEl.classList.remove(
+          "open"
+        );
+
+        sidebarOverlayEl.classList.remove(
+          "open"
+        );
+
+      }
+
+    }
+  );
+
+  return container;
+
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+
+function applyFilters(){
+
+  if(
+    typeof globalStopDragFn === "function"
+  ){
+
+    globalStopDragFn();
+
+  }
+
+  filteredSkins =
+    allSkins.filter(
+      skin => {
+
+        const matchesCategory =
+          activeCategory === "All" ||
+          skin.category === activeCategory ||
+          skin.category.startsWith(
+            activeCategory + "/"
+          );
+
+        const matchesSearch =
+          !searchTerm ||
+          skin.filename
+            .toLowerCase()
+            .includes(searchTerm);
+
+        return (
+          matchesCategory &&
+          matchesSearch
+        );
+
+      }
+    );
+
+  gridEl.innerHTML = "";
+
+  displayedSkinsCount = 0;
+
+  if(!filteredSkins.length){
+
+    emptyStateEl.style.display =
+      "block";
+
+    sentinelEl.style.display =
+      "none";
+
+    updateStats(0);
+
+    return;
+
+  }
+
+  emptyStateEl.style.display =
+    "none";
+
+  sentinelEl.style.display =
+    "block";
+
+  updateStats(
+    filteredSkins.length
+  );
+
+  loadMoreSkins();
+
+  setupSentinel();
+
+}
+
+function loadMoreSkins(){
+
+  const nextBatch =
+    filteredSkins.slice(
+      displayedSkinsCount,
+      displayedSkinsCount +
+        CHUNK_SIZE
+    );
+
+  if(!nextBatch.length){
+
+    sentinelEl.style.display =
+      "none";
+
+    return;
+
+  }
+
+  const fragment =
+    document.createDocumentFragment();
+
+  nextBatch.forEach(
+    skin => {
+
+      fragment.appendChild(
+        buildCard(skin)
+      );
+
+    }
+  );
+
+  gridEl.appendChild(
+    fragment
+  );
+
+  displayedSkinsCount +=
+    nextBatch.length;
+
+  if(
+    displayedSkinsCount >=
+    filteredSkins.length
+  ){
+
+    sentinelEl.style.display =
+      "none";
+
+  }
+
+  setupCardObserver();
+
+}
+
+function updateStats(count){
+
+  statsLabelEl.textContent =
+    `${count} из ${allSkins.length} файлов`;
+
+}
+
+function setupSentinel(){
+
+  if(sentinelObserver){
+
+    sentinelObserver.disconnect();
+
+  }
+
+  sentinelObserver =
+    new IntersectionObserver(
+      entries => {
+
+        if(
+          entries[0].isIntersecting &&
+          filteredSkins.length >
+            displayedSkinsCount
+        ){
+
+          loadMoreSkins();
+
+        }
+
+      },
+      {
+        rootMargin:"450px"
+      }
+    );
+
+  sentinelObserver.observe(
+    sentinelEl
+  );
+
+}
+
+/* ============================================================
+   LAZY LOAD
+   ============================================================ */
+
+function setupCardObserver(){
+
+  if(cardObserver){
+
+    cardObserver.disconnect();
+
+  }
+
+  cardObserver =
+    new IntersectionObserver(
+      entries => {
+
+        entries.forEach(
+          entry => {
+
+            if(
+              entry.isIntersecting
+            ){
+
+              loadCardImage(
+                entry.target
+              );
+
+            }
+
+          }
+        );
+
+      },
+      {
+        rootMargin:"180px"
+      }
+    );
+
+  document
+    .querySelectorAll(".card")
+    .forEach(
+      card =>
+        cardObserver.observe(card)
+    );
+
+}
+
+function loadCardImage(card){
+
+  const id =
+    card.dataset.id;
+
+  const url =
+    card.dataset.url;
+
+  if(imgCache.has(url)){
+
+    renderCardContent(
+      card,
+      imgCache.get(url)
+    );
+
+    return;
+
+  }
+
+  if(activeLoads.has(id)){
+
+    return;
+
+  }
+
+  activeLoads.set(
+    id,
+    true
+  );
+
+  const img =
+    new Image();
+
+  img.onload =
+    () => {
+
+      img.onload = null;
+      img.onerror = null;
+
+      activeLoads.delete(id);
+
+      imgCache.set(
+        url,
+        img
+      );
+
+      renderCardContent(
+        card,
+        img
+      );
+
+    };
+
+  img.onerror =
+    () => {
+
+      img.onload = null;
+      img.onerror = null;
+
+      activeLoads.delete(id);
+
+      const placeholder =
+        card.querySelector(
+          ".placeholder"
+        );
+
+      if(placeholder){
+
+        placeholder.innerHTML =
+          `<span style="color:#f87171;font-size:11px;">
+            Сбой загрузки
+          </span>`;
+
+      }
+
+      console.warn(
+        "Не удалось загрузить:",
+        url
+      );
+
+    };
+
+  img.src =
+    url;
+
+}
+
+/* ============================================================
+   CARD CONTENT
+   ============================================================ */
+
+function renderCardContent(
+  card,
+  img
+){
+
+  const viewerBox =
+    card.querySelector(
+      ".viewer-box"
+    );
+
+  const placeholder =
+    viewerBox.querySelector(
+      ".placeholder"
+    );
+
+  const flatLink =
+    viewerBox.querySelector(
+      ".skin-flat-link"
+    );
+
+  const flatImg =
+    viewerBox.querySelector(
+      ".skin-flat-img"
+    );
+
+  const canvas =
+    viewerBox.querySelector(
+      ".skin-2d-canvas"
+    );
+
+  if(placeholder){
+
+    placeholder.style.display =
+      "none";
+
+  }
+
+  const w =
+    img.naturalWidth;
+
+  const h =
+    img.naturalHeight;
+
+  const ratio =
+    w / h;
+
+  const isSkin =
+    Math.abs(ratio - 1) < .03 ||
+    Math.abs(ratio - 2) < .03;
+
+  if(
+    currentLayout === "model" &&
+    isSkin
+  ){
+
+    /*
+     * В 3D режиме ссылка скрыта,
+     * потому что ЛКМ используется для вращения.
+     */
+    if(flatLink){
+
+      flatLink.style.display =
+        "none";
+
+    }
+
+    flatImg.style.display =
+      "none";
+
+    canvas.style.display =
+      "block";
+
+    drawSkinFront(
+      img,
+      canvas
+    );
+
+    const skinData =
+      allSkins.find(
+        s =>
+          s.id ===
+          card.dataset.id
+      );
+
+    if(skinData){
+
+      init3DDragControls(
+        card,
+        skinData
+      );
+
+    }
+
+  }else{
+
+    /*
+     * В обычной сетке картинка является
+     * НАСТОЯЩЕЙ ссылкой.
+     *
+     * Поэтому:
+     *
+     * ЛКМ -> новая вкладка
+     * СКМ -> новая вкладка В ФОНЕ
+     * Ctrl+ЛКМ -> новая вкладка
+     * Shift+ЛКМ -> новая вкладка
+     *
+     * Всё делает сам браузер.
+     */
+    if(flatLink){
+
+      flatLink.style.display =
+        "flex";
+
+    }
+
+    canvas.style.display =
+      "none";
+
+    flatImg.style.display =
+      "block";
+
+    if(w <= 256){
+
+      flatImg.style.imageRendering =
+        "pixelated";
+
+    }else{
+
+      flatImg.style.imageRendering =
+        "auto";
+
+    }
+
+    if(
+      flatImg.src !== img.src
+    ){
+
+      flatImg.src =
+        img.src;
+
+    }
+
+  }
+
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+
+function buildCard(skin){
+
+  const card =
+    document.createElement("div");
+
+  card.className =
+    "card";
+
+  card.dataset.id =
+    skin.id;
+
+  card.dataset.url =
+    skin.url;
+
+  const viewerBox =
+    document.createElement("div");
+
+  viewerBox.className =
+    "viewer-box";
+
+  const placeholder =
+    document.createElement("div");
+
+  placeholder.className =
+    "placeholder";
+
+  placeholder.innerHTML =
+    `<div class="spinner"></div>`;
+
+  viewerBox.appendChild(
+    placeholder
+  );
+
+  /*
+   * НАСТОЯЩАЯ HTML-ССЫЛКА.
+   *
+   * Это главное изменение для СКМ.
+   */
+  const flatLink =
+    document.createElement("a");
+
+  flatLink.className =
+    "skin-flat-link";
+
+  flatLink.href =
+    skin.url;
+
+  flatLink.target =
+    "_blank";
+
+  /*
+   * Не нужно rel="noopener noreferrer"
+   * для работы СКМ, но добавляем для безопасности.
+   */
+  flatLink.rel =
+    "noopener noreferrer";
+
+  flatLink.title =
+    "Открыть скин";
+
+  const img =
+    document.createElement("img");
+
+  img.alt =
+    skin.filename;
+
+  img.className =
+    "skin-flat-img";
+
+  flatLink.appendChild(
+    img
+  );
+
+  viewerBox.appendChild(
+    flatLink
+  );
+
+  const canvas =
+    document.createElement("canvas");
+
+  canvas.width = 160;
+  canvas.height = 320;
+
+  canvas.className =
+    "skin-2d-canvas";
+
+  viewerBox.appendChild(
+    canvas
+  );
+
+  card.appendChild(
+    viewerBox
+  );
+
+  /* ========================================================
+     НАЗВАНИЕ
+     ======================================================== */
+
+  const info =
+    document.createElement("div");
+
+  info.className =
+    "card-info";
+
+  const name =
+    document.createElement("div");
+
+  name.className =
+    "name";
+
+  name.textContent =
+    skin.filename;
+
+  name.title =
+    skin.filename;
+
+  info.appendChild(
+    name
+  );
+
+  card.appendChild(
+    info
+  );
+
+  /* ========================================================
+     ACTIONS
+     ======================================================== */
+
+  const actions =
+    document.createElement("div");
+
+  actions.className =
+    "actions";
+
+  const copyBtn =
+    document.createElement("button");
+
+  copyBtn.className =
+    "btn copy-btn";
+
+  copyBtn.innerHTML = `
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <rect
+        x="9"
+        y="9"
+        width="13"
+        height="13"
+        rx="2"
+      ></rect>
+
+      <path
+        d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+      ></path>
+    </svg>
+
+    Копировать
+  `;
+
+  copyBtn.addEventListener(
+    "click",
+    e => {
+
+      e.stopPropagation();
+
+      copyUrl(
+        skin.url,
+        copyBtn
+      );
+
+    }
+  );
+
+  actions.appendChild(
+    copyBtn
+  );
+
+  card.appendChild(
+    actions
+  );
+
+  /*
+   * ВАЖНО:
+   *
+   * Здесь больше НЕТ:
+   *
+   * window.open(...)
+   * auxclick
+   * mousedown button === 1
+   *
+   * Потому что это ломало нативное
+   * поведение СКМ.
+   */
+
+  return card;
+
+}
+
+/* ============================================================
+   COPY
+   ============================================================ */
+
+async function copyUrl(
+  url,
+  btn
+){
+
+  try{
+
+    await navigator.clipboard.writeText(
+      url
+    );
+
+  }catch(err){
+
+    const ta =
+      document.createElement(
+        "textarea"
+      );
+
+    ta.value =
+      url;
+
+    ta.style.position =
+      "fixed";
+
+    ta.style.opacity =
+      "0";
+
+    document.body.appendChild(
+      ta
+    );
+
+    ta.select();
+
+    try{
+
+      document.execCommand(
+        "copy"
+      );
+
+    }catch(e){}
+
+    document.body.removeChild(
+      ta
+    );
+
+  }
+
+  const originalHTML =
+    btn.innerHTML;
+
+  btn.classList.add(
+    "copied"
+  );
+
+  btn.textContent =
+    "Готово!";
+
+  setTimeout(
+    () => {
+
+      btn.classList.remove(
+        "copied"
+      );
+
+      btn.innerHTML =
+        originalHTML;
+
+    },
+    1200
+  );
+
+}
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+
+let searchDebounceTimer = null;
+
+searchInputEl.addEventListener(
+  "input",
+  e => {
+
+    clearTimeout(
+      searchDebounceTimer
+    );
+
+    const value =
+      e.target.value;
+
+    searchDebounceTimer =
+      setTimeout(
+        () => {
+
+          searchTerm =
+            value
+              .trim()
+              .toLowerCase();
+
+          applyFilters();
+
+        },
+        150
+      );
+
+  }
+);
+
+/* ============================================================
+   BACK / FORWARD
+   ============================================================ */
+
+window.addEventListener(
+  "popstate",
+  () => {
+
+    activeCategory =
+      getCategoryFromURL();
+
+    const exists =
+      activeCategory === "All" ||
+      allSkins.some(
+        skin =>
+          skin.category === activeCategory ||
+          skin.category.startsWith(
+            activeCategory + "/"
+          )
+      );
+
+    if(!exists){
+
+      activeCategory =
+        "All";
+
+    }
+
+    updateActiveFolderDOM(
+      activeCategory
+    );
+
+    applyFilters();
+
+  }
+);
+
+/* ============================================================
+   INIT
+   ============================================================ */
+
+async function init(){
+
+  initLayout();
+
+  updateHeaderHeight();
+
+  /*
+   * ВАЖНО:
+   * Здесь activeCategory уже берётся
+   * из текущего URL.
+   *
+   * Поэтому при:
+   *
+   * /skins/Otec
+   *
+   * он НЕ сбросится в All.
+   */
+
+  await loadData();
+
+  const categoryExists =
+    activeCategory === "All" ||
+    allSkins.some(
+      skin =>
+        skin.category === activeCategory ||
+        skin.category.startsWith(
+          activeCategory + "/"
+        )
+    );
+
+  if(!categoryExists){
+
+    activeCategory =
+      "All";
+
+    window.history.replaceState(
+      {},
+      "",
+      BASE_PATH
+    );
+
+  }
+
+  renderCategories();
+
+  /*
+   * Устанавливаем класс layout
+   * ДО первого рендера карточек.
+   *
+   * Это также исправляет баг,
+   * когда после F5 карточки растягивались
+   * на весь экран до переключения вида.
+   */
+  gridEl.className =
+    "grid layout-" +
+    currentLayout;
+
+  applyFilters();
+
+  setTimeout(
+    updateHeaderHeight,
+    150
+  );
+
+}
+
+init();
+
+})();
+</script>
 
 </body>
 </html>
