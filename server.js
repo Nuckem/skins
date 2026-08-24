@@ -1,4 +1,56 @@
 // ============================================================
+// NuckemSkins — server.js
+// ============================================================
+
+require("dotenv").config();
+
+const express = require("express");
+const session = require("express-session");
+const axios = require("axios");
+const path = require("path");
+
+const app = express();
+
+app.set("trust proxy", 1);
+
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: true,
+            maxAge: 1000 * 60 * 60 * 24 * 7 // 7 дней
+        }
+    })
+);
+
+
+// ============================================================
+// ПОМОЩНИКИ
+// ============================================================
+
+function isLogged(req) {
+    return !!(req.session && req.session.discordUser);
+}
+
+function buildAvatar(user) {
+    if (user.avatar) {
+        return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+    }
+
+    // Дефолтная аватарка Discord, если своей нет
+    const fallbackIndex =
+        user.discriminator && user.discriminator !== "0"
+            ? Number(user.discriminator) % 5
+            : Number(BigInt(user.id) >> 22n) % 6;
+
+    return `https://cdn.discordapp.com/embed/avatars/${fallbackIndex}.png`;
+}
+
+
+// ============================================================
 // DISCORD OAUTH2
 // ============================================================
 
@@ -916,4 +968,45 @@ app.get("/login", (req, res) => {
         </html>
     `);
 
+});
+
+
+// ============================================================
+// СТАТИКА (images/, data.json, favicon.png и т.д.)
+// ============================================================
+//
+// index.html сюда НЕ включается — им управляет отдельный route
+// ниже, с проверкой авторизации на сервере.
+//
+
+app.use(
+    express.static(__dirname, {
+        index: false
+    })
+);
+
+
+// ============================================================
+// ГЛАВНАЯ СТРАНИЦА (защищена)
+// ============================================================
+
+app.get("/", (req, res) => {
+
+    if (!isLogged(req)) {
+        return res.redirect("/login");
+    }
+
+    return res.sendFile(path.join(__dirname, "index.html"));
+
+});
+
+
+// ============================================================
+// ЗАПУСК СЕРВЕРА
+// ============================================================
+
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
 });
