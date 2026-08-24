@@ -1643,12 +1643,11 @@ const BASE_URL = new URL(
 
       const res =
         await fetch(
-          "data.json",
+          new URL("data.json", window.location.origin + BASE_PATH).href,
           {
             cache:"no-store"
           }
         );
-
 
       if (!res.ok) {
 
