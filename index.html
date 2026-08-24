@@ -25,9 +25,12 @@
     --header-h:76px;
   }
 
-  *{box-sizing:border-box;}
+  *{
+    box-sizing:border-box;
+  }
 
-  html, body{
+  html,
+  body{
     margin:0;
     padding:0;
     background:
@@ -65,9 +68,9 @@
     background:#293548;
   }
 
-  /* ============================================================
+  /* =========================================================
      HEADER
-     ============================================================ */
+     ========================================================= */
 
   header{
     position:-webkit-sticky;
@@ -87,7 +90,14 @@
     justify-content:space-between;
     gap:20px;
     flex-wrap:wrap;
+
+    /*
+      ВАЖНО:
+      Раньше здесь был max-width:1400px.
+      Из-за него шапка была ограничена по ширине.
+    */
     width:100%;
+    max-width:none;
     margin:0;
   }
 
@@ -107,7 +117,7 @@
     cursor:pointer;
     align-items:center;
     justify-content:center;
-    transition:all .2s ease;
+    transition:all 0.2s ease;
   }
 
   .menu-toggle-btn:hover{
@@ -121,7 +131,7 @@
     gap:12px;
     font-weight:800;
     font-size:22px;
-    letter-spacing:.3px;
+    letter-spacing:0.3px;
   }
 
   .logo .logo-img{
@@ -131,15 +141,8 @@
     object-fit:cover;
     image-rendering:pixelated;
     image-rendering:crisp-edges;
-    box-shadow:0 4px 14px rgba(0,0,0,.35);
-    border:1px solid rgba(255,255,255,.1);
-  }
-
-  .logo span.sub{
-    color:var(--text-dim);
-    font-weight:500;
-    font-size:13px;
-    margin-left:4px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.1);
   }
 
   .controls-group{
@@ -168,7 +171,7 @@
 
   .search-wrap input:focus{
     border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(59,130,246,.25);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.25);
   }
 
   .search-wrap svg{
@@ -181,13 +184,13 @@
     stroke:var(--text-dim);
   }
 
-  /* ============================================================
+  /* =========================================================
      LAYOUT SWITCHER
-     ============================================================ */
+     ========================================================= */
 
   .layout-switcher{
     display:flex;
-    background:rgba(0,0,0,.25);
+    background:rgba(0,0,0,0.25);
     border:1px solid var(--border);
     padding:4px;
     border-radius:12px;
@@ -212,7 +215,7 @@
 
   .layout-btn:hover{
     color:var(--text);
-    background:rgba(255,255,255,.04);
+    background:rgba(255,255,255,0.04);
   }
 
   .layout-btn.active{
@@ -232,28 +235,34 @@
     white-space:nowrap;
   }
 
-  /* ============================================================
-     CONTAINER — ПОЛНАЯ ШИРИНА
-     ============================================================ */
+  /* =========================================================
+     MAIN LAYOUT
+     ========================================================= */
 
   .app-container{
     display:flex;
+
+    /*
+      Убрано ограничение max-width:1450px.
+      Теперь сайт занимает всю ширину экрана.
+    */
     width:100%;
     max-width:none;
+
     margin:0;
     position:relative;
     min-height:calc(100vh - var(--header-h));
     flex:1;
   }
 
-  /* ============================================================
+  /* =========================================================
      SIDEBAR
-     ============================================================ */
+     ========================================================= */
 
   .sidebar{
     width:330px;
     flex-shrink:0;
-    background:rgba(15,23,42,.45);
+    background:rgba(15,23,42,0.45);
     backdrop-filter:blur(16px);
     -webkit-backdrop-filter:blur(16px);
     border-right:1px solid var(--border);
@@ -261,12 +270,16 @@
     display:flex;
     flex-direction:column;
     gap:16px;
+
     position:-webkit-sticky;
     position:sticky;
     top:var(--header-h);
+
     height:calc(100vh - var(--header-h));
     overflow-y:auto;
-    transition:transform .3s cubic-bezier(.4,0,.2,1);
+
+    transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+
     z-index:40;
     align-self:flex-start;
   }
@@ -304,8 +317,12 @@
 
   .sidebar-close-btn:hover{
     color:var(--text);
-    background:rgba(255,255,255,.05);
+    background:rgba(255,255,255,0.05);
   }
+
+  /* =========================================================
+     TREE
+     ========================================================= */
 
   .categories-list{
     display:flex;
@@ -324,14 +341,14 @@
     align-items:center;
     width:100%;
     border-radius:10px;
-    transition:background .15s ease, color .15s ease;
+    transition:background 0.15s ease, color 0.15s ease;
     margin-bottom:2px;
     user-select:none;
     -webkit-user-select:none;
   }
 
   .tree-row:hover{
-    background:rgba(255,255,255,.03);
+    background:rgba(255,255,255,0.03);
   }
 
   .tree-row.active{
@@ -348,7 +365,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:transform .2s ease, color .15s ease;
+    transition:transform 0.2s ease,color 0.15s ease;
     width:28px;
     height:28px;
     border-radius:6px;
@@ -357,7 +374,7 @@
 
   .tree-toggle:hover{
     color:var(--text);
-    background:rgba(255,255,255,.05);
+    background:rgba(255,255,255,0.05);
   }
 
   .tree-row.active .tree-toggle{
@@ -372,7 +389,7 @@
     stroke-width:2.5;
     stroke-linecap:round;
     stroke-linejoin:round;
-    transition:transform .25s ease;
+    transition:transform 0.25s ease;
   }
 
   .tree-toggle.expanded svg{
@@ -403,7 +420,7 @@
 
   .tree-children{
     margin-left:19px;
-    border-left:1px dashed rgba(255,255,255,.08);
+    border-left:1px dashed rgba(255,255,255,0.08);
     padding-left:4px;
     display:none;
     flex-direction:column;
@@ -411,7 +428,9 @@
     overflow:hidden;
     max-height:0;
     opacity:0;
-    transition:max-height .22s cubic-bezier(.4,0,.2,1), opacity .18s ease;
+    transition:
+      max-height 0.22s cubic-bezier(0.4,0,0.2,1),
+      opacity 0.18s ease;
   }
 
   .tree-children.open{
@@ -454,7 +473,7 @@
 
   .cat-count{
     font-size:10px;
-    background:rgba(255,255,255,.06);
+    background:rgba(255,255,255,0.06);
     color:var(--text-dim);
     padding:2px 7px;
     border-radius:999px;
@@ -463,7 +482,7 @@
   }
 
   .tree-row.active .cat-count{
-    background:rgba(255,255,255,.2);
+    background:rgba(255,255,255,0.2);
     color:#fff;
   }
 
@@ -471,7 +490,7 @@
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.6);
+    background:rgba(0,0,0,0.6);
     backdrop-filter:blur(4px);
     -webkit-backdrop-filter:blur(4px);
     z-index:90;
@@ -481,21 +500,22 @@
     display:block;
   }
 
-  /* ============================================================
-     MAIN
-     ============================================================ */
+  /* =========================================================
+     MAIN CONTENT
+     ========================================================= */
 
   .main-content{
     flex:1;
-    width:100%;
-    min-width:0;
     padding:28px 32px 60px;
+    min-width:0;
+    width:100%;
   }
 
   .grid{
     display:grid;
     gap:22px;
-    transition:all .25s ease;
+    transition:all 0.25s ease;
+    width:100%;
   }
 
   .card{
@@ -503,12 +523,19 @@
     border:1px solid var(--border);
     border-radius:var(--radius);
     padding:16px;
+
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:space-between;
+
     box-shadow:var(--shadow);
-    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+    transition:
+      transform .2s ease,
+      box-shadow .2s ease,
+      border-color .2s ease;
+
     position:relative;
     overflow:hidden;
     contain:content;
@@ -516,29 +543,45 @@
 
   .card:hover{
     transform:translateY(-4px);
-    border-color:rgba(59,130,246,.4);
-    box-shadow:0 12px 30px rgba(0,0,0,.55);
+    border-color:rgba(59,130,246,0.4);
+    box-shadow:0 12px 30px rgba(0,0,0,0.55);
   }
+
+  /* =========================================================
+     VIEWER
+     ========================================================= */
 
   .viewer-box{
     width:100%;
     border-radius:12px;
     overflow:hidden;
+
     background-color:#1e293b;
     background-image:
       linear-gradient(45deg,#131c2c 25%,transparent 25%),
       linear-gradient(-45deg,#131c2c 25%,transparent 25%),
       linear-gradient(45deg,transparent 75%,#131c2c 75%),
       linear-gradient(-45deg,transparent 75%,#131c2c 75%);
+
     background-size:16px 16px;
-    background-position:0 0,0 8px,8px -8px,-8px 0;
+    background-position:
+      0 0,
+      0 8px,
+      8px -8px,
+      -8px 0px;
+
     position:relative;
-    border:1px solid rgba(255,255,255,.05);
+
+    border:1px solid rgba(255,255,255,0.05);
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     user-select:none;
     -webkit-user-select:none;
+
+    cursor:pointer;
   }
 
   .placeholder{
@@ -554,13 +597,15 @@
     width:24px;
     height:24px;
     border-radius:50%;
-    border:3px solid rgba(59,130,246,.15);
+    border:3px solid rgba(59,130,246,0.15);
     border-top-color:var(--accent);
     animation:spin .8s linear infinite;
   }
 
   @keyframes spin{
-    to{transform:rotate(360deg);}
+    to{
+      transform:rotate(360deg);
+    }
   }
 
   .skin-flat-img,
@@ -571,16 +616,16 @@
     max-width:98%;
     max-height:98%;
     object-fit:contain;
-    transition:transform .2s ease;
-    cursor:pointer;
+    transition:transform 0.2s ease;
   }
 
   .skin-flat-img{
     padding:6px;
+    cursor:pointer;
   }
 
   .skin-2d-canvas{
-    filter:drop-shadow(0 6px 12px rgba(0,0,0,.45));
+    filter:drop-shadow(0 6px 12px rgba(0,0,0,0.45));
     max-width:90%;
     max-height:90%;
     cursor:grab;
@@ -602,12 +647,16 @@
     transform:scale(1.04);
   }
 
+  /* =========================================================
+     CARD INFO
+     ========================================================= */
+
   .card-info{
     width:100%;
     display:flex;
     flex-direction:column;
     align-items:center;
-    margin-top:10px;
+    margin-top:14px;
   }
 
   .name{
@@ -616,10 +665,24 @@
     text-align:center;
     color:var(--text);
     width:100%;
+
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
   }
+
+  /*
+    cat-tag намеренно скрыт.
+    Раньше здесь отображался сериал/категория под скином.
+  */
+
+  .cat-tag{
+    display:none;
+  }
+
+  /* =========================================================
+     ACTIONS
+     ========================================================= */
 
   .actions{
     margin-top:10px;
@@ -635,7 +698,7 @@
     padding:8px 6px;
     border-radius:10px;
     border:1px solid var(--border);
-    background:rgba(255,255,255,.04);
+    background:rgba(255,255,255,0.04);
     color:var(--text);
     font-size:11.5px;
     font-weight:600;
@@ -668,9 +731,9 @@
     flex-shrink:0;
   }
 
-  /* ============================================================
+  /* =========================================================
      LAYOUTS
-     ============================================================ */
+     ========================================================= */
 
   .grid.layout-standard{
     grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
@@ -695,7 +758,7 @@
   }
 
   .grid.layout-compact .card-info{
-    margin-top:6px;
+    margin-top:8px;
   }
 
   .grid.layout-compact .name{
@@ -720,9 +783,9 @@
     height:250px;
   }
 
-  /* ============================================================
-     EMPTY STATE
-     ============================================================ */
+  /* =========================================================
+     EMPTY
+     ========================================================= */
 
   .empty-state{
     text-align:center;
@@ -735,13 +798,9 @@
     margin-bottom:8px;
   }
 
-  .empty-state p{
-    margin:0;
-  }
-
-  /* ============================================================
+  /* =========================================================
      FOOTER
-     ============================================================ */
+     ========================================================= */
 
   footer{
     text-align:center;
@@ -749,17 +808,18 @@
     font-size:13px;
     color:var(--text-dim);
     border-top:1px solid var(--border);
-    background:rgba(11,18,32,.4);
+    background:rgba(11,18,32,0.4);
     backdrop-filter:blur(10px);
     margin-top:auto;
     z-index:10;
   }
 
-  /* ============================================================
+  /* =========================================================
      RESPONSIVE
-     ============================================================ */
+     ========================================================= */
 
   @media (max-width:1024px){
+
     header{
       padding:16px 20px;
     }
@@ -774,10 +834,14 @@
       left:0;
       height:100vh;
       width:290px;
+
       transform:translateX(-100%);
+
       background:var(--card);
+
       z-index:120;
-      box-shadow:20px 0 40px rgba(0,0,0,.6);
+
+      box-shadow:20px 0 40px rgba(0,0,0,0.6);
     }
 
     .sidebar.open{
@@ -794,6 +858,7 @@
   }
 
   @media (max-width:768px){
+
     .logo{
       font-size:18px;
     }
@@ -822,6 +887,11 @@
     .stats{
       width:100%;
     }
+
+    .main-content{
+      padding-left:10px;
+      padding-right:10px;
+    }
   }
 </style>
 </head>
@@ -833,10 +903,21 @@
 
     <div class="logo-wrap">
 
-      <button class="menu-toggle-btn" id="menuToggleBtn" title="Открыть папки">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-             stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
+      <button
+        class="menu-toggle-btn"
+        id="menuToggleBtn"
+        title="Открыть папки"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -844,14 +925,14 @@
       </button>
 
       <div class="logo" title="Skins Gallery">
-        <img src="favicon.png"
-             alt="Logo"
-             class="logo-img"
-             onerror="this.style.display='none'">
-
+        <img
+          src="favicon.png"
+          alt="Logo"
+          class="logo-img"
+          onerror="this.style.display='none'"
+        >
         NuckemSkins
-
-        <span class="sub">by Frixx_x</span>
+        <span class="sub"></span>
       </div>
 
     </div>
@@ -860,40 +941,36 @@
 
       <div class="layout-switcher">
 
-        <button class="layout-btn"
-                data-layout="compact"
-                title="Компактная сетка">
-
+        <button
+          class="layout-btn"
+          data-layout="compact"
+          title="Компактная сетка"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z
-                     M4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z
-                     M4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
+            <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
           </svg>
-
           Компактно
         </button>
 
-        <button class="layout-btn"
-                data-layout="standard"
-                title="Стандартная сетка">
-
+        <button
+          class="layout-btn"
+          data-layout="standard"
+          title="Стандартная сетка"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M4 4h7v7H4zm9 0h7v7h-7z
-                     M4 13h7v7H4zm9 0h7v7h-7z"/>
+            <path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/>
           </svg>
-
           Сетка
         </button>
 
-        <button class="layout-btn"
-                data-layout="model"
-                title="Вид 3D Фото">
-
+        <button
+          class="layout-btn"
+          data-layout="model"
+          title="Вид 3D Фото"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2
-                     .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>
+            <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>
           </svg>
-
           3D Фото
         </button>
 
@@ -901,89 +978,109 @@
 
       <div class="search-wrap">
 
-        <svg viewBox="0 0 24 24"
-             fill="none"
-             stroke-width="2"
-             stroke-linecap="round"
-             stroke-linejoin="round">
-
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <circle cx="11" cy="11" r="7"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-
         </svg>
 
-        <input id="searchInput"
-               type="text"
-               placeholder="Поиск скина...">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Поиск скина..."
+        >
 
       </div>
 
-      <div class="stats" id="statsLabel">
+      <div
+        class="stats"
+        id="statsLabel"
+      >
         Загрузка...
       </div>
 
     </div>
+
   </div>
 </header>
 
+
 <div class="app-container">
 
-  <aside class="sidebar" id="sidebar">
+  <aside
+    class="sidebar"
+    id="sidebar"
+  >
 
     <div class="sidebar-header">
 
       <h3>Директории</h3>
 
-      <button class="sidebar-close-btn"
-              id="sidebarCloseBtn"
-              title="Закрыть">
-
-        <svg viewBox="0 0 24 24"
-             width="18"
-             height="18"
-             fill="none"
-             stroke="currentColor"
-             stroke-width="2.5"
-             stroke-linecap="round"
-             stroke-linejoin="round">
-
+      <button
+        class="sidebar-close-btn"
+        id="sidebarCloseBtn"
+        title="Закрыть"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
-
         </svg>
-
       </button>
 
     </div>
 
-    <div class="categories-list" id="categoriesBar"></div>
+    <div
+      class="categories-list"
+      id="categoriesBar"
+    ></div>
 
   </aside>
 
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+  ></div>
+
 
   <main class="main-content">
 
-    <div class="grid" id="grid"></div>
+    <div
+      class="grid"
+      id="grid"
+    ></div>
 
     <div id="sentinel"></div>
 
-    <div class="empty-state"
-         id="emptyState"
-         style="display:none;">
-
+    <div
+      class="empty-state"
+      id="emptyState"
+      style="display:none;"
+    >
       <h2>Ничего не найдено</h2>
-
       <p>
         Попробуйте изменить поисковый запрос
         или выбрать другую папку.
       </p>
-
     </div>
 
   </main>
 
 </div>
+
 
 <footer>
   Skins Gallery &middot;
@@ -991,14 +1088,15 @@
   3D просмотр реализован через skinview3d
 </footer>
 
+
 <script>
 (() => {
 
   "use strict";
 
-  /* ============================================================
+  /* =========================================================
      STATE
-     ============================================================ */
+     ========================================================= */
 
   let allSkins = [];
   let filteredSkins = [];
@@ -1006,7 +1104,19 @@
 
   const CHUNK_SIZE = 48;
 
-  let activeCategory = "All";
+  /*
+    Теперь категория берётся из URL.
+
+    Примеры:
+
+    /skins/
+    /skins/Otec
+    /skins/ZombiPoезд
+    /skins/Otec/ZombiPoезд
+  */
+
+  let activeCategory = getCategoryFromURL();
+
   let searchTerm = "";
 
   let currentLayout =
@@ -1020,17 +1130,39 @@
   let cardObserver = null;
   let sentinelObserver = null;
 
+
+  /* =========================================================
+     ELEMENTS
+     ========================================================= */
+
   const analysisCanvas =
     document.createElement("canvas");
 
   const analysisCtx =
     analysisCanvas.getContext(
       "2d",
-      { willReadFrequently:true }
+      {
+        willReadFrequently:true
+      }
     );
 
+
+  /*
+    GitHub Pages:
+
+    https://nuckem.github.io/skins/
+
+    BASE_URL всегда указывает именно на /skins/.
+  */
+
+  const BASE_PATH = "/skins/";
+
   const BASE_URL =
-    new URL("images/", window.location.href).href;
+    new URL(
+      BASE_PATH + "images/",
+      window.location.origin
+    ).href;
+
 
   const gridEl =
     document.getElementById("grid");
@@ -1063,50 +1195,192 @@
     document.getElementById("sidebarCloseBtn");
 
 
-  /* ============================================================
-     URL — ПАПКА В АДРЕСНОЙ СТРОКЕ
-     ============================================================ */
+  /* =========================================================
+     URL FUNCTIONS
+     ========================================================= */
 
   function getCategoryFromURL(){
 
-    const params =
-      new URLSearchParams(window.location.search);
+    let pathname =
+      window.location.pathname;
 
-    return params.get("category") || "All";
+    /*
+      Убираем /skins/ с начала.
+    */
+
+    if (pathname.startsWith(BASE_PATH)) {
+      pathname =
+        pathname.substring(BASE_PATH.length);
+    }
+
+    /*
+      Убираем завершающий /
+    */
+
+    pathname =
+      pathname.replace(/^\/+|\/+$/g, "");
+
+    /*
+      Главная страница.
+    */
+
+    if (!pathname) {
+      return "All";
+    }
+
+    /*
+      Декодируем URL.
+
+      /skins/Otec
+      ->
+      Otec
+    */
+
+    try {
+
+      return pathname
+        .split("/")
+        .map(part => decodeURIComponent(part))
+        .join("/");
+
+    } catch(e){
+
+      return pathname;
+    }
   }
 
 
-  function updateCategoryURL(category){
+  function categoryToURL(category){
+
+    /*
+      All = главная страница
+    */
+
+    if (
+      !category ||
+      category === "All"
+    ) {
+      return BASE_PATH;
+    }
+
+    /*
+      Каждый компонент пути кодируем отдельно,
+      чтобы пробелы/кириллица/спецсимволы
+      корректно работали.
+
+      Например:
+
+      Otec/Zombi Поезд
+
+      ->
+      /skins/Otec/Zombi%20%D0%9F%D0%BE%D0%B5%D0%B7%D0%B4
+    */
+
+    const encodedPath =
+      category
+        .split("/")
+        .map(part => encodeURIComponent(part))
+        .join("/");
+
+    return BASE_PATH + encodedPath;
+  }
+
+
+  function navigateToCategory(
+    category,
+    newTab = false
+  ){
 
     const url =
-      new URL(window.location.href);
+      categoryToURL(category);
 
-    if(category === "All"){
+    /*
+      Средняя кнопка мыши:
+      открываем новую вкладку.
+    */
 
-      url.searchParams.delete("category");
+    if (newTab) {
 
-    }else{
-
-      url.searchParams.set(
-        "category",
-        category
+      window.open(
+        url,
+        "_blank",
+        "noopener"
       );
+
+      return;
+    }
+
+    /*
+      Обычный клик:
+      меняем URL без полной перезагрузки.
+    */
+
+    history.pushState(
+      {
+        category:category
+      },
+      "",
+      url
+    );
+
+    activeCategory = category;
+
+    applyFilters();
+
+    updateActiveFolderDOM(
+      category
+    );
+
+    window.scrollTo({
+      top:0,
+      behavior:"instant"
+    });
+
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+
+    if (window.innerWidth <= 1024) {
+
+      sidebarEl.classList.remove("open");
+      sidebarOverlayEl.classList.remove("open");
 
     }
 
-    history.pushState(
-      { category:category },
-      "",
-      url.pathname +
-      (url.search ? url.search : "") +
-      url.hash
-    );
   }
 
 
-  /* ============================================================
+  /*
+    Обработка кнопок браузера:
+
+    Назад / Вперёд
+  */
+
+  window.addEventListener(
+    "popstate",
+    () => {
+
+      activeCategory =
+        getCategoryFromURL();
+
+      applyFilters();
+
+      updateActiveFolderDOM(
+        activeCategory
+      );
+
+      window.scrollTo({
+        top:0,
+        behavior:"instant"
+      });
+
+    }
+  );
+
+
+  /* =========================================================
      GLOBAL 3D VIEWER
-     ============================================================ */
+     ========================================================= */
 
   const global3dCanvas =
     document.createElement("canvas");
@@ -1116,7 +1390,7 @@
 
   let globalViewer = null;
 
-  try{
+  try {
 
     globalViewer =
       new skinview3d.SkinViewer({
@@ -1124,35 +1398,42 @@
         canvas:global3dCanvas,
 
         width:220,
+
         height:320,
 
         alpha:true
 
       });
 
+
     globalViewer.fov = 45;
-    globalViewer.zoom = .95;
+
+    globalViewer.zoom = 0.95;
+
     globalViewer.autoRotate = false;
 
-    if(globalViewer.controls){
+
+    if (globalViewer.controls) {
 
       globalViewer.controls.enabled = false;
 
     }
 
-    if(globalViewer.globalLight){
+
+    if (globalViewer.globalLight) {
 
       globalViewer.globalLight.intensity = 2.4;
 
     }
 
-    if(globalViewer.cameraLight){
+
+    if (globalViewer.cameraLight) {
 
       globalViewer.cameraLight.intensity = 1.4;
 
     }
 
-  }catch(err){
+  } catch(err){
 
     console.warn(
       "Сбой инициализации глобального WebGL:",
@@ -1162,26 +1443,30 @@
   }
 
 
-  /* ============================================================
+  /* =========================================================
      HEADER HEIGHT
-     ============================================================ */
+     ========================================================= */
 
   function updateHeaderHeight(){
 
     const header =
       document.querySelector("header");
 
-    if(header){
+    if (header) {
+
+      const height =
+        header.offsetHeight;
 
       document.documentElement.style
         .setProperty(
           "--header-h",
-          `${header.offsetHeight}px`
+          `${height}px`
         );
 
     }
 
   }
+
 
   window.addEventListener(
     "resize",
@@ -1194,9 +1479,9 @@
   );
 
 
-  /* ============================================================
+  /* =========================================================
      LAYOUT
-     ============================================================ */
+     ========================================================= */
 
   function initLayout(){
 
@@ -1210,6 +1495,7 @@
         );
 
       });
+
 
     gridEl.className =
       `grid layout-${currentLayout}`;
@@ -1226,17 +1512,23 @@
             const selectedLayout =
               btn.dataset.layout;
 
-            if(selectedLayout === currentLayout){
-
+            if (
+              selectedLayout ===
+              currentLayout
+            ) {
               return;
-
             }
 
-            if(typeof globalStopDragFn === "function"){
+
+            if (
+              typeof globalStopDragFn ===
+              "function"
+            ) {
 
               globalStopDragFn();
 
             }
+
 
             currentLayout =
               selectedLayout;
@@ -1246,19 +1538,23 @@
               currentLayout
             );
 
+
             document
               .querySelectorAll(".layout-btn")
               .forEach(b => {
 
                 b.classList.toggle(
                   "active",
-                  b.dataset.layout === currentLayout
+                  b.dataset.layout ===
+                  currentLayout
                 );
 
               });
 
+
             gridEl.className =
               `grid layout-${currentLayout}`;
+
 
             updateAllVisibleCards();
 
@@ -1273,6 +1569,7 @@
       () => {
 
         sidebarEl.classList.add("open");
+
         sidebarOverlayEl.classList.add("open");
 
       }
@@ -1282,6 +1579,7 @@
     const closeSidebar = () => {
 
       sidebarEl.classList.remove("open");
+
       sidebarOverlayEl.classList.remove("open");
 
     };
@@ -1312,7 +1610,7 @@
         const cachedImg =
           imgCache.get(url);
 
-        if(cachedImg){
+        if (cachedImg) {
 
           renderCardContent(
             card,
@@ -1326,21 +1624,24 @@
   }
 
 
-  /* ============================================================
-     LOAD DATA
-     ============================================================ */
+  /* =========================================================
+     DATA
+     ========================================================= */
 
   async function loadData(){
 
-    try{
+    try {
 
       const res =
         await fetch(
           "data.json",
-          { cache:"no-store" }
+          {
+            cache:"no-store"
+          }
         );
 
-      if(!res.ok){
+
+      if (!res.ok) {
 
         throw new Error(
           "HTTP " + res.status
@@ -1348,13 +1649,15 @@
 
       }
 
+
       const raw =
         await res.json();
+
 
       allSkins =
         normalizeData(raw);
 
-    }catch(err){
+    } catch(err){
 
       console.error(
         "Не удалось загрузить data.json:",
@@ -1373,63 +1676,72 @@
 
   function normalizeData(raw){
 
-    if(!Array.isArray(raw)){
-
+    if (!Array.isArray(raw)) {
       return [];
-
     }
+
 
     return raw
 
-      .filter(item =>
-        item &&
-        typeof item.file === "string" &&
-        item.file.trim().length
+      .filter(
+        item =>
+          item &&
+          typeof item.file === "string" &&
+          item.file.trim().length
       )
 
-      .map((item,index) => {
+      .map(
+        (item,index) => {
 
-        const file =
-          item.file.replace(
-            /^\/+/,
-            ""
-          );
+          const file =
+            item.file.replace(
+              /^\/+/,
+              ""
+            );
 
-        const parts =
-          file.split("/");
 
-        const filename =
-          parts.pop();
+          const parts =
+            file.split("/");
 
-        const category =
-          parts.length > 0
-            ? parts.join("/")
-            : "Other";
 
-        return {
+          const filename =
+            parts.pop();
 
-          id:"skin_" + index,
 
-          file,
+          const category =
+            parts.length > 0
+              ? parts.join("/")
+              : "Other";
 
-          category,
 
-          filename,
+          return {
 
-          url:BASE_URL + file
+            id:"skin_" + index,
 
-        };
+            file:file,
 
-      });
+            category:category,
+
+            filename:filename,
+
+            url:BASE_URL + file
+
+          };
+
+        }
+      );
 
   }
 
 
-  /* ============================================================
-     2D SKIN RENDER
-     ============================================================ */
+  /* =========================================================
+     2D SKIN
+     ========================================================= */
 
-  function drawSkinFront(img, canvas){
+  function drawSkinFront(
+    img,
+    canvas
+  ){
 
     const ctx =
       canvas.getContext("2d");
@@ -1441,18 +1753,22 @@
       canvas.height
     );
 
+
     const is64x64 =
       img.naturalHeight ===
       img.naturalWidth;
 
+
     const u =
       img.naturalWidth / 64;
 
+
     let isSlim = false;
 
-    if(is64x64){
 
-      try{
+    if (is64x64) {
+
+      try {
 
         analysisCanvas.width =
           img.naturalWidth;
@@ -1460,17 +1776,20 @@
         analysisCanvas.height =
           img.naturalHeight;
 
+
         analysisCtx.drawImage(
           img,
           0,
           0
         );
 
+
         const checkX =
           Math.round(47 * u);
 
         const checkY =
           Math.round(20 * u);
+
 
         isSlim =
           analysisCtx.getImageData(
@@ -1480,9 +1799,10 @@
             1
           ).data[3] === 0;
 
-      }catch(e){}
+      } catch(e){}
 
     }
+
 
     const armW =
       isSlim ? 3 : 4;
@@ -1490,14 +1810,20 @@
     const rightArmX =
       isSlim ? 1 : 0;
 
-    const leftArmX = 12;
+    const leftArmX =
+      12;
 
-    ctx.imageSmoothingEnabled = false;
+
+    ctx.imageSmoothingEnabled =
+      false;
+
 
     ctx.save();
 
+
     const scale =
       canvas.width / 16;
+
 
     ctx.scale(
       scale,
@@ -1519,7 +1845,8 @@
       12
     );
 
-    if(is64x64){
+
+    if (is64x64) {
 
       ctx.drawImage(
         img,
@@ -1533,6 +1860,11 @@
         12
       );
 
+    }
+
+
+    if (is64x64) {
+
       ctx.drawImage(
         img,
         20*u,
@@ -1545,6 +1877,7 @@
         12
       );
 
+
       ctx.drawImage(
         img,
         4*u,
@@ -1557,7 +1890,7 @@
         12
       );
 
-    }else{
+    } else {
 
       ctx.save();
 
@@ -1571,6 +1904,7 @@
         1
       );
 
+
       ctx.drawImage(
         img,
         4*u,
@@ -1582,6 +1916,7 @@
         4,
         12
       );
+
 
       ctx.restore();
 
@@ -1602,7 +1937,8 @@
       12
     );
 
-    if(is64x64){
+
+    if (is64x64) {
 
       ctx.drawImage(
         img,
@@ -1633,7 +1969,8 @@
       12
     );
 
-    if(is64x64){
+
+    if (is64x64) {
 
       ctx.drawImage(
         img,
@@ -1647,6 +1984,7 @@
         12
       );
 
+
       ctx.drawImage(
         img,
         36*u,
@@ -1659,6 +1997,7 @@
         12
       );
 
+
       ctx.drawImage(
         img,
         52*u,
@@ -1671,7 +2010,7 @@
         12
       );
 
-    }else{
+    } else {
 
       ctx.save();
 
@@ -1685,6 +2024,7 @@
         1
       );
 
+
       ctx.drawImage(
         img,
         44*u,
@@ -1696,6 +2036,7 @@
         armW,
         12
       );
+
 
       ctx.restore();
 
@@ -1716,6 +2057,7 @@
       8
     );
 
+
     ctx.drawImage(
       img,
       40*u,
@@ -1728,14 +2070,15 @@
       8
     );
 
+
     ctx.restore();
 
   }
 
 
-  /* ============================================================
-     3D DRAG
-     ============================================================ */
+  /* =========================================================
+     DRAG 3D
+     ========================================================= */
 
   let isDragging = false;
   let activeCard = null;
@@ -1746,58 +2089,86 @@
   let yaw = 0;
   let pitch = 0;
 
-  let dragMoved = false;
-
   let globalStopDragFn = null;
 
 
-  function init3DDragControls(card, skin){
+  function init3DDragControls(
+    card,
+    skin
+  ){
 
-    if(
-      card.dataset.hasDragEvents === "true"
-    ){
-
+    if (
+      card.dataset.hasDragEvents ===
+      "true"
+    ) {
       return;
-
     }
 
-    card.dataset.hasDragEvents = "true";
+
+    card.dataset.hasDragEvents =
+      "true";
+
 
     const viewerBox =
-      card.querySelector(".viewer-box");
+      card.querySelector(
+        ".viewer-box"
+      );
+
 
     const canvas2d =
-      card.querySelector(".skin-2d-canvas");
+      card.querySelector(
+        ".skin-2d-canvas"
+      );
 
 
     function startDrag(e){
 
-      if(currentLayout !== "model"){
-
+      if (
+        currentLayout !== "model"
+      ) {
         return;
-
       }
 
-      if(!globalViewer){
 
+      if (!globalViewer) {
         return;
-
       }
 
-      if(
+
+      /*
+        Средняя кнопка мыши НЕ должна
+        запускать 3D drag.
+
+        Она используется для открытия
+        скина в новой вкладке.
+      */
+
+      if (
         e.type === "mousedown" &&
         e.button !== 0
-      ){
-
+      ) {
         return;
-
       }
+
+
+      /*
+        Правая кнопка тоже не запускает drag.
+      */
+
+      if (
+        e.type === "mousedown" &&
+        e.button !== 0
+      ) {
+        return;
+      }
+
 
       e.preventDefault();
 
+
       isDragging = true;
+
       activeCard = card;
-      dragMoved = false;
 
 
       const pageX =
@@ -1805,17 +2176,21 @@
           ? e.touches[0].pageX
           : e.pageX;
 
+
       const pageY =
         e.type === "touchstart"
           ? e.touches[0].pageY
           : e.pageY;
 
+
       startX = pageX;
+
       startY = pageY;
 
 
-      yaw = -.4;
-      pitch = -.15;
+      yaw = -0.4;
+
+      pitch = -0.15;
 
 
       canvas2d.style.display =
@@ -1825,6 +2200,7 @@
       viewerBox.appendChild(
         global3dCanvas
       );
+
 
       global3dCanvas.style.display =
         "block";
@@ -1840,35 +2216,44 @@
         skin.url
       );
 
+
       updateViewerRotation();
+
 
       card.classList.add(
         "interacting"
       );
 
+
       document.body.style.cursor =
         "grabbing";
 
 
-      if(e.type === "touchstart"){
+      if (
+        e.type === "touchstart"
+      ){
 
         window.addEventListener(
           "touchmove",
           handleDrag,
-          { passive:false }
+          {
+            passive:false
+          }
         );
+
 
         window.addEventListener(
           "touchend",
           stopDrag
         );
 
-      }else{
+      } else {
 
         window.addEventListener(
           "mousemove",
           handleDrag
         );
+
 
         window.addEventListener(
           "mouseup",
@@ -1882,14 +2267,13 @@
 
     function handleDrag(e){
 
-      if(
+      if (
         !isDragging ||
         activeCard !== card
-      ){
-
+      ) {
         return;
-
       }
+
 
       e.preventDefault();
 
@@ -1898,6 +2282,7 @@
         e.type === "touchmove"
           ? e.touches[0].pageX
           : e.pageX;
+
 
       const pageY =
         e.type === "touchmove"
@@ -1908,29 +2293,21 @@
       const dx =
         pageX - startX;
 
+
       const dy =
         pageY - startY;
 
 
-      if(
-        Math.abs(dx) > 5 ||
-        Math.abs(dy) > 5
-      ){
-
-        dragMoved = true;
-
-      }
-
-
       yaw =
-        -.4 + dx * .015;
+        -0.4 + dx * 0.015;
+
 
       pitch =
         Math.max(
-          -.6,
+          -0.6,
           Math.min(
-            .6,
-            -.15 + dy * .012
+            0.6,
+            -0.15 + dy * 0.012
           )
         );
 
@@ -1942,15 +2319,16 @@
 
     function stopDrag(){
 
-      if(!isDragging){
-
+      if (!isDragging) {
         return;
-
       }
+
 
       isDragging = false;
 
-      document.body.style.cursor = "";
+
+      document.body.style.cursor =
+        "";
 
 
       window.removeEventListener(
@@ -1958,15 +2336,18 @@
         handleDrag
       );
 
+
       window.removeEventListener(
         "mouseup",
         stopDrag
       );
 
+
       window.removeEventListener(
         "touchmove",
         handleDrag
       );
+
 
       window.removeEventListener(
         "touchend",
@@ -1974,44 +2355,26 @@
       );
 
 
-      const finishedCard =
-        activeCard;
-
-
-      if(
-        finishedCard &&
-        !dragMoved
-      ){
-
-        const skinUrl =
-          finishedCard.dataset.url;
-
-        window.open(
-          skinUrl,
-          "_blank",
-          "noopener"
-        );
-
-      }
-
-
-      if(activeCard){
+      if (activeCard) {
 
         activeCard.classList.remove(
           "interacting"
         );
+
 
         const oldCanvas2d =
           activeCard.querySelector(
             ".skin-2d-canvas"
           );
 
-        if(oldCanvas2d){
+
+        if (oldCanvas2d) {
 
           oldCanvas2d.style.display =
             "block";
 
         }
+
 
         activeCard = null;
 
@@ -2021,9 +2384,11 @@
       global3dCanvas.style.display =
         "none";
 
+
       document.body.appendChild(
         global3dCanvas
       );
+
 
       globalStopDragFn = null;
 
@@ -2039,10 +2404,13 @@
       startDrag
     );
 
+
     viewerBox.addEventListener(
       "touchstart",
       startDrag,
-      { passive:false }
+      {
+        passive:false
+      }
     );
 
   }
@@ -2050,7 +2418,7 @@
 
   function updateViewerRotation(){
 
-    if(
+    if (
       globalViewer &&
       globalViewer.playerObject
     ){
@@ -2066,9 +2434,9 @@
   }
 
 
-  /* ============================================================
-     TREE
-     ============================================================ */
+  /* =========================================================
+     CATEGORY TREE
+     ========================================================= */
 
   function buildTree(skins){
 
@@ -2085,53 +2453,62 @@
     };
 
 
-    skins.forEach(skin => {
+    skins.forEach(
+      skin => {
 
-      const parts =
-        skin.category.split("/");
+        const parts =
+          skin.category.split("/");
 
-      let current =
-        rootNode;
+        let current =
+          rootNode;
 
-      let currentPath = [];
-
-
-      parts.forEach(part => {
-
-        currentPath.push(part);
-
-        const pathStr =
-          currentPath.join("/");
+        let currentPath = [];
 
 
-        if(!current.children[part]){
+        parts.forEach(
+          part => {
 
-          current.children[part] = {
-
-            name:part.replace(
-              /_/g,
-              " "
-            ),
-
-            path:pathStr,
-
-            children:{},
-
-            count:0
-
-          };
-
-        }
+            currentPath.push(part);
 
 
-        current =
-          current.children[part];
+            const pathStr =
+              currentPath.join("/");
 
-        current.count++;
 
-      });
+            if (
+              !current.children[part]
+            ){
 
-    });
+              current.children[part] = {
+
+                name:
+                  part.replace(
+                    /_/g,
+                    " "
+                  ),
+
+                path:pathStr,
+
+                children:{},
+
+                count:0
+
+              };
+
+            }
+
+
+            current =
+              current.children[part];
+
+
+            current.count++;
+
+          }
+        );
+
+      }
+    );
 
 
     return rootNode;
@@ -2145,6 +2522,7 @@
 
     const tree =
       buildTree(allSkins);
+
 
     categoriesBarEl.appendChild(
       createTreeNodeDOM(
@@ -2166,7 +2544,8 @@
 
         row.classList.toggle(
           "active",
-          row.dataset.path === targetPath
+          row.dataset.path ===
+          targetPath
         );
 
       });
@@ -2196,6 +2575,7 @@
           ? " active"
           : ""
       );
+
 
     row.dataset.path =
       node.path;
@@ -2232,7 +2612,7 @@
       );
 
 
-    if(
+    if (
       isExpanded &&
       hasChildren
     ){
@@ -2254,6 +2634,7 @@
     const isRoot =
       depth === 0;
 
+
     const isFirstLevel =
       depth === 1;
 
@@ -2262,12 +2643,12 @@
       "sub-folder";
 
 
-    if(isRoot){
+    if (isRoot) {
 
       folderIconClass =
         "all-folder";
 
-    }else if(isFirstLevel){
+    } else if (isFirstLevel) {
 
       folderIconClass =
         "root-folder";
@@ -2278,44 +2659,48 @@
     const folderIcon = `
       <svg
         class="folder-icon ${folderIconClass}"
-        viewBox="0 0 24 24">
-
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
-        </path>
-
+        viewBox="0 0 24 24"
+      >
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
       </svg>
     `;
 
 
     selectBtn.innerHTML = `
       ${folderIcon}
-
       <span class="cat-name">
-        ${node.name}
+        ${escapeHTML(node.name)}
       </span>
-
       <span class="cat-count">
         ${node.count}
       </span>
     `;
 
 
-    row.appendChild(toggleBtn);
-    row.appendChild(selectBtn);
+    row.appendChild(
+      toggleBtn
+    );
 
-    container.appendChild(row);
+    row.appendChild(
+      selectBtn
+    );
+
+    container.appendChild(
+      row
+    );
 
 
-    if(hasChildren){
+    if (hasChildren) {
 
       const childrenWrapper =
         document.createElement("div");
+
 
       childrenWrapper.className =
         "tree-children";
 
 
-      if(isExpanded){
+      if (isExpanded) {
 
         childrenWrapper.classList.add(
           "open"
@@ -2327,18 +2712,20 @@
       }
 
 
-      Object.values(
-        node.children
-      ).forEach(child => {
+      Object
+        .values(node.children)
+        .forEach(
+          child => {
 
-        childrenWrapper.appendChild(
-          createTreeNodeDOM(
-            child,
-            depth + 1
-          )
+            childrenWrapper.appendChild(
+              createTreeNodeDOM(
+                child,
+                depth + 1
+              )
+            );
+
+          }
         );
-
-      });
 
 
       container.appendChild(
@@ -2354,56 +2741,66 @@
           );
 
 
-        if(expand){
+        if (expand) {
 
           expandedFolders.add(
             node.path
           );
 
+
           toggleBtn.classList.add(
             "expanded"
           );
 
+
           childrenWrapper.style.display =
             "flex";
 
-          requestAnimationFrame(() => {
 
-            childrenWrapper.classList.add(
-              "open"
-            );
+          requestAnimationFrame(
+            () => {
 
-          });
+              childrenWrapper.classList.add(
+                "open"
+              );
 
-        }else{
+            }
+          );
+
+        } else {
 
           expandedFolders.delete(
             node.path
           );
 
+
           toggleBtn.classList.remove(
             "expanded"
           );
+
 
           childrenWrapper.classList.remove(
             "open"
           );
 
 
-          setTimeout(() => {
+          setTimeout(
+            () => {
 
-            if(
-              !expandedFolders.has(
-                node.path
-              )
-            ){
+              if (
+                !expandedFolders.has(
+                  node.path
+                )
+              ){
 
-              childrenWrapper.style.display =
-                "none";
+                childrenWrapper.style.display =
+                  "none";
 
-            }
+              }
 
-          },220);
+            },
+            220
+          );
 
         }
 
@@ -2444,8 +2841,10 @@
           const now =
             Date.now();
 
-          if(
-            now - lastTapTime < 250
+
+          if (
+            now - lastTapTime <
+            250
           ){
 
             e.preventDefault();
@@ -2454,61 +2853,81 @@
 
           }
 
-          lastTapTime = now;
+
+          lastTapTime =
+            now;
 
         },
-        { passive:false }
+        {
+          passive:false
+        }
       );
 
     }
 
 
-    /* ========================================================
-       ВЫБОР ПАПКИ
-       ======================================================== */
+    /*
+      ОБЫЧНЫЙ КЛИК ПО КАТЕГОРИИ
+    */
 
     selectBtn.addEventListener(
       "click",
       () => {
 
-        activeCategory =
-          node.path;
-
-
-        updateCategoryURL(
-          activeCategory
+        navigateToCategory(
+          node.path,
+          false
         );
 
+      }
+    );
 
-        updateActiveFolderDOM(
-          node.path
+
+    /*
+      САМАЯ ВАЖНАЯ НОВАЯ ФИШКА:
+
+      Средняя кнопка мыши / колёсико
+      по категории.
+
+      button === 1
+    */
+
+    selectBtn.addEventListener(
+      "auxclick",
+      e => {
+
+        if (e.button !== 1) {
+          return;
+        }
+
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+
+        navigateToCategory(
+          node.path,
+          true
         );
 
-
-        applyFilters();
-
-
-        window.scrollTo({
-          top:0,
-          behavior:"instant"
-        });
-
-        document.documentElement
-          .scrollTop = 0;
-
-        document.body
-          .scrollTop = 0;
+      }
+    );
 
 
-        if(window.innerWidth <= 1024){
+    /*
+      Некоторые браузеры сначала
+      вызывают mousedown.
+      Блокируем стандартную прокрутку.
+    */
 
-          sidebarEl.classList.remove(
-            "open"
-          );
+    selectBtn.addEventListener(
+      "mousedown",
+      e => {
 
-          sidebarOverlayEl.classList.remove(
-            "open"
-          );
+        if (e.button === 1) {
+
+          e.preventDefault();
 
         }
 
@@ -2521,13 +2940,13 @@
   }
 
 
-  /* ============================================================
-     FILTER
-     ============================================================ */
+  /* =========================================================
+     FILTERING
+     ========================================================= */
 
   function applyFilters(){
 
-    if(
+    if (
       typeof globalStopDragFn ===
       "function"
     ){
@@ -2542,37 +2961,46 @@
       behavior:"instant"
     });
 
-    document.documentElement
-      .scrollTop = 0;
 
-    document.body
-      .scrollTop = 0;
+    document.documentElement.scrollTop =
+      0;
+
+    document.body.scrollTop =
+      0;
 
 
     filteredSkins =
-      allSkins.filter(skin => {
+      allSkins.filter(
+        skin => {
 
-        const matchesCategory =
-          activeCategory === "All" ||
-          skin.category === activeCategory ||
-          skin.category.startsWith(
-            activeCategory + "/"
+          const matchesCategory =
+            activeCategory === "All" ||
+
+            skin.category ===
+              activeCategory ||
+
+            skin.category.startsWith(
+              activeCategory + "/"
+            );
+
+
+          const matchesSearch =
+            !searchTerm ||
+
+            skin.filename
+              .toLowerCase()
+              .includes(
+                searchTerm
+              );
+
+
+          return (
+            matchesCategory &&
+            matchesSearch
           );
 
-
-        const matchesSearch =
-          !searchTerm ||
-          skin.filename
-            .toLowerCase()
-            .includes(searchTerm);
-
-
-        return (
-          matchesCategory &&
-          matchesSearch
-        );
-
-      });
+        }
+      );
 
 
     gridEl.innerHTML = "";
@@ -2580,7 +3008,7 @@
     displayedSkinsCount = 0;
 
 
-    if(!filteredSkins.length){
+    if (!filteredSkins.length) {
 
       emptyStateEl.style.display =
         "block";
@@ -2598,6 +3026,7 @@
     emptyStateEl.style.display =
       "none";
 
+
     sentinelEl.style.display =
       "block";
 
@@ -2611,23 +3040,26 @@
 
     setupSentinel();
 
+    updateActiveFolderDOM(
+      activeCategory
+    );
+
   }
 
-
-  /* ============================================================
-     INFINITE SCROLL
-     ============================================================ */
 
   function loadMoreSkins(){
 
     const nextBatch =
       filteredSkins.slice(
         displayedSkinsCount,
-        displayedSkinsCount + CHUNK_SIZE
+        displayedSkinsCount +
+          CHUNK_SIZE
       );
 
 
-    if(nextBatch.length === 0){
+    if (
+      nextBatch.length === 0
+    ){
 
       sentinelEl.style.display =
         "none";
@@ -2641,13 +3073,15 @@
       document.createDocumentFragment();
 
 
-    nextBatch.forEach(skin => {
+    nextBatch.forEach(
+      skin => {
 
-      fragment.appendChild(
-        buildCard(skin)
-      );
+        fragment.appendChild(
+          buildCard(skin)
+        );
 
-    });
+      }
+    );
 
 
     gridEl.appendChild(
@@ -2659,7 +3093,7 @@
       nextBatch.length;
 
 
-    if(
+    if (
       displayedSkinsCount >=
       filteredSkins.length
     ){
@@ -2685,7 +3119,7 @@
 
   function setupSentinel(){
 
-    if(sentinelObserver){
+    if (sentinelObserver) {
 
       sentinelObserver.disconnect();
 
@@ -2696,7 +3130,7 @@
       new IntersectionObserver(
         entries => {
 
-          if(
+          if (
             entries[0].isIntersecting &&
             filteredSkins.length >
               displayedSkinsCount
@@ -2720,13 +3154,13 @@
   }
 
 
-  /* ============================================================
-     LAZY IMAGES
-     ============================================================ */
+  /* =========================================================
+     IMAGE LAZY LOAD
+     ========================================================= */
 
   function setupCardObserver(){
 
-    if(cardObserver){
+    if (cardObserver) {
 
       cardObserver.disconnect();
 
@@ -2737,17 +3171,25 @@
       new IntersectionObserver(
         entries => {
 
-          entries.forEach(entry => {
+          entries.forEach(
+            entry => {
 
-            if(entry.isIntersecting){
+              if (
+                entry.isIntersecting
+              ){
 
-              loadCardImage(
-                entry.target
-              );
+                const card =
+                  entry.target;
+
+
+                loadCardImage(
+                  card
+                );
+
+              }
 
             }
-
-          });
+          );
 
         },
         {
@@ -2758,13 +3200,10 @@
 
     document
       .querySelectorAll(".card")
-      .forEach(card => {
-
-        cardObserver.observe(
-          card
-        );
-
-      });
+      .forEach(
+        card =>
+          cardObserver.observe(card)
+      );
 
   }
 
@@ -2778,7 +3217,9 @@
       card.dataset.url;
 
 
-    if(imgCache.has(url)){
+    if (
+      imgCache.has(url)
+    ){
 
       renderCardContent(
         card,
@@ -2790,7 +3231,9 @@
     }
 
 
-    if(activeLoads.has(id)){
+    if (
+      activeLoads.has(id)
+    ){
 
       return;
 
@@ -2801,17 +3244,29 @@
       new Image();
 
 
+    activeLoads.set(
+      id,
+      true
+    );
+
+
     img.onload = () => {
 
       img.onload = null;
+
       img.onerror = null;
 
-      activeLoads.delete(id);
+
+      activeLoads.delete(
+        id
+      );
+
 
       imgCache.set(
         url,
         img
       );
+
 
       renderCardContent(
         card,
@@ -2824,9 +3279,13 @@
     img.onerror = () => {
 
       img.onload = null;
+
       img.onerror = null;
 
-      activeLoads.delete(id);
+
+      activeLoads.delete(
+        id
+      );
 
 
       const placeholder =
@@ -2835,14 +3294,16 @@
         );
 
 
-      if(placeholder){
+      if (placeholder) {
 
         placeholder.innerHTML =
           `
-          <span style="
-            color:#f87171;
-            font-size:11px;
-          ">
+          <span
+            style="
+              color:#f87171;
+              font-size:11px;
+            "
+          >
             Сбой загрузки
           </span>
           `;
@@ -2857,9 +3318,9 @@
   }
 
 
-  /* ============================================================
-     CARD CONTENT
-     ============================================================ */
+  /* =========================================================
+     RENDER CARD
+     ========================================================= */
 
   function renderCardContent(
     card,
@@ -2871,15 +3332,18 @@
         ".viewer-box"
       );
 
+
     const placeholder =
       viewerBox.querySelector(
         ".placeholder"
       );
 
+
     const flatImg =
       viewerBox.querySelector(
         ".skin-flat-img"
       );
+
 
     const canvas =
       viewerBox.querySelector(
@@ -2887,7 +3351,7 @@
       );
 
 
-    if(placeholder){
+    if (placeholder) {
 
       placeholder.style.display =
         "none";
@@ -2898,6 +3362,7 @@
     const w =
       img.naturalWidth;
 
+
     const h =
       img.naturalHeight;
 
@@ -2907,17 +3372,18 @@
 
 
     const isSkin =
-      Math.abs(ratio - 1) < .03 ||
-      Math.abs(ratio - 2) < .03;
+      Math.abs(ratio - 1) < 0.03 ||
+      Math.abs(ratio - 2) < 0.03;
 
 
-    if(
+    if (
       currentLayout === "model" &&
       isSkin
     ){
 
       flatImg.style.display =
         "none";
+
 
       canvas.style.display =
         "block";
@@ -2937,7 +3403,7 @@
         );
 
 
-      if(skinData){
+      if (skinData) {
 
         init3DDragControls(
           card,
@@ -2946,21 +3412,22 @@
 
       }
 
-    }else{
+    } else {
 
       canvas.style.display =
         "none";
+
 
       flatImg.style.display =
         "block";
 
 
-      if(w <= 256){
+      if (w <= 256) {
 
         flatImg.style.imageRendering =
           "pixelated";
 
-      }else{
+      } else {
 
         flatImg.style.imageRendering =
           "auto";
@@ -2968,7 +3435,7 @@
       }
 
 
-      if(
+      if (
         flatImg.src !==
         img.src
       ){
@@ -2983,20 +3450,23 @@
   }
 
 
-  /* ============================================================
+  /* =========================================================
      CARD
-     ============================================================ */
+     ========================================================= */
 
   function buildCard(skin){
 
     const card =
       document.createElement("div");
 
+
     card.className =
       "card";
 
+
     card.dataset.id =
       skin.id;
+
 
     card.dataset.url =
       skin.url;
@@ -3005,6 +3475,7 @@
     const viewerBox =
       document.createElement("div");
 
+
     viewerBox.className =
       "viewer-box";
 
@@ -3012,8 +3483,10 @@
     const placeholder =
       document.createElement("div");
 
+
     placeholder.className =
       "placeholder";
+
 
     placeholder.innerHTML =
       `<div class="spinner"></div>`;
@@ -3027,8 +3500,10 @@
     const img =
       document.createElement("img");
 
+
     img.alt =
       skin.filename;
+
 
     img.className =
       "skin-flat-img";
@@ -3042,8 +3517,14 @@
     const canvas =
       document.createElement("canvas");
 
-    canvas.width = 160;
-    canvas.height = 320;
+
+    canvas.width =
+      160;
+
+
+    canvas.height =
+      320;
+
 
     canvas.className =
       "skin-2d-canvas";
@@ -3059,23 +3540,63 @@
     );
 
 
-    /* ========================================================
-       КЛИК ПО ОБЫЧНОМУ PNG
-       ======================================================== */
+    /* =====================================================
+       ОТКРЫТИЕ СКИНА ПО КЛИКУ
+       ===================================================== */
 
     viewerBox.addEventListener(
       "click",
       e => {
 
-        if(
-          currentLayout !== "model"
+        /*
+          Если это был drag,
+          ничего не открываем.
+        */
+
+        if (
+          card.classList.contains(
+            "interacting"
+          )
         ){
 
-          window.open(
-            skin.url,
-            "_blank",
-            "noopener"
-          );
+          return;
+
+        }
+
+
+        /*
+          В режиме 3D обычный клик
+          по модели тоже открывает
+          оригинальный PNG.
+        */
+
+        window.open(
+          skin.url,
+          "_blank",
+          "noopener"
+        );
+
+      }
+    );
+
+
+    /* =====================================================
+       СРЕДНЯЯ КНОПКА / КОЛЁСИКО
+       ===================================================== */
+
+    viewerBox.addEventListener(
+      "mousedown",
+      e => {
+
+        if (e.button === 1) {
+
+          /*
+            Не даём браузеру включить
+            горизонтальную/вертикальную
+            прокрутку.
+          */
+
+          e.preventDefault();
 
         }
 
@@ -3083,12 +3604,42 @@
     );
 
 
-    /* ========================================================
+    viewerBox.addEventListener(
+      "auxclick",
+      e => {
+
+        if (e.button !== 1) {
+          return;
+        }
+
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+
+        /*
+          Открываем оригинальный PNG
+          в новой вкладке.
+        */
+
+        window.open(
+          skin.url,
+          "_blank",
+          "noopener"
+        );
+
+      }
+    );
+
+
+    /* =====================================================
        INFO
-       ======================================================== */
+       ===================================================== */
 
     const info =
       document.createElement("div");
+
 
     info.className =
       "card-info";
@@ -3097,11 +3648,14 @@
     const name =
       document.createElement("div");
 
+
     name.className =
       "name";
 
+
     name.textContent =
       skin.filename;
+
 
     name.title =
       skin.filename;
@@ -3112,17 +3666,24 @@
     );
 
 
+    /*
+      cat-tag больше НЕ добавляем.
+      Подпись сериала полностью убрана.
+    */
+
+
     card.appendChild(
       info
     );
 
 
-    /* ========================================================
-       ACTIONS — ОСТАВЛЯЕМ ТОЛЬКО КОПИРОВАТЬ
-       ======================================================== */
+    /* =====================================================
+       COPY BUTTON
+       ===================================================== */
 
     const actions =
       document.createElement("div");
+
 
     actions.className =
       "actions";
@@ -3130,6 +3691,7 @@
 
     const copyBtn =
       document.createElement("button");
+
 
     copyBtn.className =
       "btn copy-btn";
@@ -3142,22 +3704,19 @@
         stroke="currentColor"
         stroke-width="2"
         stroke-linecap="round"
-        stroke-linejoin="round">
-
+        stroke-linejoin="round"
+      >
         <rect
           x="9"
           y="9"
           width="13"
           height="13"
-          rx="2">
-        </rect>
+          rx="2"
+        ></rect>
 
         <path
-          d="M5 15H4a2 2 0 0 1-2-2V4
-             a2 2 0 0 1 2-2h9
-             a2 2 0 0 1 2 2v1">
-        </path>
-
+          d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+        ></path>
       </svg>
 
       Копировать
@@ -3184,6 +3743,11 @@
     );
 
 
+    /*
+      Кнопка "Открыть" полностью удалена.
+    */
+
+
     card.appendChild(
       actions
     );
@@ -3194,32 +3758,36 @@
   }
 
 
-  /* ============================================================
+  /* =========================================================
      COPY URL
-     ============================================================ */
+     ========================================================= */
 
   async function copyUrl(
     url,
     btn
   ){
 
-    try{
+    try {
 
       await navigator.clipboard.writeText(
         url
       );
 
-    }catch(err){
+    } catch(err){
 
       const ta =
         document.createElement(
           "textarea"
         );
 
-      ta.value = url;
+
+      ta.value =
+        url;
+
 
       ta.style.position =
         "fixed";
+
 
       ta.style.opacity =
         "0";
@@ -3229,16 +3797,17 @@
         ta
       );
 
+
       ta.select();
 
 
-      try{
+      try {
 
         document.execCommand(
           "copy"
         );
 
-      }catch(e){}
+      } catch(e){}
 
 
       document.body.removeChild(
@@ -3256,29 +3825,35 @@
       "copied"
     );
 
+
     btn.textContent =
       "Готово!";
 
 
-    setTimeout(() => {
+    setTimeout(
+      () => {
 
-      btn.classList.remove(
-        "copied"
-      );
+        btn.classList.remove(
+          "copied"
+        );
 
-      btn.innerHTML =
-        originalHTML;
 
-    },1200);
+        btn.innerHTML =
+          originalHTML;
+
+      },
+      1200
+    );
 
   }
 
 
-  /* ============================================================
+  /* =========================================================
      SEARCH
-     ============================================================ */
+     ========================================================= */
 
-  let searchDebounceTimer = null;
+  let searchDebounceTimer =
+    null;
 
 
   searchInputEl.addEventListener(
@@ -3295,47 +3870,64 @@
 
 
       searchDebounceTimer =
-        setTimeout(() => {
+        setTimeout(
+          () => {
 
-          searchTerm =
-            value
-              .trim()
-              .toLowerCase();
+            searchTerm =
+              value
+                .trim()
+                .toLowerCase();
 
-          applyFilters();
 
-        },150);
+            applyFilters();
+
+          },
+          150
+        );
 
     }
   );
 
 
-  /* ============================================================
-     BROWSER BACK / FORWARD
-     ============================================================ */
+  /* =========================================================
+     HTML ESCAPE
+     ========================================================= */
 
-  window.addEventListener(
-    "popstate",
-    () => {
+  function escapeHTML(value){
 
-      activeCategory =
-        getCategoryFromURL();
+    return String(value)
 
+      .replace(
+        /&/g,
+        "&amp;"
+      )
 
-      updateActiveFolderDOM(
-        activeCategory
+      .replace(
+        /</g,
+        "&lt;"
+      )
+
+      .replace(
+        />/g,
+        "&gt;"
+      )
+
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+
+      .replace(
+        /'/g,
+        "&#039;"
       );
 
-
-      applyFilters();
-
-    }
-  );
+  }
 
 
-  /* ============================================================
+  /* =========================================================
      INIT
-     ============================================================ */
+     ========================================================= */
 
   async function init(){
 
@@ -3343,87 +3935,21 @@
 
     updateHeaderHeight();
 
-
     await loadData();
-
-
-    /* --------------------------------------------------------
-       Читаем категорию из URL
-       -------------------------------------------------------- */
-
-    const urlCategory =
-      getCategoryFromURL();
-
-
-    const categoryExists =
-      urlCategory === "All" ||
-      allSkins.some(
-        skin =>
-          skin.category === urlCategory ||
-          skin.category.startsWith(
-            urlCategory + "/"
-          )
-      );
-
-
-    if(categoryExists){
-
-      activeCategory =
-        urlCategory;
-
-    }else{
-
-      activeCategory =
-        "All";
-
-    }
-
-
-    /* --------------------------------------------------------
-       Автоматически раскрываем папки,
-       если категория вложенная
-       -------------------------------------------------------- */
-
-    if(activeCategory !== "All"){
-
-      const parts =
-        activeCategory.split("/");
-
-      let path = "";
-
-      parts.forEach(part => {
-
-        path =
-          path
-            ? path + "/" + part
-            : part;
-
-        expandedFolders.add(
-          path
-        );
-
-      });
-
-      expandedFolders.add(
-        "All"
-      );
-
-    }
-
 
     renderCategories();
 
+    /*
+      Если человек открыл:
+
+      /skins/Otec
+
+      activeCategory уже будет
+      "Otec", поэтому сразу покажется
+      нужная папка.
+    */
+
     applyFilters();
-
-
-    /* --------------------------------------------------------
-       После построения дерева ещё раз
-       подсвечиваем активную папку
-       -------------------------------------------------------- */
-
-    updateActiveFolderDOM(
-      activeCategory
-    );
 
 
     setTimeout(
