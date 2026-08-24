@@ -1147,21 +1147,30 @@
     );
 
 
-  /*
-    GitHub Pages:
+// Корень GitHub Pages репозитория.
+// Для https://nuckem.github.io/skins/Otec
+// это будет https://nuckem.github.io/skins/
+const BASE_PATH = (() => {
+  const path = window.location.pathname;
 
-    https://nuckem.github.io/skins/
+  // Если сайт находится на GitHub Pages вида:
+  // username.github.io/repository/
+  if (location.hostname.endsWith("github.io")) {
+    const parts = path.split("/").filter(Boolean);
 
-    BASE_URL всегда указывает именно на /skins/.
-  */
+    // Первый сегмент = название репозитория
+    if (parts.length > 0) {
+      return "/" + parts[0] + "/";
+    }
+  }
 
-  const BASE_PATH = "/skins/";
+  return "/";
+})();
 
-  const BASE_URL =
-    new URL(
-      BASE_PATH + "images/",
-      window.location.origin
-    ).href;
+const BASE_URL = new URL(
+  "images/",
+  window.location.origin + BASE_PATH
+).href;
 
 
   const gridEl =
