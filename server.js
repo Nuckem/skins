@@ -153,7 +153,7 @@ app.get("/auth/discord", (req, res) => {
 // DISCORD CALLBACK
 // ============================================================
 
-app.get("/auth/callback", async (req, res) => {
+app.get("/auth/discord/callback", async (req, res) => {
 
     const code =
         req.query.code;
