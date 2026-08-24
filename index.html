@@ -523,6 +523,10 @@ header{
   justify-content:center;
   user-select:none;
   -webkit-user-select:none;
+
+  /* ВАЖНО:
+     не даём СКМ включать autoscroll браузера */
+  overscroll-behavior:contain;
 }
 
 .placeholder{
@@ -804,90 +808,10 @@ footer{
     width:100%;
   }
 }
-
-/* ============================================================
-   USER BLOCK (авторизация в header)
-   ============================================================ */
-
-.user-block{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-shrink:0;
-}
-
-.user-avatar{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  border:2px solid var(--accent);
-  object-fit:cover;
-  flex-shrink:0;
-}
-
-.user-name{
-  font-size:14px;
-  font-weight:600;
-  color:var(--text);
-  white-space:nowrap;
-  max-width:140px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.logout-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:7px 14px;
-  border-radius:10px;
-  background:rgba(239,68,68,0.15);
-  border:1px solid rgba(239,68,68,0.35);
-  color:#f87171;
-  font-size:13px;
-  font-weight:600;
-  text-decoration:none;
-  cursor:pointer;
-  transition:.15s ease;
-  white-space:nowrap;
-}
-
-.logout-btn:hover{
-  background:rgba(239,68,68,0.28);
-  border-color:#ef4444;
-  color:#fff;
-}
-
 </style>
 </head>
 
 <body>
-
-<script>
-(function(){
-  fetch("/auth/me")
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(!data.authenticated){
-        window.location.href = "/login";
-        return;
-      }
-      var u = data.user;
-      var block = document.getElementById("user-block");
-      if(!block) return;
-      var avatarEl = block.querySelector(".user-avatar");
-      var nameEl   = block.querySelector(".user-name");
-      if(avatarEl) avatarEl.src = u.avatar || "";
-      if(nameEl)   nameEl.textContent = u.global_name || u.username || "";
-      block.style.display = "flex";
-    })
-    .catch(function(){
-      window.location.href = "/login";
-    });
-})();
-</script>
-
-
 
 <header>
   <div class="header-top">
@@ -1001,19 +925,6 @@ footer{
         Загрузка...
       </div>
 
-      <div class="user-block" id="user-block" style="display:none;">
-        <img class="user-avatar" src="" alt="avatar">
-        <span class="user-name"></span>
-        <a class="logout-btn" href="/auth/logout">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          Выйти
-        </a>
-      </div>
-
     </div>
 
   </div>
@@ -1110,16 +1021,9 @@ footer{
 
   function getBasePath(){
 
-    /*
-     * Всегда определяем репозиторий GitHub Pages.
-     *
-     * https://nuckem.github.io/skins/
-     *                  ^^^^^
-     *
-     * base = /skins/
-     */
-
-    if(location.hostname.endsWith("github.io")){
+    if(
+      location.hostname.endsWith("github.io")
+    ){
 
       const parts =
         location.pathname
@@ -1132,123 +1036,73 @@ footer{
 
       }
 
-      return "/";
-
     }
 
     return "/";
 
   }
 
-  const BASE_PATH =
-    getBasePath();
-
-  const BASE_ORIGIN =
-    window.location.origin;
+  const BASE_PATH = getBasePath();
 
   const BASE_URL =
     new URL(
       "images/",
-      BASE_ORIGIN + BASE_PATH
+      window.location.origin + BASE_PATH
     ).href;
 
   const DATA_URL =
     new URL(
       "data.json",
-      BASE_ORIGIN + BASE_PATH
+      window.location.origin + BASE_PATH
     ).href;
 
   /* ============================================================
-     CATEGORY FROM URL
+     URL / CATEGORY
      ============================================================ */
 
   function getCategoryFromURL(){
-
-    /*
-     * 1. Сначала проверяем параметр,
-     * который передаёт 404.html.
-     *
-     * Например:
-     *
-     * /skins/?route=Otec
-     *
-     * Это позволяет GitHub Pages
-     * восстановить красивый URL.
-     */
-
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    const route =
-      params.get("route");
-
-    if(route){
-
-      return decodeURIComponent(
-        route
-      ).replace(
-        /^\/+/,
-        ""
-      ).replace(
-        /\/+$/,
-        ""
-      ) || "All";
-
-    }
-
-    /*
-     * Обычный красивый URL:
-     *
-     * /skins/Otec
-     */
 
     let path =
       decodeURIComponent(
         window.location.pathname
       );
 
-    path =
-      path.replace(
-        /\/+$/,
-        ""
-      );
-
-    const baseWithoutSlash =
-      BASE_PATH.replace(
-        /\/+$/,
-        ""
-      );
-
-    /*
-     * Убираем /skins
-     */
-
     if(
-      location.hostname.endsWith("github.io") &&
-      (
-        path === baseWithoutSlash ||
-        path.startsWith(
-          baseWithoutSlash + "/"
-        )
-      )
+      location.hostname.endsWith("github.io")
     ){
 
-      path =
-        path.substring(
-          baseWithoutSlash.length
-        );
+      const parts =
+        path
+          .split("/")
+          .filter(Boolean);
+
+      /*
+       * /skins/
+       */
+      if(parts.length <= 1){
+
+        return "All";
+
+      }
+
+      /*
+       * /skins/Otec
+       * /skins/Otec/subfolder
+       */
+      return parts
+        .slice(1)
+        .join("/");
 
     }
 
-    path =
-      path.replace(
-        /^\/+/,
-        ""
-      );
+    const parts =
+      path
+        .split("/")
+        .filter(Boolean);
 
-    return path || "All";
+    return parts.length
+      ? parts.join("/")
+      : "All";
 
   }
 
@@ -1277,18 +1131,11 @@ footer{
   let sentinelObserver = null;
 
   /*
-   * Если layout ещё не сохранён,
-   * используем стандартную сетку.
-   *
-   * Это также исправляет проблему,
-   * когда после обновления страница
-   * выглядела как огромные картинки.
+   * По умолчанию 3D.
+   * Сохраняется между перезагрузками.
    */
-
   let currentLayout =
-    localStorage.getItem(
-      "gallery-layout"
-    ) || "standard";
+    localStorage.getItem("gallery-layout") || "model";
 
   /* ============================================================
      DOM
@@ -1426,17 +1273,6 @@ footer{
      ============================================================ */
 
   function initLayout(){
-
-    /*
-     * Сразу устанавливаем layout-класс.
-     * Нельзя ждать первого переключения,
-     * иначе после reload grid не имеет
-     * колонок и картинки растягиваются.
-     */
-
-    gridEl.className =
-      "grid layout-" +
-      currentLayout;
 
     document
       .querySelectorAll(".layout-btn")
@@ -1620,12 +1456,14 @@ footer{
     }
 
     return raw
+
       .filter(
         item =>
           item &&
           typeof item.file === "string" &&
           item.file.trim().length
       )
+
       .map(
         (item,index) => {
 
@@ -2019,17 +1857,28 @@ footer{
       }
 
       /*
-       * ТОЛЬКО ЛЕВАЯ КНОПКА запускает
-       * вращение 3D.
+       * ТОЛЬКО ЛКМ запускает вращение.
        *
-       * Средняя кнопка НЕ перехватывается.
-       * Благодаря этому браузер сам делает
-       * стандартное открытие в новой вкладке
-       * без переключения на неё.
+       * СКМ полностью игнорируется здесь,
+       * чтобы auxclick мог обработать её отдельно.
        */
 
       if(
         e.type === "mousedown" &&
+        e.button !== 0
+      ){
+
+        return;
+
+      }
+
+      if(
+        e.type === "touchstart"
+      ){
+
+        /* touch разрешён */
+
+      }else if(
         e.button !== 0
       ){
 
@@ -2225,11 +2074,17 @@ footer{
     globalStopDragFn =
       stopDrag;
 
+    /*
+     * ЛКМ — drag.
+     */
     viewerBox.addEventListener(
       "mousedown",
       startDrag
     );
 
+    /*
+     * Touch.
+     */
     viewerBox.addEventListener(
       "touchstart",
       startDrag,
@@ -2379,25 +2234,52 @@ footer{
     }
 
     /*
-     * ВАЖНО:
+     * encodeURI сохраняет "/" между папками,
+     * но кодирует пробелы и спецсимволы.
      *
+     * Получается:
      * /skins/Otec
-     *
-     * а НЕ
-     *
-     * /skins/?category=Otec
+     * /skins/Otec/Training
      */
+
+    const encodedPath =
+      path
+        .split("/")
+        .map(
+          part => encodeURIComponent(part)
+        )
+        .join("/");
 
     return (
       window.location.origin +
       BASE_PATH +
-      path
-        .split("/")
-        .map(
-          encodeURIComponent
-        )
-        .join("/")
+      encodedPath
     );
+
+  }
+
+  function openCategoryNewTab(path){
+
+    /*
+     * СКМ по папке:
+     * новая вкладка + текущая вкладка остаётся активной.
+     */
+
+    const newTab =
+      window.open(
+        categoryURL(path),
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    /*
+     * НЕ вызываем newTab.focus()
+     * и НЕ вызываем window.focus().
+     *
+     * Это принципиально.
+     */
+
+    return newTab;
 
   }
 
@@ -2522,28 +2404,50 @@ footer{
       row
     );
 
+    /* ========================================================
+       СКМ ПО ПАПКЕ
+       ======================================================== */
+
     /*
-     * ==========================================================
-     * СРЕДНЯЯ КНОПКА / КОЛЁСИКО
-     * ==========================================================
-     *
-     * НИЧЕГО НЕ ПЕРЕХВАТЫВАЕМ.
-     *
-     * Именно это нужно для поведения как на YouTube:
-     *
-     * колёсико →
-     * новая вкладка →
-     * текущая вкладка остаётся активной.
-     *
-     * Поэтому здесь НЕТ:
-     *
-     * window.open()
-     * preventDefault()
-     * auxclick
-     * mousedown для button === 1
-     *
-     * Браузер сам обработает middle click.
+     * pointerdown нужен для отключения
+     * стандартной автопрокрутки браузера.
      */
+    selectBtn.addEventListener(
+      "pointerdown",
+      e => {
+
+        if(e.button === 1){
+
+          e.preventDefault();
+
+        }
+
+      }
+    );
+
+    /*
+     * auxclick — правильное событие для СКМ.
+     */
+    selectBtn.addEventListener(
+      "auxclick",
+      e => {
+
+        if(e.button !== 1){
+
+          return;
+
+        }
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        openCategoryNewTab(
+          node.path
+        );
+
+      }
+    );
 
     if(hasChildren){
 
@@ -2680,7 +2584,18 @@ footer{
 
     selectBtn.addEventListener(
       "click",
-      () => {
+      e => {
+
+        /*
+         * click теперь должен обрабатывать
+         * только обычную ЛКМ.
+         */
+
+        if(e.button !== 0){
+
+          return;
+
+        }
 
         activeCategory =
           node.path;
@@ -3320,7 +3235,21 @@ footer{
 
     viewerBox.addEventListener(
       "click",
-      () => {
+      e => {
+
+        /*
+         * Только ЛКМ.
+         */
+        if(e.button !== 0){
+
+          return;
+
+        }
+
+        /*
+         * Если только что был drag,
+         * не открываем ссылку.
+         */
 
         if(
           isDragging
@@ -3329,6 +3258,11 @@ footer{
           return;
 
         }
+
+        /*
+         * В 3D режиме картинка нужна
+         * для вращения.
+         */
 
         if(
           currentLayout === "model"
@@ -3341,24 +3275,93 @@ footer{
         window.open(
           skin.url,
           "_blank",
-          "noopener"
+          "noopener,noreferrer"
+        );
+
+      }
+    );
+
+    /* ========================================================
+       СКМ ПО КАРТИНКЕ
+       ======================================================== */
+
+    /*
+     * Сначала блокируем стандартный autoscroll.
+     *
+     * Это делается на pointerdown, потому что
+     * стандартное действие средней кнопки может
+     * произойти раньше auxclick.
+     */
+
+    viewerBox.addEventListener(
+      "pointerdown",
+      e => {
+
+        if(e.button === 1){
+
+          e.preventDefault();
+
+        }
+
+      }
+    );
+
+    /*
+     * А само открытие новой вкладки делаем
+     * именно в auxclick.
+     *
+     * Это аналог middle-click по ссылке.
+     */
+
+    viewerBox.addEventListener(
+      "auxclick",
+      e => {
+
+        if(e.button !== 1){
+
+          return;
+
+        }
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        /*
+         * ВАЖНО:
+         *
+         * НИКАКОГО window.focus()
+         * НИКАКОГО newTab.focus()
+         *
+         * Браузеру даём самому открыть вкладку
+         * в фоне, как обычный СКМ.
+         */
+
+        window.open(
+          skin.url,
+          "_blank",
+          "noopener,noreferrer"
         );
 
       }
     );
 
     /*
-     * ========================================================
-     * СРЕДНЯЯ КНОПКА / КОЛЁСИКО
-     * ========================================================
-     *
-     * Здесь намеренно НЕТ обработчиков.
-     *
-     * Браузер получает обычный middle-click
-     * и открывает URL в новой фоновой вкладке.
-     *
-     * Как на YouTube.
+     * Дополнительная защита от стандартного
+     * поведения средней кнопки.
      */
+    viewerBox.addEventListener(
+      "mousedown",
+      e => {
+
+        if(e.button === 1){
+
+          e.preventDefault();
+
+        }
+
+      }
+    );
 
     return card;
 
@@ -3527,7 +3530,15 @@ footer{
     await loadData();
 
     /*
-     * Проверяем категорию.
+     * Проверяем категорию ПОСЛЕ загрузки data.json.
+     *
+     * Важно:
+     * если пользователь открыл
+     *
+     * /skins/Otec
+     *
+     * и Otec существует,
+     * URL НИКОГДА не переписывается.
      */
 
     const categoryExists =
@@ -3542,6 +3553,12 @@ footer{
 
     if(!categoryExists){
 
+      /*
+       * Только действительно несуществующая
+       * категория возвращает пользователя
+       * на главную.
+       */
+
       activeCategory =
         "All";
 
@@ -3553,43 +3570,32 @@ footer{
 
     }
 
-    /*
-     * Если 404.html передал нам
-     * ?route=Otec, теперь заменяем
-     * временный URL на красивый:
-     *
-     * /skins/?route=Otec
-     *
-     * ↓
-     *
-     * /skins/Otec
-     */
-
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
-
-    if(params.has("route")){
-
-      const cleanURL =
-        categoryURL(
-          activeCategory
-        );
-
-      window.history.replaceState(
-        {
-          category:activeCategory
-        },
-        "",
-        cleanURL
-      );
-
-    }
-
     renderCategories();
 
+    /*
+     * Если URL содержит категорию,
+     * она остаётся в адресной строке.
+     */
     applyFilters();
+
+    /*
+     * Дополнительная установка класса layout.
+     * Это особенно важно при F5.
+     */
+    gridEl.className =
+      "grid layout-" +
+      currentLayout;
+
+    document
+      .querySelectorAll(".layout-btn")
+      .forEach(btn => {
+
+        btn.classList.toggle(
+          "active",
+          btn.dataset.layout === currentLayout
+        );
+
+      });
 
     setTimeout(
       updateHeaderHeight,
