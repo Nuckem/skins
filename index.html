@@ -481,66 +481,7 @@ header{
 .grid{
   display:grid;
   gap:22px;
-  width:100%;
 }
-
-/*
- * ВАЖНО:
- * Классы layout-* должны определять сетку уже
- * при первоначальной загрузке страницы.
- */
-
-.grid.layout-standard{
-  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-}
-
-.grid.layout-standard .viewer-box{
-  height:250px;
-}
-
-.grid.layout-compact{
-  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
-  gap:12px;
-}
-
-.grid.layout-compact .card{
-  padding:10px;
-  border-radius:12px;
-}
-
-.grid.layout-compact .viewer-box{
-  height:150px;
-}
-
-.grid.layout-compact .card-info{
-  margin-top:6px;
-}
-
-.grid.layout-compact .name{
-  font-size:11.5px;
-}
-
-.grid.layout-compact .actions{
-  margin-top:6px;
-}
-
-.grid.layout-compact .btn{
-  padding:6px 4px;
-  font-size:10.5px;
-  border-radius:6px;
-}
-
-.grid.layout-model{
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-}
-
-.grid.layout-model .viewer-box{
-  height:250px;
-}
-
-/* ============================================================
-   CARD
-   ============================================================ */
 
 .card{
   background:linear-gradient(180deg,var(--card),#0d1420);
@@ -555,7 +496,6 @@ header{
   position:relative;
   overflow:hidden;
   contain:content;
-  min-width:0;
 }
 
 .card:hover{
@@ -583,7 +523,6 @@ header{
   justify-content:center;
   user-select:none;
   -webkit-user-select:none;
-  min-height:0;
 }
 
 .placeholder{
@@ -631,13 +570,6 @@ header{
   max-width:90%;
   max-height:90%;
   cursor:grab;
-
-  /*
-   * Не даём canvas разрастаться больше viewer-box.
-   */
-  width:auto;
-  height:auto;
-  object-fit:contain;
 }
 
 .skin-2d-canvas:active{
@@ -649,8 +581,6 @@ header{
   width:100%!important;
   height:100%!important;
   display:none;
-  max-width:none!important;
-  max-height:none!important;
 }
 
 .card:hover .viewer-box img,
@@ -676,10 +606,6 @@ header{
   overflow:hidden;
   text-overflow:ellipsis;
 }
-
-/* ============================================================
-   ACTIONS
-   ============================================================ */
 
 .actions{
   margin-top:10px;
@@ -725,6 +651,58 @@ header{
   width:13px;
   height:13px;
   flex-shrink:0;
+}
+
+/* ============================================================
+   LAYOUTS
+   ============================================================ */
+
+.grid.layout-standard{
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+}
+
+.grid.layout-standard .viewer-box{
+  height:250px;
+}
+
+.grid.layout-compact{
+  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
+  gap:12px;
+}
+
+.grid.layout-compact .card{
+  padding:10px;
+  border-radius:12px;
+}
+
+.grid.layout-compact .viewer-box{
+  height:150px;
+}
+
+.grid.layout-compact .card-info{
+  margin-top:6px;
+}
+
+.grid.layout-compact .name{
+  font-size:11.5px;
+}
+
+.grid.layout-compact .actions{
+  margin-top:6px;
+}
+
+.grid.layout-compact .btn{
+  padding:6px 4px;
+  font-size:10.5px;
+  border-radius:6px;
+}
+
+.grid.layout-model{
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+}
+
+.grid.layout-model .viewer-box{
+  height:250px;
 }
 
 /* ============================================================
@@ -793,7 +771,6 @@ footer{
   .main-content{
     padding:20px 16px 40px;
   }
-
 }
 
 @media(max-width:768px){
@@ -826,7 +803,6 @@ footer{
   .stats{
     width:100%;
   }
-
 }
 </style>
 </head>
@@ -1000,7 +976,7 @@ footer{
   <main class="main-content">
 
     <div
-      class="grid layout-model"
+      class="grid"
       id="grid"
     ></div>
 
@@ -1041,9 +1017,16 @@ footer{
 
   function getBasePath(){
 
-    if(
-      location.hostname.endsWith("github.io")
-    ){
+    /*
+     * Всегда определяем репозиторий GitHub Pages.
+     *
+     * https://nuckem.github.io/skins/
+     *                  ^^^^^
+     *
+     * base = /skins/
+     */
+
+    if(location.hostname.endsWith("github.io")){
 
       const parts =
         location.pathname
@@ -1056,6 +1039,8 @@ footer{
 
       }
 
+      return "/";
+
     }
 
     return "/";
@@ -1065,58 +1050,112 @@ footer{
   const BASE_PATH =
     getBasePath();
 
+  const BASE_ORIGIN =
+    window.location.origin;
+
   const BASE_URL =
     new URL(
       "images/",
-      window.location.origin + BASE_PATH
+      BASE_ORIGIN + BASE_PATH
     ).href;
 
   const DATA_URL =
     new URL(
       "data.json",
-      window.location.origin + BASE_PATH
+      BASE_ORIGIN + BASE_PATH
     ).href;
 
   /* ============================================================
-     URL / CATEGORY
+     CATEGORY FROM URL
      ============================================================ */
 
   function getCategoryFromURL(){
+
+    /*
+     * 1. Сначала проверяем параметр,
+     * который передаёт 404.html.
+     *
+     * Например:
+     *
+     * /skins/?route=Otec
+     *
+     * Это позволяет GitHub Pages
+     * восстановить красивый URL.
+     */
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const route =
+      params.get("route");
+
+    if(route){
+
+      return decodeURIComponent(
+        route
+      ).replace(
+        /^\/+/,
+        ""
+      ).replace(
+        /\/+$/,
+        ""
+      ) || "All";
+
+    }
+
+    /*
+     * Обычный красивый URL:
+     *
+     * /skins/Otec
+     */
 
     let path =
       decodeURIComponent(
         window.location.pathname
       );
 
+    path =
+      path.replace(
+        /\/+$/,
+        ""
+      );
+
+    const baseWithoutSlash =
+      BASE_PATH.replace(
+        /\/+$/,
+        ""
+      );
+
+    /*
+     * Убираем /skins
+     */
+
     if(
-      location.hostname.endsWith("github.io")
+      location.hostname.endsWith("github.io") &&
+      (
+        path === baseWithoutSlash ||
+        path.startsWith(
+          baseWithoutSlash + "/"
+        )
+      )
     ){
 
-      const parts =
-        path
-          .split("/")
-          .filter(Boolean);
-
-      if(parts.length <= 1){
-
-        return "All";
-
-      }
-
-      return parts
-        .slice(1)
-        .join("/");
+      path =
+        path.substring(
+          baseWithoutSlash.length
+        );
 
     }
 
-    const parts =
-      path
-        .split("/")
-        .filter(Boolean);
+    path =
+      path.replace(
+        /^\/+/,
+        ""
+      );
 
-    return parts.length
-      ? parts.join("/")
-      : "All";
+    return path || "All";
 
   }
 
@@ -1145,30 +1184,18 @@ footer{
   let sentinelObserver = null;
 
   /*
-   * Берём сохранённый layout,
-   * но проверяем его.
+   * Если layout ещё не сохранён,
+   * используем стандартную сетку.
+   *
+   * Это также исправляет проблему,
+   * когда после обновления страница
+   * выглядела как огромные картинки.
    */
 
   let currentLayout =
     localStorage.getItem(
       "gallery-layout"
-    ) || "model";
-
-  const allowedLayouts = [
-    "compact",
-    "standard",
-    "model"
-  ];
-
-  if(
-    !allowedLayouts.includes(
-      currentLayout
-    )
-  ){
-
-    currentLayout = "model";
-
-  }
+    ) || "standard";
 
   /* ============================================================
      DOM
@@ -1205,31 +1232,6 @@ footer{
     document.getElementById("sidebarCloseBtn");
 
   /* ============================================================
-     САМОЕ ВАЖНОЕ ИСПРАВЛЕНИЕ
-     ============================================================ */
-
-  /*
-   * Применяем layout ДО первой отрисовки карточек.
-   *
-   * Раньше класс добавлялся только при клике
-   * по кнопке "Компактно / Сетка / 3D Фото".
-   *
-   * Из-за этого после F5:
-   *
-   * <div class="grid">
-   *
-   * вместо:
-   *
-   * <div class="grid layout-model">
-   *
-   * и карточки могли занимать всю ширину.
-   */
-
-  gridEl.className =
-    "grid layout-" +
-    currentLayout;
-
-  /* ============================================================
      IMAGE ANALYSIS
      ============================================================ */
 
@@ -1253,11 +1255,6 @@ footer{
 
   global3dCanvas.id =
     "global-3d-canvas";
-
-  /*
-   * Не помещаем его в DOM заранее.
-   * Он появляется только при начале вращения.
-   */
 
   let globalViewer = null;
 
@@ -1338,7 +1335,10 @@ footer{
   function initLayout(){
 
     /*
-     * Ещё раз гарантируем правильный класс.
+     * Сразу устанавливаем layout-класс.
+     * Нельзя ждать первого переключения,
+     * иначе после reload grid не имеет
+     * колонок и картинки растягиваются.
      */
 
     gridEl.className =
@@ -1382,14 +1382,6 @@ footer{
               currentLayout
             );
 
-            /*
-             * Меняем layout СРАЗУ.
-             */
-
-            gridEl.className =
-              "grid layout-" +
-              currentLayout;
-
             document
               .querySelectorAll(".layout-btn")
               .forEach(b => {
@@ -1401,10 +1393,9 @@ footer{
 
               });
 
-            /*
-             * После смены layout
-             * заново перерисовываем уже загруженные картинки.
-             */
+            gridEl.className =
+              "grid layout-" +
+              currentLayout;
 
             updateAllVisibleCards();
 
@@ -1536,14 +1527,12 @@ footer{
     }
 
     return raw
-
       .filter(
         item =>
           item &&
           typeof item.file === "string" &&
           item.file.trim().length
       )
-
       .map(
         (item,index) => {
 
@@ -1615,13 +1604,6 @@ footer{
 
         analysisCanvas.height =
           img.naturalHeight;
-
-        analysisCtx.clearRect(
-          0,
-          0,
-          analysisCanvas.width,
-          analysisCanvas.height
-        );
 
         analysisCtx.drawImage(
           img,
@@ -1942,6 +1924,16 @@ footer{
         return;
 
       }
+
+      /*
+       * ТОЛЬКО ЛЕВАЯ КНОПКА запускает
+       * вращение 3D.
+       *
+       * Средняя кнопка НЕ перехватывается.
+       * Благодаря этому браузер сам делает
+       * стандартное открытие в новой вкладке
+       * без переключения на неё.
+       */
 
       if(
         e.type === "mousedown" &&
@@ -2278,6 +2270,10 @@ footer{
 
   }
 
+  /* ============================================================
+     CATEGORY URL
+     ============================================================ */
+
   function categoryURL(path){
 
     if(path === "All"){
@@ -2289,20 +2285,25 @@ footer{
 
     }
 
+    /*
+     * ВАЖНО:
+     *
+     * /skins/Otec
+     *
+     * а НЕ
+     *
+     * /skins/?category=Otec
+     */
+
     return (
       window.location.origin +
       BASE_PATH +
       path
-    );
-
-  }
-
-  function openCategoryNewTab(path){
-
-    window.open(
-      categoryURL(path),
-      "_blank",
-      "noopener"
+        .split("/")
+        .map(
+          encodeURIComponent
+        )
+        .join("/")
     );
 
   }
@@ -2428,43 +2429,28 @@ footer{
       row
     );
 
-    /* ========================================================
-       MIDDLE MOUSE
-       ======================================================== */
-
-    selectBtn.addEventListener(
-      "mousedown",
-      e => {
-
-        if(e.button === 1){
-
-          e.preventDefault();
-
-          e.stopPropagation();
-
-          openCategoryNewTab(
-            node.path
-          );
-
-        }
-
-      }
-    );
-
-    selectBtn.addEventListener(
-      "auxclick",
-      e => {
-
-        if(e.button === 1){
-
-          e.preventDefault();
-
-          e.stopPropagation();
-
-        }
-
-      }
-    );
+    /*
+     * ==========================================================
+     * СРЕДНЯЯ КНОПКА / КОЛЁСИКО
+     * ==========================================================
+     *
+     * НИЧЕГО НЕ ПЕРЕХВАТЫВАЕМ.
+     *
+     * Именно это нужно для поведения как на YouTube:
+     *
+     * колёсико →
+     * новая вкладка →
+     * текущая вкладка остаётся активной.
+     *
+     * Поэтому здесь НЕТ:
+     *
+     * window.open()
+     * preventDefault()
+     * auxclick
+     * mousedown для button === 1
+     *
+     * Браузер сам обработает middle click.
+     */
 
     if(hasChildren){
 
@@ -2601,13 +2587,7 @@ footer{
 
     selectBtn.addEventListener(
       "click",
-      e => {
-
-        if(e.button === 1){
-
-          return;
-
-        }
+      () => {
 
         activeCategory =
           node.path;
@@ -2703,16 +2683,6 @@ footer{
       );
 
     gridEl.innerHTML = "";
-
-    /*
-     * ВАЖНО:
-     * После innerHTML layout-класс не пропадает,
-     * потому что он стоит на самом grid.
-     */
-
-    gridEl.className =
-      "grid layout-" +
-      currentLayout;
 
     displayedSkinsCount = 0;
 
@@ -3033,27 +3003,6 @@ footer{
       flatImg.style.display =
         "none";
 
-      /*
-       * Фикс размеров canvas.
-       * Он всегда остаётся внутри viewer-box.
-       */
-
-      canvas.width = 160;
-
-      canvas.height = 320;
-
-      canvas.style.width =
-        "auto";
-
-      canvas.style.height =
-        "auto";
-
-      canvas.style.maxWidth =
-        "90%";
-
-      canvas.style.maxHeight =
-        "90%";
-
       canvas.style.display =
         "block";
 
@@ -3278,7 +3227,7 @@ footer{
 
     viewerBox.addEventListener(
       "click",
-      e => {
+      () => {
 
         if(
           isDragging
@@ -3305,45 +3254,18 @@ footer{
       }
     );
 
-    /* ========================================================
-       СРЕДНЯЯ КНОПКА / КОЛЁСИКО
-       ======================================================== */
-
-    viewerBox.addEventListener(
-      "mousedown",
-      e => {
-
-        if(e.button === 1){
-
-          e.preventDefault();
-
-          e.stopPropagation();
-
-          window.open(
-            skin.url,
-            "_blank",
-            "noopener"
-          );
-
-        }
-
-      }
-    );
-
-    viewerBox.addEventListener(
-      "auxclick",
-      e => {
-
-        if(e.button === 1){
-
-          e.preventDefault();
-
-          e.stopPropagation();
-
-        }
-
-      }
-    );
+    /*
+     * ========================================================
+     * СРЕДНЯЯ КНОПКА / КОЛЁСИКО
+     * ========================================================
+     *
+     * Здесь намеренно НЕТ обработчиков.
+     *
+     * Браузер получает обычный middle-click
+     * и открывает URL в новой фоновой вкладке.
+     *
+     * Как на YouTube.
+     */
 
     return card;
 
@@ -3505,16 +3427,15 @@ footer{
 
   async function init(){
 
-    /*
-     * Сначала применяем layout.
-     * Это происходит ДО загрузки скинов.
-     */
-
     initLayout();
 
     updateHeaderHeight();
 
     await loadData();
+
+    /*
+     * Проверяем категорию.
+     */
 
     const categoryExists =
       activeCategory === "All" ||
@@ -3539,16 +3460,41 @@ footer{
 
     }
 
-    renderCategories();
-
     /*
-     * Перед первой отрисовкой ещё раз
-     * гарантируем правильный класс.
+     * Если 404.html передал нам
+     * ?route=Otec, теперь заменяем
+     * временный URL на красивый:
+     *
+     * /skins/?route=Otec
+     *
+     * ↓
+     *
+     * /skins/Otec
      */
 
-    gridEl.className =
-      "grid layout-" +
-      currentLayout;
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    if(params.has("route")){
+
+      const cleanURL =
+        categoryURL(
+          activeCategory
+        );
+
+      window.history.replaceState(
+        {
+          category:activeCategory
+        },
+        "",
+        cleanURL
+      );
+
+    }
+
+    renderCategories();
 
     applyFilters();
 
