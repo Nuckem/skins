@@ -481,183 +481,14 @@ header{
 .grid{
   display:grid;
   gap:22px;
-}
-
-.card{
-  background:linear-gradient(180deg,var(--card),#0d1420);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:16px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  box-shadow:var(--shadow);
-  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
-  position:relative;
-  overflow:hidden;
-  contain:content;
-}
-
-.card:hover{
-  transform:translateY(-4px);
-  border-color:rgba(59,130,246,.4);
-  box-shadow:0 12px 30px rgba(0,0,0,.55);
-}
-
-.viewer-box{
-  width:100%;
-  border-radius:12px;
-  overflow:hidden;
-  background-color:#1e293b;
-  background-image:
-    linear-gradient(45deg,#131c2c 25%,transparent 25%),
-    linear-gradient(-45deg,#131c2c 25%,transparent 25%),
-    linear-gradient(45deg,transparent 75%,#131c2c 75%),
-    linear-gradient(-45deg,transparent 75%,#131c2c 75%);
-  background-size:16px 16px;
-  background-position:0 0,0 8px,8px -8px,-8px 0;
-  position:relative;
-  border:1px solid rgba(255,255,255,.05);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  user-select:none;
-  -webkit-user-select:none;
-}
-
-.placeholder{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:var(--text-dim);
-}
-
-.placeholder .spinner{
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  border:3px solid rgba(59,130,246,.15);
-  border-top-color:var(--accent);
-  animation:spin .8s linear infinite;
-}
-
-@keyframes spin{
-  to{
-    transform:rotate(360deg);
-  }
-}
-
-.skin-flat-img,
-.skin-2d-canvas{
-  display:none;
-  width:100%;
-  height:100%;
-  max-width:98%;
-  max-height:98%;
-  object-fit:contain;
-  transition:transform .2s ease;
-}
-
-.skin-flat-img{
-  padding:6px;
-  cursor:pointer;
-}
-
-.skin-2d-canvas{
-  filter:drop-shadow(0 6px 12px rgba(0,0,0,.45));
-  max-width:90%;
-  max-height:90%;
-  cursor:grab;
-}
-
-.skin-2d-canvas:active{
-  cursor:grabbing;
-}
-
-#global-3d-canvas{
-  cursor:grabbing;
-  width:100%!important;
-  height:100%!important;
-  display:none;
-}
-
-.card:hover .viewer-box img,
-.card:hover .viewer-box canvas{
-  transform:scale(1.04);
-}
-
-.card-info{
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  margin-top:10px;
-}
-
-.name{
-  font-size:13.5px;
-  font-weight:700;
-  text-align:center;
-  color:var(--text);
-  width:100%;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-/* Убрали cat-tag полностью */
-
-.actions{
-  margin-top:10px;
-  display:flex;
-  gap:6px;
   width:100%;
 }
 
-.btn{
-  flex:1;
-  min-width:84px;
-  padding:8px 6px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.04);
-  color:var(--text);
-  font-size:11.5px;
-  font-weight:600;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:4px;
-  transition:all .15s ease;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.btn:hover{
-  background:var(--accent);
-  border-color:var(--accent);
-  color:#fff;
-}
-
-.btn.copied{
-  background:#16a34a;
-  border-color:#16a34a;
-  color:#fff;
-}
-
-.btn svg{
-  width:13px;
-  height:13px;
-  flex-shrink:0;
-}
-
-/* ============================================================
-   LAYOUTS
-   ============================================================ */
+/*
+ * ВАЖНО:
+ * Классы layout-* должны определять сетку уже
+ * при первоначальной загрузке страницы.
+ */
 
 .grid.layout-standard{
   grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
@@ -705,6 +536,195 @@ header{
 
 .grid.layout-model .viewer-box{
   height:250px;
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+
+.card{
+  background:linear-gradient(180deg,var(--card),#0d1420);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  box-shadow:var(--shadow);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  position:relative;
+  overflow:hidden;
+  contain:content;
+  min-width:0;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(59,130,246,.4);
+  box-shadow:0 12px 30px rgba(0,0,0,.55);
+}
+
+.viewer-box{
+  width:100%;
+  border-radius:12px;
+  overflow:hidden;
+  background-color:#1e293b;
+  background-image:
+    linear-gradient(45deg,#131c2c 25%,transparent 25%),
+    linear-gradient(-45deg,#131c2c 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#131c2c 75%),
+    linear-gradient(-45deg,transparent 75%,#131c2c 75%);
+  background-size:16px 16px;
+  background-position:0 0,0 8px,8px -8px,-8px 0;
+  position:relative;
+  border:1px solid rgba(255,255,255,.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  -webkit-user-select:none;
+  min-height:0;
+}
+
+.placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-dim);
+}
+
+.placeholder .spinner{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  border:3px solid rgba(59,130,246,.15);
+  border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.skin-flat-img,
+.skin-2d-canvas{
+  display:none;
+  width:100%;
+  height:100%;
+  max-width:98%;
+  max-height:98%;
+  object-fit:contain;
+  transition:transform .2s ease;
+}
+
+.skin-flat-img{
+  padding:6px;
+  cursor:pointer;
+}
+
+.skin-2d-canvas{
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.45));
+  max-width:90%;
+  max-height:90%;
+  cursor:grab;
+
+  /*
+   * Не даём canvas разрастаться больше viewer-box.
+   */
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
+
+.skin-2d-canvas:active{
+  cursor:grabbing;
+}
+
+#global-3d-canvas{
+  cursor:grabbing;
+  width:100%!important;
+  height:100%!important;
+  display:none;
+  max-width:none!important;
+  max-height:none!important;
+}
+
+.card:hover .viewer-box img,
+.card:hover .viewer-box canvas{
+  transform:scale(1.04);
+}
+
+.card-info{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:10px;
+}
+
+.name{
+  font-size:13.5px;
+  font-weight:700;
+  text-align:center;
+  color:var(--text);
+  width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.actions{
+  margin-top:10px;
+  display:flex;
+  gap:6px;
+  width:100%;
+}
+
+.btn{
+  flex:1;
+  min-width:84px;
+  padding:8px 6px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  font-size:11.5px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  transition:all .15s ease;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.btn:hover{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+.btn.copied{
+  background:#16a34a;
+  border-color:#16a34a;
+  color:#fff;
+}
+
+.btn svg{
+  width:13px;
+  height:13px;
+  flex-shrink:0;
 }
 
 /* ============================================================
@@ -773,6 +793,7 @@ footer{
   .main-content{
     padding:20px 16px 40px;
   }
+
 }
 
 @media(max-width:768px){
@@ -805,6 +826,7 @@ footer{
   .stats{
     width:100%;
   }
+
 }
 </style>
 </head>
@@ -978,7 +1000,7 @@ footer{
   <main class="main-content">
 
     <div
-      class="grid"
+      class="grid layout-model"
       id="grid"
     ></div>
 
@@ -1019,14 +1041,6 @@ footer{
 
   function getBasePath(){
 
-    /*
-     * GitHub Pages:
-     *
-     * https://nuckem.github.io/skins/
-     *
-     * base = /skins/
-     */
-
     if(
       location.hostname.endsWith("github.io")
     ){
@@ -1048,7 +1062,8 @@ footer{
 
   }
 
-  const BASE_PATH = getBasePath();
+  const BASE_PATH =
+    getBasePath();
 
   const BASE_URL =
     new URL(
@@ -1073,14 +1088,6 @@ footer{
         window.location.pathname
       );
 
-    /*
-     * GitHub Pages:
-     *
-     * /skins/Otec
-     *
-     * убираем /skins/
-     */
-
     if(
       location.hostname.endsWith("github.io")
     ){
@@ -1101,12 +1108,6 @@ footer{
         .join("/");
 
     }
-
-    /*
-     * Custom domain:
-     *
-     * /Otec
-     */
 
     const parts =
       path
@@ -1143,8 +1144,31 @@ footer{
 
   let sentinelObserver = null;
 
+  /*
+   * Берём сохранённый layout,
+   * но проверяем его.
+   */
+
   let currentLayout =
-    localStorage.getItem("gallery-layout") || "model";
+    localStorage.getItem(
+      "gallery-layout"
+    ) || "model";
+
+  const allowedLayouts = [
+    "compact",
+    "standard",
+    "model"
+  ];
+
+  if(
+    !allowedLayouts.includes(
+      currentLayout
+    )
+  ){
+
+    currentLayout = "model";
+
+  }
 
   /* ============================================================
      DOM
@@ -1181,6 +1205,31 @@ footer{
     document.getElementById("sidebarCloseBtn");
 
   /* ============================================================
+     САМОЕ ВАЖНОЕ ИСПРАВЛЕНИЕ
+     ============================================================ */
+
+  /*
+   * Применяем layout ДО первой отрисовки карточек.
+   *
+   * Раньше класс добавлялся только при клике
+   * по кнопке "Компактно / Сетка / 3D Фото".
+   *
+   * Из-за этого после F5:
+   *
+   * <div class="grid">
+   *
+   * вместо:
+   *
+   * <div class="grid layout-model">
+   *
+   * и карточки могли занимать всю ширину.
+   */
+
+  gridEl.className =
+    "grid layout-" +
+    currentLayout;
+
+  /* ============================================================
      IMAGE ANALYSIS
      ============================================================ */
 
@@ -1204,6 +1253,11 @@ footer{
 
   global3dCanvas.id =
     "global-3d-canvas";
+
+  /*
+   * Не помещаем его в DOM заранее.
+   * Он появляется только при начале вращения.
+   */
 
   let globalViewer = null;
 
@@ -1283,6 +1337,14 @@ footer{
 
   function initLayout(){
 
+    /*
+     * Ещё раз гарантируем правильный класс.
+     */
+
+    gridEl.className =
+      "grid layout-" +
+      currentLayout;
+
     document
       .querySelectorAll(".layout-btn")
       .forEach(btn => {
@@ -1320,6 +1382,14 @@ footer{
               currentLayout
             );
 
+            /*
+             * Меняем layout СРАЗУ.
+             */
+
+            gridEl.className =
+              "grid layout-" +
+              currentLayout;
+
             document
               .querySelectorAll(".layout-btn")
               .forEach(b => {
@@ -1331,9 +1401,10 @@ footer{
 
               });
 
-            gridEl.className =
-              "grid layout-" +
-              currentLayout;
+            /*
+             * После смены layout
+             * заново перерисовываем уже загруженные картинки.
+             */
 
             updateAllVisibleCards();
 
@@ -1544,6 +1615,13 @@ footer{
 
         analysisCanvas.height =
           img.naturalHeight;
+
+        analysisCtx.clearRect(
+          0,
+          0,
+          analysisCanvas.width,
+          analysisCanvas.height
+        );
 
         analysisCtx.drawImage(
           img,
@@ -1864,13 +1942,6 @@ footer{
         return;
 
       }
-
-      /*
-       * Левая кнопка мыши.
-       *
-       * Средняя кнопка должна открыть скин
-       * в новой вкладке.
-       */
 
       if(
         e.type === "mousedown" &&
@@ -2358,17 +2429,12 @@ footer{
     );
 
     /* ========================================================
-       MIDDLE MOUSE / WHEEL
+       MIDDLE MOUSE
        ======================================================== */
 
     selectBtn.addEventListener(
       "mousedown",
       e => {
-
-        /*
-         * Средняя кнопка мыши.
-         * На большинстве мышей это нажатие колёсика.
-         */
 
         if(e.button === 1){
 
@@ -2537,11 +2603,6 @@ footer{
       "click",
       e => {
 
-        /*
-         * Если это было среднее нажатие,
-         * оно уже обработано выше.
-         */
-
         if(e.button === 1){
 
           return;
@@ -2554,12 +2615,6 @@ footer{
         updateActiveFolderDOM(
           node.path
         );
-
-        /*
-         * Красивый URL:
-         *
-         * /skins/Otec
-         */
 
         const newURL =
           categoryURL(
@@ -2648,6 +2703,16 @@ footer{
       );
 
     gridEl.innerHTML = "";
+
+    /*
+     * ВАЖНО:
+     * После innerHTML layout-класс не пропадает,
+     * потому что он стоит на самом grid.
+     */
+
+    gridEl.className =
+      "grid layout-" +
+      currentLayout;
 
     displayedSkinsCount = 0;
 
@@ -2968,6 +3033,27 @@ footer{
       flatImg.style.display =
         "none";
 
+      /*
+       * Фикс размеров canvas.
+       * Он всегда остаётся внутри viewer-box.
+       */
+
+      canvas.width = 160;
+
+      canvas.height = 320;
+
+      canvas.style.width =
+        "auto";
+
+      canvas.style.height =
+        "auto";
+
+      canvas.style.maxWidth =
+        "90%";
+
+      canvas.style.maxHeight =
+        "90%";
+
       canvas.style.display =
         "block";
 
@@ -3194,11 +3280,6 @@ footer{
       "click",
       e => {
 
-        /*
-         * Если только что был drag,
-         * не открываем ссылку.
-         */
-
         if(
           isDragging
         ){
@@ -3206,11 +3287,6 @@ footer{
           return;
 
         }
-
-        /*
-         * В 3D режиме картинка нужна
-         * для вращения.
-         */
 
         if(
           currentLayout === "model"
@@ -3236,12 +3312,6 @@ footer{
     viewerBox.addEventListener(
       "mousedown",
       e => {
-
-        /*
-         * button === 1 =
-         * нажатие средней кнопкой мыши,
-         * то есть колёсиком.
-         */
 
         if(e.button === 1){
 
@@ -3435,16 +3505,16 @@ footer{
 
   async function init(){
 
+    /*
+     * Сначала применяем layout.
+     * Это происходит ДО загрузки скинов.
+     */
+
     initLayout();
 
     updateHeaderHeight();
 
     await loadData();
-
-    /*
-     * Если URL содержит несуществующую
-     * категорию — показываем всё.
-     */
 
     const categoryExists =
       activeCategory === "All" ||
@@ -3461,10 +3531,6 @@ footer{
       activeCategory =
         "All";
 
-      /*
-       * Возвращаем корректный URL.
-       */
-
       window.history.replaceState(
         {},
         "",
@@ -3474,6 +3540,15 @@ footer{
     }
 
     renderCategories();
+
+    /*
+     * Перед первой отрисовкой ещё раз
+     * гарантируем правильный класс.
+     */
+
+    gridEl.className =
+      "grid layout-" +
+      currentLayout;
 
     applyFilters();
 
