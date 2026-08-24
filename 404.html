@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NuckemSkins</title>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /*
+       * GitHub Pages не знает, что /skins/Otec должен открывать index.html.
+       *
+       * Этот 404.html перехватывает такой URL и перенаправляет
+       * пользователя на index.html, передавая исходный путь.
+       *
+       * Пример:
+       * /skins/Otec
+       *
+       * превращается во внутренний переход:
+       * /skins/?path=Otec
+       *
+       * index.html после этого восстанавливает нормальный URL:
+       * /skins/Otec
+       */
+
+      const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+
+      /*
+       * Определяем базовый путь GitHub Pages.
+       *
+       * Для:
+       * https://nuckem.github.io/skins/Otec
+       *
+       * base = /skins/
+       */
+
+      const segments = path.split("/").filter(Boolean);
+
+      let basePath = "/";
+
+      if (window.location.hostname.endsWith("github.io")) {
+        /*
+         * На GitHub Pages первый сегмент после домена —
+         * название репозитория.
+         */
+        if (segments.length > 0) {
+          basePath = "/" + segments[0] + "/";
+        }
+      }
+
+      /*
+       * Если это уже корень сайта — просто открываем index.html.
+       */
+      let route = "";
+
+      if (segments.length > 1) {
+        /*
+         * Убираем название репозитория.
+         *
+         * /skins/Otec/Zombies
+         *
+         * -> Otec/Zombies
+         */
+        route = segments.slice(1).join("/");
+      }
+
+      /*
+       * Передаём маршрут index.html.
+       */
+      const target =
+        basePath +
+        "?__route=" +
+        encodeURIComponent(route) +
+        (search ? "&__search=" + encodeURIComponent(search.substring(1)) : "") +
+        hash;
+
+      /*
+       * replace(), а не href(), чтобы 404 не оставался
+       * в истории браузера.
+       */
+      window.location.replace(target);
+    })();
+  </script>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family:
+        "Segoe UI",
+        Roboto,
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      gap: 14px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.08);
+      border-top-color: #3b82f6;
+
+      animation: spin .7s linear infinite;
+    }
+
+    .text {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="loading">
+    <div class="spinner"></div>
+    <div class="text">Загрузка NuckemSkins...</div>
+  </div>
+
+  <noscript>
+    <div class="loading">
+      <div class="text">
+        Для работы NuckemSkins необходимо включить JavaScript.
+      </div>
+    </div>
+  </noscript>
+
+</body>
+</html>
