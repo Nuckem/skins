@@ -18,7 +18,7 @@ botClient.login(process.env.BOT_TOKEN);
 
 app.use(express.json());
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: ['https://nuckem.github.io', 'https://nuckem.github.io/skins'],
     credentials: true
 }));
 
