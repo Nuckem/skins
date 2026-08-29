@@ -64,6 +64,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             
             // Сохраняем данные пользователя для отрисовки профиля
             window.__discordUser = data.user;
+            
+            // Сразу отрисовываем профиль пользователя в шапке
+            initUserProfile();
 
             // Показываем контент сайта после успешной проверки
             document.body.style.display = 'block'; 
@@ -76,6 +79,30 @@ window.addEventListener('DOMContentLoaded', async () => {
         loader.remove();
     }
 });
+
+// Функция отрисовки профиля в шапке
+function initUserProfile(){
+    const user = window.__discordUser;
+    const avatarEl = document.getElementById('userAvatar');
+    const nameEl = document.getElementById('userName');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (user && avatarEl && nameEl) {
+        nameEl.textContent = user.global_name || user.username || 'Пользователь';
+        if (user.avatar) {
+            avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+        } else {
+            avatarEl.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        }
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('discord_token');
+            window.location.reload();
+        });
+    }
+}
 </script>
 
 <style>
@@ -1396,34 +1423,6 @@ footer{
     "resize",
     updateHeaderHeight
   );
-
-  /* ============================================================
-     INIT USER PROFILE & LOGOUT
-     ============================================================ */
-
-  function initUserProfile(){
-    const user = window.__discordUser;
-    const avatarEl = document.getElementById('userAvatar');
-    const nameEl = document.getElementById('userName');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    if (user) {
-      nameEl.textContent = user.global_name || user.username || 'Пользователь';
-      if (user.avatar) {
-        avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
-      } else {
-        avatarEl.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
-      }
-    } else {
-      nameEl.textContent = 'Аккаунт';
-      avatarEl.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
-    }
-
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('discord_token');
-      window.location.reload();
-    });
-  }
 
   /* ============================================================
      LAYOUT
@@ -3557,8 +3556,6 @@ footer{
      ============================================================ */
 
   async function init(){
-
-    initUserProfile(); // Инициализируем аватарку, ник и кнопку выхода
 
     initLayout();
 
