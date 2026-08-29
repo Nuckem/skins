@@ -10,6 +10,54 @@
 
 <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
 
+<!-- Скрипт авторизации через Discord -->
+<script>
+const BACKEND_URL = 'https://skins-jr2c.onrender.com';
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+
+    // Если бэкенд вернул токен в URL после успешного входа — сохраняем его
+    if (tokenFromUrl) {
+        localStorage.setItem('discord_token', tokenFromUrl);
+        // Чистим адресную строку от токена
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const token = localStorage.getItem('discord_token');
+
+    // Если токена нет — сразу кидаем на авторизацию через Discord на Render
+    if (!token) {
+        window.location.href = `${BACKEND_URL}/auth/discord`;
+        return;
+    }
+
+    // Если токен есть — проверяем его валидность и наличие в гильдии
+    try {
+        const response = await fetch(`${BACKEND_URL}/auth/check`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+            // Токен невалидный или выгнали из гильдии — стираем и шлем по новой на вход
+            localStorage.removeItem('discord_token');
+            window.location.href = `${BACKEND_URL}/auth/discord`;
+        } else {
+            console.log('Авторизация успешна!', data.user);
+            // Показываем контент сайта после успешной проверки
+            document.body.style.display = 'block'; 
+        }
+    } catch (e) {
+        console.error('Ошибка связи с сервером авторизации', e);
+    }
+});
+</script>
+
 <style>
 :root{
   --bg:#0f172a;
@@ -523,9 +571,6 @@ header{
   justify-content:center;
   user-select:none;
   -webkit-user-select:none;
-
-  /* ВАЖНО:
-     не даём СКМ включать autoscroll браузера */
   overscroll-behavior:contain;
 }
 
@@ -811,7 +856,7 @@ footer{
 </style>
 </head>
 
-<body>
+<body style="display: none;">
 
 <header>
   <div class="header-top">
@@ -1076,19 +1121,12 @@ footer{
           .split("/")
           .filter(Boolean);
 
-      /*
-       * /skins/
-       */
       if(parts.length <= 1){
 
         return "All";
 
       }
 
-      /*
-       * /skins/Otec
-       * /skins/Otec/subfolder
-       */
       return parts
         .slice(1)
         .join("/");
@@ -1130,10 +1168,6 @@ footer{
 
   let sentinelObserver = null;
 
-  /*
-   * По умолчанию 3D.
-   * Сохраняется между перезагрузками.
-   */
   let currentLayout =
     localStorage.getItem("gallery-layout") || "model";
 
@@ -1580,8 +1614,6 @@ footer{
       scale
     );
 
-    /* Ноги */
-
     ctx.drawImage(
       img,
       4*u,
@@ -1662,8 +1694,6 @@ footer{
 
     }
 
-    /* Тело */
-
     ctx.drawImage(
       img,
       20*u,
@@ -1691,8 +1721,6 @@ footer{
       );
 
     }
-
-    /* Руки */
 
     ctx.drawImage(
       img,
@@ -1774,8 +1802,6 @@ footer{
 
     }
 
-    /* Голова */
-
     ctx.drawImage(
       img,
       8*u,
@@ -1856,13 +1882,6 @@ footer{
 
       }
 
-      /*
-       * ТОЛЬКО ЛКМ запускает вращение.
-       *
-       * СКМ полностью игнорируется здесь,
-       * чтобы auxclick мог обработать её отдельно.
-       */
-
       if(
         e.type === "mousedown" &&
         e.button !== 0
@@ -1875,8 +1894,6 @@ footer{
       if(
         e.type === "touchstart"
       ){
-
-        /* touch разрешён */
 
       }else if(
         e.button !== 0
@@ -2074,17 +2091,11 @@ footer{
     globalStopDragFn =
       stopDrag;
 
-    /*
-     * ЛКМ — drag.
-     */
     viewerBox.addEventListener(
       "mousedown",
       startDrag
     );
 
-    /*
-     * Touch.
-     */
     viewerBox.addEventListener(
       "touchstart",
       startDrag,
@@ -2233,15 +2244,6 @@ footer{
 
     }
 
-    /*
-     * encodeURI сохраняет "/" между папками,
-     * но кодирует пробелы и спецсимволы.
-     *
-     * Получается:
-     * /skins/Otec
-     * /skins/Otec/Training
-     */
-
     const encodedPath =
       path
         .split("/")
@@ -2260,24 +2262,12 @@ footer{
 
   function openCategoryNewTab(path){
 
-    /*
-     * СКМ по папке:
-     * новая вкладка + текущая вкладка остаётся активной.
-     */
-
     const newTab =
       window.open(
         categoryURL(path),
         "_blank",
         "noopener,noreferrer"
       );
-
-    /*
-     * НЕ вызываем newTab.focus()
-     * и НЕ вызываем window.focus().
-     *
-     * Это принципиально.
-     */
 
     return newTab;
 
@@ -2404,14 +2394,6 @@ footer{
       row
     );
 
-    /* ========================================================
-       СКМ ПО ПАПКЕ
-       ======================================================== */
-
-    /*
-     * pointerdown нужен для отключения
-     * стандартной автопрокрутки браузера.
-     */
     selectBtn.addEventListener(
       "pointerdown",
       e => {
@@ -2425,9 +2407,6 @@ footer{
       }
     );
 
-    /*
-     * auxclick — правильное событие для СКМ.
-     */
     selectBtn.addEventListener(
       "auxclick",
       e => {
@@ -2578,18 +2557,9 @@ footer{
 
     }
 
-    /* ========================================================
-       NORMAL CLICK
-       ======================================================== */
-
     selectBtn.addEventListener(
       "click",
       e => {
-
-        /*
-         * click теперь должен обрабатывать
-         * только обычную ЛКМ.
-         */
 
         if(e.button !== 0){
 
@@ -3136,10 +3106,6 @@ footer{
       viewerBox
     );
 
-    /* ========================================================
-       НАЗВАНИЕ
-       ======================================================== */
-
     const info =
       document.createElement("div");
 
@@ -3165,10 +3131,6 @@ footer{
     card.appendChild(
       info
     );
-
-    /* ========================================================
-       ACTIONS
-       ======================================================== */
 
     const actions =
       document.createElement("div");
@@ -3229,27 +3191,15 @@ footer{
       actions
     );
 
-    /* ========================================================
-       ЛЕВЫЙ КЛИК ПО КАРТИНКЕ
-       ======================================================== */
-
     viewerBox.addEventListener(
       "click",
       e => {
 
-        /*
-         * Только ЛКМ.
-         */
         if(e.button !== 0){
 
           return;
 
         }
-
-        /*
-         * Если только что был drag,
-         * не открываем ссылку.
-         */
 
         if(
           isDragging
@@ -3258,11 +3208,6 @@ footer{
           return;
 
         }
-
-        /*
-         * В 3D режиме картинка нужна
-         * для вращения.
-         */
 
         if(
           currentLayout === "model"
@@ -3281,18 +3226,6 @@ footer{
       }
     );
 
-    /* ========================================================
-       СКМ ПО КАРТИНКЕ
-       ======================================================== */
-
-    /*
-     * Сначала блокируем стандартный autoscroll.
-     *
-     * Это делается на pointerdown, потому что
-     * стандартное действие средней кнопки может
-     * произойти раньше auxclick.
-     */
-
     viewerBox.addEventListener(
       "pointerdown",
       e => {
@@ -3305,13 +3238,6 @@ footer{
 
       }
     );
-
-    /*
-     * А само открытие новой вкладки делаем
-     * именно в auxclick.
-     *
-     * Это аналог middle-click по ссылке.
-     */
 
     viewerBox.addEventListener(
       "auxclick",
@@ -3327,16 +3253,6 @@ footer{
 
         e.stopPropagation();
 
-        /*
-         * ВАЖНО:
-         *
-         * НИКАКОГО window.focus()
-         * НИКАКОГО newTab.focus()
-         *
-         * Браузеру даём самому открыть вкладку
-         * в фоне, как обычный СКМ.
-         */
-
         window.open(
           skin.url,
           "_blank",
@@ -3346,10 +3262,6 @@ footer{
       }
     );
 
-    /*
-     * Дополнительная защита от стандартного
-     * поведения средней кнопки.
-     */
     viewerBox.addEventListener(
       "mousedown",
       e => {
@@ -3521,55 +3433,13 @@ footer{
      INIT
      ============================================================ */
 
-
-  /* ============================================================
-     AUTH CHECK (Перенаправление неавторизованных на Render)
-     ============================================================ */
-
-  async function checkAuthAndRedirect() {
-    const RENDER_BACKEND_URL = "https://skins-jr2c.onrender.com";
-
-    try {
-      const response = await fetch(`${RENDER_BACKEND_URL}/auth/check`, {
-        method: "GET",
-        credentials: "include"
-      });
-
-      if (!response.ok) {
-        throw new Error("Not authenticated");
-      }
-
-      const data = await response.json();
-      
-      if (!data.authenticated) {
-        window.location.href = `${RENDER_BACKEND_URL}/auth/discord`;
-      }
-    } catch (err) {
-      window.location.href = `${RENDER_BACKEND_URL}/auth/discord`;
-    }
-  }
-
-    async function init(){
-
-    await checkAuthAndRedirect();
+  async function init(){
 
     initLayout();
 
     updateHeaderHeight();
 
     await loadData();
-
-    /*
-     * Проверяем категорию ПОСЛЕ загрузки data.json.
-     *
-     * Важно:
-     * если пользователь открыл
-     *
-     * /skins/Otec
-     *
-     * и Otec существует,
-     * URL НИКОГДА не переписывается.
-     */
 
     const categoryExists =
       activeCategory === "All" ||
@@ -3582,12 +3452,6 @@ footer{
       );
 
     if(!categoryExists){
-
-      /*
-       * Только действительно несуществующая
-       * категория возвращает пользователя
-       * на главную.
-       */
 
       activeCategory =
         "All";
@@ -3602,16 +3466,8 @@ footer{
 
     renderCategories();
 
-    /*
-     * Если URL содержит категорию,
-     * она остаётся в адресной строке.
-     */
     applyFilters();
 
-    /*
-     * Дополнительная установка класса layout.
-     * Это особенно важно при F5.
-     */
     gridEl.className =
       "grid layout-" +
       currentLayout;
