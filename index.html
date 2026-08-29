@@ -33,14 +33,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Если бэкенд вернул токен в URL после успешного входа — сохраняем его
     if (tokenFromUrl) {
         localStorage.setItem('discord_token', tokenFromUrl);
-        // Чистим адресную строку от токена
-        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Достаем оригинальный путь, куда пользователь хотел зайти до авторизации
+        const redirectPath = localStorage.getItem('auth_redirect_path') || window.location.pathname;
+        localStorage.removeItem('auth_redirect_path');
+        
+        // Перенаправляем обратно на нужную страницу без токена в URL
+        window.location.href = redirectPath;
+        return;
     }
 
     const token = localStorage.getItem('discord_token');
 
-    // Если токена нет — сразу кидаем на авторизацию через Discord на Render
+    // Если токена нет — сохраняем текущий путь и кидаем на авторизацию через Discord
     if (!token) {
+        localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
         window.location.href = `${BACKEND_URL}/auth/discord`;
         return;
     }
