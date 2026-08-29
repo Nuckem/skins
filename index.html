@@ -3521,7 +3521,37 @@ footer{
      INIT
      ============================================================ */
 
-  async function init(){
+
+  /* ============================================================
+     AUTH CHECK (Перенаправление неавторизованных на Render)
+     ============================================================ */
+
+  async function checkAuthAndRedirect() {
+    const RENDER_BACKEND_URL = "https://skins-jr2c.onrender.com";
+
+    try {
+      const response = await fetch(`${RENDER_BACKEND_URL}/auth/check`, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        throw new Error("Not authenticated");
+      }
+
+      const data = await response.json();
+      
+      if (!data.authenticated) {
+        window.location.href = `${RENDER_BACKEND_URL}/auth/discord`;
+      }
+    } catch (err) {
+      window.location.href = `${RENDER_BACKEND_URL}/auth/discord`;
+    }
+  }
+
+    async function init(){
+
+    await checkAuthAndRedirect();
 
     initLayout();
 
