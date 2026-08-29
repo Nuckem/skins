@@ -17,12 +17,21 @@ const botClient = new Client({
 botClient.login(process.env.BOT_TOKEN);
 
 app.use(express.json());
+
+// Разрешаем запросы как с корня GitHub Pages, так и из подпапки /skins
+const allowedOrigins = ['https://nuckem.github.io', 'https://nuckem.github.io/skins'];
 app.use(cors({
-    origin: ['https://nuckem.github.io', 'https://nuckem.github.io/skins'],
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
-// Сессии больше не нужны, инициализируем только Passport без них
+// Сессии не нужны, инициализируем только Passport без них
 app.use(passport.initialize());
 
 passport.use(new DiscordStrategy({
@@ -47,17 +56,26 @@ passport.use(new DiscordStrategy({
 // Запуск авторизации (session: false)
 app.get('/auth/discord', passport.authenticate('discord', { session: false }));
 
-// Callback: генерируем JWT и отправляем на фронтенд с токеном в URL
+// Callback: генерируем JWT (включая аватар и ник) и отправляем на фронтенд
 app.get('/auth/discord/callback', 
-    passport.authenticate('discord', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/unauthorized.html` }),
+    passport.authenticate('discord', { 
+        session: false, 
+        failureRedirect: `${process.env.REDIRECT_URL || process.env.FRONTEND_URL}/unauthorized.html` 
+    }),
     (req, res) => {
         const token = jwt.sign(
-            { id: req.user.id, username: req.user.username }, 
+            { 
+                id: req.user.id, 
+                username: req.user.username,
+                avatar: req.user.avatar,
+                discriminator: req.user.discriminator,
+                global_name: req.user.global_name
+            }, 
             process.env.JWT_SECRET, 
             { expiresIn: '7d' }
         );
 
-        res.redirect(`${process.env.FRONTEND_URL}/index.html?token=${token}`);
+        res.redirect(`${process.env.REDIRECT_URL || process.env.FRONTEND_URL}/index.html?token=${token}`);
     }
 );
 
