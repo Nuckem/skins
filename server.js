@@ -15,6 +15,15 @@ const botClient = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
 });
 botClient.login(process.env.BOT_TOKEN);
+botClient.once('ready', () => {
+    console.log(`Бот авторизован как ${botClient.user.tag}`);
+
+    // Пример установки статуса
+    botClient.user.setPresence({
+        activities: [{ name: 'Сайт со скинами', type: 0 }], // type 0 - Играет в...
+        status: 'invisible' // Делает бота «Не в сети» (скрытым)
+    });
+});
 
 app.use(express.json());
 
