@@ -1,11 +1,10 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
-const cookieParser = require('cookie-parser');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const { Client, GatewayIntentBits } = require('discord.js');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,29 +17,13 @@ const botClient = new Client({
 botClient.login(process.env.BOT_TOKEN);
 
 app.use(express.json());
-app.use(cookieParser());
 app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true
 }));
 
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        path: '/'
-    }
-}));
-
+// Сессии больше не нужны, инициализируем только Passport без них
 app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
 
 passport.use(new DiscordStrategy({
     clientID: process.env.CLIENT_ID,
@@ -61,26 +44,43 @@ passport.use(new DiscordStrategy({
     }
 }));
 
-app.get('/auth/discord', passport.authenticate('discord'));
+// Запуск авторизации (session: false)
+app.get('/auth/discord', passport.authenticate('discord', { session: false }));
 
+// Callback: генерируем JWT и отправляем на фронтенд с токеном в URL
 app.get('/auth/discord/callback', 
-    passport.authenticate('discord', { failureRedirect: `${process.env.FRONTEND_URL}/unauthorized.html` }),
+    passport.authenticate('discord', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/unauthorized.html` }),
     (req, res) => {
-        res.redirect(`${process.env.FRONTEND_URL}/index.html`);
+        const token = jwt.sign(
+            { id: req.user.id, username: req.user.username }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '7d' }
+        );
+
+        res.redirect(`${process.env.FRONTEND_URL}/index.html?token=${token}`);
     }
 );
 
-app.get('/auth/check', async (req, res) => {
-    if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ authenticated: false });
-    }
+// Middleware для проверки JWT
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
+    if (!token) return res.status(401).json({ authenticated: false });
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ authenticated: false });
+        req.user = user;
+        next();
+    });
+};
+
+app.get('/auth/check', verifyToken, async (req, res) => {
     try {
         const guild = await botClient.guilds.fetch(process.env.GUILD_ID);
         const member = await guild.members.fetch(req.user.id).catch(() => null);
 
         if (!member) {
-            req.logout(() => {});
             return res.status(403).json({ authenticated: false, reason: 'removed_from_guild' });
         }
 
@@ -88,12 +88,6 @@ app.get('/auth/check', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: 'Server check error' });
     }
-});
-
-app.get('/auth/logout', (req, res) => {
-    req.logout(() => {
-        res.redirect(`${process.env.FRONTEND_URL}/index.html`);
-    });
 });
 
 app.listen(PORT, () => {
