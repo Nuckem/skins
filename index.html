@@ -30,29 +30,29 @@ window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get('token');
 
-    // Если бэкенд вернул токен в URL после успешного входа — сохраняем его
+    // Если бэкенд вернул токен в URL после успешного входа
     if (tokenFromUrl) {
         localStorage.setItem('discord_token', tokenFromUrl);
         
-        // Достаем оригинальный путь, куда пользователь хотел зайти до авторизации
+        // Достаем путь, куда пользователь хотел зайти изначально, или сбрасываем на текущий
         const redirectPath = localStorage.getItem('auth_redirect_path') || window.location.pathname;
         localStorage.removeItem('auth_redirect_path');
         
-        // Перенаправляем обратно на нужную страницу без токена в URL
+        // Возвращаем пользователя на нужную страницу (например, /skins/Genshin) без токена в URL
         window.location.href = redirectPath;
         return;
     }
 
     const token = localStorage.getItem('discord_token');
 
-    // Если токена нет — сохраняем текущий путь и кидаем на авторизацию через Discord
+    // Если токена нет нигде — сохраняем текущий адрес страницы и отправляем на Discord-авторизацию
     if (!token) {
         localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
         window.location.href = `${BACKEND_URL}/auth/discord`;
         return;
     }
 
-    // Если токен есть — проверяем его валидность и наличие в гильдии
+    // Если токен есть — проверяем его валидность на бэкенде
     try {
         const response = await fetch(`${BACKEND_URL}/auth/check`, {
             headers: {
@@ -62,10 +62,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         
         const data = await response.json();
         
-        // ЕСЛИ СЕРВЕР СКАЗАЛ, ЧТО АВТОРИЗАЦИЯ НЕ ПРОШЛА (выгнали или подделка)
+        // ЕСЛИ СЕРВЕР СКАЗАЛ, ЧТО АВТОРИЗАЦИЯ НЕ ПРОШЛА
         if (!data.authenticated) {
             localStorage.removeItem('discord_token');
-            // Перенаправляем на страницу ошибки
+            localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
             window.location.href = 'https://nuckem.github.io/skins/frontend/unauthorized.html';
             return;
         } else {
@@ -74,16 +74,15 @@ window.addEventListener('DOMContentLoaded', async () => {
             // Сохраняем данные пользователя для отрисовки профиля
             window.__discordUser = data.user;
             
-            // Сразу отрисовываем профиль пользователя в шапке
+            // Отрисовываем профиль в шапке
             initUserProfile();
 
-            // Показываем контент сайта после успешной проверки
+            // Показываем контент сайта
             document.body.style.display = 'block'; 
-            loader.remove(); // Убираем экран загрузки
+            loader.remove();
         }
     } catch (e) {
         console.error('Ошибка связи с сервером авторизации', e);
-        // Если сервер упал или ответил ошибкой — тоже отправляем на unauthorized
         window.location.href = 'https://nuckem.github.io/skins/frontend/unauthorized.html';
     }
 });
