@@ -55,10 +55,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         
         const data = await response.json();
         
+        // ЕСЛИ СЕРВЕР СКАЗАЛ, ЧТО АВТОРИЗАЦИЯ НЕ ПРОШЛА (выгнали или подделка)
         if (!data.authenticated) {
-            // Токен невалидный или выгнали из гильдии — стираем и шлем по новой на вход
             localStorage.removeItem('discord_token');
-            window.location.href = `${BACKEND_URL}/auth/discord`;
+            // Перенаправляем на страницу ошибки
+            window.location.href = 'https://nuckem.github.io/skins/frontend/unauthorized.html';
+            return;
         } else {
             console.log('Авторизация успешна!', data.user);
             
@@ -74,9 +76,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (e) {
         console.error('Ошибка связи с сервером авторизации', e);
-        // Даже при сбое показываем сайт, чтобы он не висел вечно
-        document.body.style.display = 'block';
-        loader.remove();
+        // Если сервер упал или ответил ошибкой — тоже отправляем на unauthorized
+        window.location.href = 'https://nuckem.github.io/skins/frontend/unauthorized.html';
     }
 });
 
