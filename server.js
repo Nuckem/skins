@@ -60,7 +60,7 @@ app.get('/auth/discord', passport.authenticate('discord', { session: false }));
 app.get('/auth/discord/callback', 
     passport.authenticate('discord', { 
         session: false, 
-        failureRedirect: `${process.env.REDIRECT_URL || process.env.FRONTEND_URL}/frontend/unauthorized.html` 
+        failureRedirect: `https://nuckem.github.io/skins/frontend/unauthorized.html` 
     }),
     (req, res) => {
         const token = jwt.sign(
