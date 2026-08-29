@@ -2,15 +2,185 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Доступ запрещен - NuckemSkins</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доступ ограничен - NuckemSkins</title>
+    <link rel="icon" type="image/png" href="../favicon.png">
     <style>
-        body { background: #0f172a; color: #fff; font-family: sans-serif; text-align: center; padding-top: 100px; }
-        .btn { display: inline-block; background: #5865F2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 20px; font-weight: bold; }
+        :root {
+            --bg: #0f172a;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #5865F2; /* Discord Blurple */
+            --accent-hover: #4752C4;
+            --text: #e5e7eb;
+            --text-dim: #94a3b8;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(88, 101, 242, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.08), transparent 40%),
+                var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .icon-wrap {
+            width: 64px;
+            height: 64px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--danger);
+        }
+
+        .icon-wrap svg {
+            width: 32px;
+            height: 32px;
+            stroke-width: 2.2;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+        }
+
+        .highlight {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(88, 101, 242, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(88, 101, 242, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
     </style>
 </head>
 <body>
-    <h1>У вас нет доступа</h1>
-    <p>Для просмотра галереи NuckemSkins необходимо состоять на официальном Discord-сервере.</p>
-    <a href="https://discord.gg/your-invite-link" class="btn">Вступить в Discord</a>
+
+    <div class="error-card">
+        <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+        </div>
+
+        <h1>Доступ ограничен</h1>
+        
+        <p>
+            Ваш Дискорд аккаунт не привязан к дискорд серверу <span class="highlight">Гильдии</span>.<br><br>
+            Если это не так, и вы вошли не в тот аккаунт, можете переприсоединиться.
+        </p>
+
+        <div class="btn-group">
+            <!-- Кнопка редиректа на повторный логин через бэкенд Render -->
+            <a href="https://skins-jr2c.onrender.com/auth/discord" class="btn btn-primary">
+                <svg viewBox="0 0 127.14 96.36">
+                    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.79,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.68,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.81,11.1,105.25,105.25,0,0,0,32.25-16.15c2.62-27.28-4.5-51.12-18.9-72.15ZM42.45,65.69C36.18,65.69,31,60,31,53s5.18-12.72,11.45-12.72S53.9,46,53.88,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.18-12.72,11.45-12.72S96.14,46,96.11,53,91,65.69,84.69,65.69Z"/>
+                </svg>
+                Сменить аккаунт / Войти заново
+            </a>
+            
+            <a href="https://nuckem.github.io/skins/" class="btn btn-secondary">
+                На главную
+            </a>
+        </div>
+    </div>
+
 </body>
 </html>
