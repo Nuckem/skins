@@ -87,27 +87,50 @@ passport.use(new DiscordStrategy({
 app.get('/auth/discord', passport.authenticate('discord', { session: false }));
 
 // Callback: генерируем JWT (включая аватар и ник) и отправляем на фронтенд
-app.get('/auth/discord/callback', 
-    passport.authenticate('discord', { 
-        session: false, 
-        failureRedirect: `https://nuckem.github.io/skins/frontend/unauthorized.html` 
-    }),
-    (req, res) => {
-        const token = jwt.sign(
-            { 
-                id: req.user.id, 
-                username: req.user.username,
-                avatar: req.user.avatar,
-                discriminator: req.user.discriminator,
-                global_name: req.user.global_name
-            }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '7d' }
-        );
+app.get('/auth/discord/callback', (req, res, next) => {
+    passport.authenticate('discord', { session: false }, (err, user, info) => {
+        console.log('========== DISCORD OAUTH ==========');
+        console.log('ERROR:', err);
+        console.log('ERROR MESSAGE:', err?.message);
+        console.log('OAUTH ERROR:', err?.oauthError);
+        console.log('OAUTH ERROR DATA:', err?.oauthError?.data);
+        console.log('INFO:', info);
+        console.log('====================================');
 
-        res.redirect(`${process.env.REDIRECT_URL || process.env.FRONTEND_URL}/index.html?token=${token}`);
-    }
-);
+        if (err) {
+            return res.status(500).json({
+                error: err.message,
+                details: err.oauthError?.data || null
+            });
+        }
+
+        if (!user) {
+            return res.status(401).json({
+                error: 'Authorization failed',
+                info
+            });
+        }
+
+        req.user = user;
+        next();
+    })(req, res, next);
+}, (req, res) => {
+    const token = jwt.sign(
+        {
+            id: req.user.id,
+            username: req.user.username,
+            avatar: req.user.avatar,
+            discriminator: req.user.discriminator,
+            global_name: req.user.global_name
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+
+    res.redirect(
+        `${process.env.REDIRECT_URL || process.env.FRONTEND_URL}/index.html?token=${token}`
+    );
+});
 
 // Middleware для проверки JWT
 const verifyToken = (req, res, next) => {
