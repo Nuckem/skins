@@ -426,6 +426,10 @@ app.get('/', (req, res) => {
 // ============================================================
 // START SERVER
 // ============================================================
+fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(data => console.log('OUTBOUND IP:', data.ip))
+    .catch(error => console.error('IP CHECK ERROR:', error));
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
