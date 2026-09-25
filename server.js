@@ -43,6 +43,27 @@ app.use(cors({
 // Сессии не нужны, инициализируем только Passport без них
 app.use(passport.initialize());
 
+console.log('=== OAUTH DEBUG ===');
+console.log('passport:', require('passport/package.json').version);
+console.log('passport-discord:', require('passport-discord/package.json').version);
+
+try {
+    console.log('passport-oauth2:', require('passport-oauth2/package.json').version);
+} catch (e) {
+    console.log('passport-oauth2: not found');
+}
+
+try {
+    console.log('oauth:', require('oauth/package.json').version);
+} catch (e) {
+    console.log('oauth: not found');
+}
+
+console.log('CLIENT_ID:', process.env.CLIENT_ID ? 'OK' : 'MISSING');
+console.log('CLIENT_SECRET:', process.env.CLIENT_SECRET ? 'OK' : 'MISSING');
+console.log('BACKEND_URL:', process.env.BACKEND_URL);
+console.log('===================');
+
 passport.use(new DiscordStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
