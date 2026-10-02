@@ -90,6 +90,7 @@ const DISCORD_API = 'https://discord.com/api';
 
 const callbackURL =
     `${process.env.BACKEND_URL}/auth/discord/callback`;
+console.log('OAUTH CALLBACK URL:', callbackURL);
 
 // ============================================================
 // START DISCORD LOGIN
