@@ -10,106 +10,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
 
-<!-- Скрипт авторизации через Discord и загрузки профиля -->
 <script>
-const BACKEND_URL = 'https://skins-production-b7f7.up.railway.app';
-
-window.addEventListener('DOMContentLoaded', async () => {
-    // Создаем временный экран загрузки, пока сервер на Render "просыпается"
-    const loader = document.createElement('div');
-    loader.id = 'auth-loader';
-    loader.style.cssText = 'position:fixed;inset:0;background:#0f172a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;z-index:99999;';
-    loader.innerHTML = `
-        <div style="width:40px;height:40px;border:4px solid rgba(59,130,246,0.2);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;"></div>
-        <div style="font-size:16px;font-weight:600;">Проверка авторизации...</div>
-        <div style="font-size:13px;color:#94a3b8;margin-top:6px;">Сервер на Render может просыпаться до 30 секунд</div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-    `;
-    document.documentElement.appendChild(loader);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = urlParams.get('token');
-
-    // Если бэкенд вернул токен в URL после успешного входа
-    if (tokenFromUrl) {
-        localStorage.setItem('discord_token', tokenFromUrl);
-        
-        // Достаем путь, куда пользователь хотел зайти изначально, или сбрасываем на текущий
-        const redirectPath = localStorage.getItem('auth_redirect_path') || window.location.pathname;
-        localStorage.removeItem('auth_redirect_path');
-        
-        // Возвращаем пользователя на нужную страницу (например, /skins/Genshin) без токена в URL
-        window.location.href = redirectPath;
-        return;
-    }
-
-    const token = localStorage.getItem('discord_token');
-
-    // Если токена нет нигде — сохраняем текущий адрес страницы и отправляем на Discord-авторизацию
-    if (!token) {
-        localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
-        window.location.href = `${BACKEND_URL}/auth/discord`;
-        return;
-    }
-
-    // Если токен есть — проверяем его валидность на бэкенде
-    try {
-        const response = await fetch(`${BACKEND_URL}/auth/check`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        const data = await response.json();
-        
-        // ЕСЛИ СЕРВЕР СКАЗАЛ, ЧТО АВТОРИЗАЦИЯ НЕ ПРОШЛА
-        if (!data.authenticated) {
-            localStorage.removeItem('discord_token');
-            localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
-            window.location.href = 'https://nuckem.github.io/skins/frontend/unauthorized.html';
-            return;
-        } else {
-            console.log('Авторизация успешна!', data.user);
-            
-            // Сохраняем данные пользователя для отрисовки профиля
-            window.__discordUser = data.user;
-            
-            // Отрисовываем профиль в шапке
-            initUserProfile();
-
-            // Показываем контент сайта
-            document.body.style.display = 'block'; 
-            loader.remove();
-        }
-    } catch (e) {
-        console.error('Ошибка связи с сервером авторизации', e);
-        window.location.href = 'https://nuckem.github.io/skins/frontend/unauthorized.html';
-    }
+window.addEventListener('DOMContentLoaded', () => {
+    document.body.style.display = 'block';
 });
-
-// Функция отрисовки профиля в шапке
-function initUserProfile(){
-    const user = window.__discordUser;
-    const avatarEl = document.getElementById('userAvatar');
-    const nameEl = document.getElementById('userName');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    if (user && avatarEl && nameEl) {
-        nameEl.textContent = user.global_name || user.username || 'Пользователь';
-        if (user.avatar) {
-            avatarEl.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
-        } else {
-            avatarEl.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
-        }
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('discord_token');
-            window.location.reload();
-        });
-    }
-}
 </script>
 
 <style>
@@ -976,7 +880,7 @@ footer{
 </style>
 </head>
 
-<body style="display: none;">
+<body>
 
 <header>
   <div class="header-top">
@@ -1024,15 +928,6 @@ footer{
     </div>
 
     <div class="controls-group">
-
-      <!-- Блок профиля пользователя -->
-      <div class="user-profile" id="userProfileWidget">
-        <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
-        <div class="user-info">
-          <span id="userName" class="user-name">Загрузка...</span>
-          <button id="logoutBtn" class="logout-btn" title="Выйти из аккаунта">Выйти</button>
-        </div>
-      </div>
 
       <div class="layout-switcher">
 
