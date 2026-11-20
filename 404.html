@@ -555,14 +555,13 @@ header{
   flex-direction:column;
   align-items:center;
   box-shadow:var(--shadow);
-  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  transition:box-shadow .2s ease,border-color .2s ease;
   position:relative;
   overflow:hidden;
   contain:content;
 }
 
 .card:hover{
-  transform:translateY(-4px);
   border-color:rgba(59,130,246,.4);
   box-shadow:0 12px 30px rgba(0,0,0,.55);
 }
@@ -586,7 +585,6 @@ header{
   justify-content:center;
   user-select:none;
   -webkit-user-select:none;
-  overscroll-behavior:contain;
 }
 
 .placeholder{
@@ -621,7 +619,6 @@ header{
   max-width:98%;
   max-height:98%;
   object-fit:contain;
-  transition:transform .2s ease;
 }
 
 .skin-flat-img{
@@ -645,11 +642,6 @@ header{
   width:100%!important;
   height:100%!important;
   display:none;
-}
-
-.card:hover .viewer-box img,
-.card:hover .viewer-box canvas{
-  transform:scale(1.04);
 }
 
 .card-info{
